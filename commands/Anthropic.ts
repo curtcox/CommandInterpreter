@@ -1,12 +1,28 @@
-function createRequestData(messages: any[]) : any {
-    return {
-      model: "claude-3-opus-20240229",
-      messages: messages,
-      max_tokens: 4096,
-    };
+export interface Options {
+    model: string;
+    max_tokens: number;
 }
 
-function createRequestOptions(apiKey: string, requestData: any) : any {
+export interface Message {
+    role: string;
+    content: string;
+}
+
+interface RequestData {
+    model: string;
+    messages: Message[];
+    max_tokens: number;
+}
+
+const createRequestData = (options: Options, messages: Message[]) => (
+    {
+      model: options.model,
+      messages: messages,
+      max_tokens: options.max_tokens,
+    }
+)
+
+function createRequestOptions(apiKey: string, requestData: RequestData) {
     return {
         method: "POST",
         headers: {
@@ -21,8 +37,8 @@ function createRequestOptions(apiKey: string, requestData: any) : any {
 const apiKey = Deno.env.get("ANTHROPIC_API_KEY") || "MISSING API KEY";
 const apiUrl = "https://api.anthropic.com/v1/messages";
 
-export async function send(messages: any[]) : Promise<any> {
-    const requestData = createRequestData(messages);
+export async function send(options: Options, messages: Message[]) : Promise<any> {
+    const requestData = createRequestData(options, messages);
     const requestOptions = createRequestOptions(apiKey, requestData);
 
     try {
