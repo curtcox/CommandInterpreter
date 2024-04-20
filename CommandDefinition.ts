@@ -15,11 +15,15 @@ export interface CommandResult {
   output: CommandData;
 }
 
-export interface CommandDefinition {
+export interface CommandMeta {
   name: string;
   doc: string;
   input_formats: string[];
   output_formats: string[];
+}
+
+export interface CommandDefinition {
+  meta: CommandMeta;
   func: (options: string, context: CommandContext) => Promise<CommandResult>;
 }
 

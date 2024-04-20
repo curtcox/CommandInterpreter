@@ -53,10 +53,12 @@ export function tail(text: string): string {
 
 export function def_from_simple(command: SimpleCommand): CommandDefinition {
     return {
-      name: command.name,
-      doc: command.doc,
-      input_formats: [command.input_format],
-      output_formats: [command.output_format],
+      meta: {
+        name: command.name,
+        doc: command.doc,
+        input_formats: [command.input_format],
+        output_formats: [command.output_format],
+      },
       func: async (options: string, context: CommandContext) => {
         const result = await command.func(options, context);
         return {

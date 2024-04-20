@@ -7,7 +7,7 @@ export const help_cmd: TextCommand = {
     const commands = context.commands;
     return promised(
       Object.values(commands)
-        .map((command) => `${command.name} : ${command.doc}`)
+        .map((command) => `${command.meta.name} : ${command.meta.doc}`)
         .join("\n"),
     );
   },

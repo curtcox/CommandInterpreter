@@ -14,5 +14,5 @@ const simple_commands = [
 ].map((cmd) => def_from_simple(cmd));
 
 export const commands: Record<string, CommandDefinition> = Object.fromEntries(
-  [...text_commands, ...simple_commands].map((cmd) => [cmd.name, cmd]),
+  [...text_commands, ...simple_commands].map((cmd) => [cmd.meta.name, cmd]),
 );
