@@ -1,6 +1,6 @@
 import { command_processor } from "./CommandProcessor.ts";
 import { commands } from "./Commands.ts";
-import { help } from "./CoreCommands.ts";
+import { help } from "./core_commands/CoreCommands.ts";
 import { log } from "./Logger.ts";
 
 const context = (format: string, content: string) => ({

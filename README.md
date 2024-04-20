@@ -1,5 +1,9 @@
 # CommandInterpreter
-A simple command interpreter
+A simple command interpreter.
+
+## A simple command interpreter like bash?
+- Agressively open source
+- Open execution
 
 ## Run
 ```bash

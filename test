@@ -1,0 +1,4 @@
+set -x
+
+deno test --allow-all *_test.ts
+deno test --allow-all core_commands/*_test.ts 

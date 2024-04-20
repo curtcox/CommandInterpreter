@@ -1,5 +1,5 @@
 import { send as claude } from "https://esm.town/v/curtcox/anthropic";
-import { CommandContext, CommandDefinition } from "./CommandDefinition.ts";
+import { CommandContext, CommandDefinition } from "../CommandDefinition.ts";
 import { send as gpt } from "https://esm.town/v/curtcox/openAI";
 import { email } from "https://esm.town/v/std/email";
 import { fetch } from "https://esm.town/v/std/fetch";
