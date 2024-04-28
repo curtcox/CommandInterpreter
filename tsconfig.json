@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
-      "lib": ["deno.ns", "dom", "dom.iterable", "esnext"]
+      "lib": ["deno.ns", "dom", "dom.iterable", "esnext"],
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
     }
 }

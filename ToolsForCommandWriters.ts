@@ -1,4 +1,4 @@
-import { CommandContext, CommandDefinition } from "./CommandDefinition.ts";
+import { CommandContext, CommandDefinition, CommandData } from "./CommandDefinition.ts";
 
 // A simplified version of CommandDefinition.
 // Assume no format choices and no command modification.
@@ -7,14 +7,14 @@ export interface SimpleCommand {
     doc: string;
     input_format: string;
     output_format: string;
-    func: (options: string, context: CommandContext) => Promise<string>;
+    func: (context: CommandContext, options: string) => Promise<string>;
   }
 
 // A simplified version of SimpleCommand. Assume text IO.
 export interface TextCommand {
     name: string;
     doc: string;
-    func: (options: string, context: CommandContext) => Promise<string>;
+    func: (context: CommandContext, options: string) => Promise<string>;
 }
 
 export function string_for(x: any) {
@@ -56,11 +56,13 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
       meta: {
         name: command.name,
         doc: command.doc,
+        args: [],
         input_formats: [command.input_format],
         output_formats: [command.output_format],
       },
-      func: async (options: string, context: CommandContext) => {
-        const result = await command.func(options, context);
+      func: async (context: CommandContext, data: CommandData) => {
+        const options = data.content;
+        const result = await command.func(context,options);
         return {
           commands: context.commands,
           output: {
@@ -81,4 +83,23 @@ export function def_from_text(command: TextCommand): CommandDefinition {
       func: command.func,
     };
     return def_from_simple(simple);
+}
+
+// Return a new set of commands with the new command added.
+// Replaces any existing command with the same name.
+export function use(command: CommandDefinition, commands: Record<string, CommandDefinition>) : Record<string, CommandDefinition> {
+    return {
+      ...commands,
+      [command.meta.name]: command,
+    };
+}
+
+// Invoke the named command using the supplied input rather than the context input.
+export const invoke_command = async (context: CommandContext, name: string, data: CommandData, input: CommandData) => {
+    const command = context.commands[name];
+    if (!command) {
+      throw new Error(`Command not found: ${name} in ${Object.keys(context.commands)}`);
+    }
+    const with_input: CommandContext = { commands: context.commands, previous: context.previous, input };
+    return await command.func(with_input, data);
 }

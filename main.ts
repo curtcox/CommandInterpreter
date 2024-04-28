@@ -23,7 +23,7 @@ const read_input = async () => {
 const input = await read_input();
 const input_format = format || "text";
 
-const result = await evaluate(input_format, input, commands, verbose);
+const result = await evaluate(input_format, input, commands);
 if (verbose) {
   log({commands, verbose, result});
 } else {

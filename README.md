@@ -5,7 +5,7 @@ A simple command interpreter.
 - Agressively open source
 - Open execution
 - Using commands should be easy
-- Making command should be easy
+- Making commands should be easy
 - It should run everywhere
 
 ## Run

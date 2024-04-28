@@ -1,1 +1,1 @@
-deno run run -c tsconfig.json --allow-all main.ts --commands="$1" $2 
+deno run -c tsconfig.json --allow-all main.ts --commands="$1" $2 

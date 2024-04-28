@@ -5,7 +5,7 @@ import { send } from "./OpenAI.ts";
 export const gpt_cmd: TextCommand = {
   name: "gpt",
   doc: "ask OpenAI ChatGPT",
-  func: async (text: string, _context: CommandContext) => {
+  func: async (_context: CommandContext, text: string) => {
     const messages = [
       {
         role: "user",
