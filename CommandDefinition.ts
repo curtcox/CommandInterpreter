@@ -31,16 +31,9 @@ export interface CommandResult {
 export interface CommandMeta {
   name: string;
   doc: string;
-  args: CommandArg[];
+  source: string;
   input_formats: string[];
   output_formats: string[];
-}
-
-export interface CommandArg {
-  name: string;
-  type: string;
-  required: boolean;
-  default_value: any;
 }
 
 /**

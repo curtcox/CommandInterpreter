@@ -42,8 +42,9 @@ Deno.test("Logged data can be read from the store", async () => {
     content: record,
   };
   const context = contextWithStore(store);
-  await invoke_command(context, "log", "", value);
-  const result = await invoke_command(context, STORE, "get log/42", {format: "", content: ""});
+  await invoke_command(context, "log", {format:"", content:""}, value);
+  const data = {format: "text", content: "get log/42"};
+  const result = await invoke_command(context, STORE, data, {format: "", content: ""});
   // console.log({result});
   assertEquals(result.output, value);
 });

@@ -18,6 +18,7 @@ function env(native: Native, code: string): string {
 export const env_cmd = (native:Native): TextCommand => ({
   name: "env",
   doc: "Get, set, or supply an environment variables.",
+  source: import.meta.url,
   func: (_context: CommandContext, options: string) => Promise.resolve(env(native,options))
 });
 

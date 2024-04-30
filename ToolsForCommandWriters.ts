@@ -5,6 +5,7 @@ import { CommandContext, CommandDefinition, CommandData } from "./CommandDefinit
 export interface SimpleCommand {
     name: string;
     doc: string;
+    source: string;
     input_format: string;
     output_format: string;
     func: (context: CommandContext, options: string) => Promise<string>;
@@ -14,6 +15,7 @@ export interface SimpleCommand {
 export interface TextCommand {
     name: string;
     doc: string;
+    source: string;
     func: (context: CommandContext, options: string) => Promise<string>;
 }
 
@@ -56,7 +58,7 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
       meta: {
         name: command.name,
         doc: command.doc,
-        args: [],
+        source: command.source,
         input_formats: [command.input_format],
         output_formats: [command.output_format],
       },
@@ -78,6 +80,7 @@ export function def_from_text(command: TextCommand): CommandDefinition {
     const simple = {
       name: command.name,
       doc: command.doc,
+      source: command.source,
       input_format: "text",
       output_format: "text",
       func: command.func,

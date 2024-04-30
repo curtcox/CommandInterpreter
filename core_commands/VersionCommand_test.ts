@@ -10,6 +10,7 @@ Deno.test("Version returns current version.", async () => {
     previous: nop_cmd,
     input: {format: "", content: ""},
   };
-  const result = await invoke_command(context, "version", "", {format: "", content: ""});
+  const data = {format: "", content: ""};
+  const result = await invoke_command(context, "version", data, {format: "", content: ""});
   assertEquals(result.output.content, "0.0.7");
 });

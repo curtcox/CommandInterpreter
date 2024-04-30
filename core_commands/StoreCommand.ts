@@ -18,7 +18,7 @@ function store(native: Native, context: CommandContext, code: string): any {
 const meta: CommandMeta = {
   name: "store",
   doc: "Store and retrieve values.",
-  args:[],
+  source: import.meta.url,
   input_formats: ["any"],
   output_formats: ["any"]
 }

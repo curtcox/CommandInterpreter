@@ -3,6 +3,7 @@ import { promised, TextCommand } from "../ToolsForCommandWriters.ts";
 export const help_cmd: TextCommand = {
   name: "help",
   doc: "Displays info about available commands.",
+  source: import.meta.url,
   func: (context, _options: string) => {
     const commands = context.commands;
     return promised(

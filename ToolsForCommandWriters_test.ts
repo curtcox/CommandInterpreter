@@ -36,7 +36,7 @@ Deno.test("def from simple produces expected command", () => {
 
 Deno.test("calling def from simple produces the expected result", async () => {
   const command = def_from_simple(dasher);
-  const result = await command.func(context, "Hello");
+  const result = await command.func(context, {format:"text", content:"Hello"});
   assertEquals(result, {
     commands: commands,
     output: {
@@ -65,7 +65,7 @@ Deno.test("def from text produces expected command", () => {
 
 Deno.test("calling def from text produces expected value", async () => {
   const command = def_from_text(coloner);
-  const result = await command.func(context, "Hello");
+  const result = await command.func(context, {format:"text", content:"Hello"});
   assertEquals(result, {
     commands: commands,
     output: {
@@ -79,7 +79,8 @@ Deno.test("Invoke command returns input from nop command", async () => {
   const ignored = {format: "", content: ""};
   const ctx = { commands: use(nop_cmd,commands), previous: nop_cmd, input: ignored };
   const input = {format: "text", content: "value"};
-  const result = await invoke_command(ctx, "nop", "", input);
+  const data = {format: "text", content: ""};
+  const result = await invoke_command(ctx, "nop", data, input);
   assertEquals(result.output, input);
 });
 
@@ -87,8 +88,9 @@ Deno.test("Invoke command throws a helpful exception when command not found.", a
   const ignored = {format: "", content: ""};
   const ctx = { commands: use(nop_cmd,commands), previous: nop_cmd, input: ignored };
   const input = {format: "text", content: "value"};
+  const data = {format: "text", content: ""};
   try {
-    await invoke_command(ctx, "nope", "", input);
+    await invoke_command(ctx, "nope", data, input);
     fail("Expected an exception.");
   } catch (e) {
     assertEquals(e.message, "Command not found: nope in nop");

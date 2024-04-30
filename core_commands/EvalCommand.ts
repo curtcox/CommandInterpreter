@@ -8,5 +8,6 @@ function safeEval(context: CommandContext, code: string) {
 export const eval_cmd: TextCommand = {
   name: "eval",
   doc: "Evaluate some code.",
+  source: import.meta.url,
   func: (context: CommandContext, arg: string) => simple(safeEval(context,arg))
 };

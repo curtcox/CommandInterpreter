@@ -2,7 +2,6 @@ import { assertEquals, fail } from "https://deno.land/std/assert/mod.ts";
 import { CommandContext } from "../CommandDefinition.ts";
 import { eval_cmd } from "./EvalCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
-import { a } from "../viewer/Html.ts";
 
 const emptyInput = {
   format: "",

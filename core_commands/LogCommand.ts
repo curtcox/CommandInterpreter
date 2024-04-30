@@ -7,7 +7,7 @@ import { invoke_command } from "../ToolsForCommandWriters.ts";
 const meta: CommandMeta = {
     name: LOG,
     doc: "Log command result",
-    args:[],
+    source: import.meta.url,
     input_formats: ["CommandRecord"],
     output_formats: ["any"]
 }

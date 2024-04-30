@@ -1,6 +1,4 @@
-import { CommandContext } from "../CommandDefinition.ts";
-import { FunctionCommand } from "../FunctionsAsCommands.ts";
-// import { parseArgs } from "../deps.ts";
+import { CommandContext, CommandDefinition } from "../CommandDefinition.ts";
 import { send } from "./Anthropic.ts";
 
 const messages = (prompt: string, content: string) => (
@@ -12,33 +10,32 @@ const messages = (prompt: string, content: string) => (
   ]
 );
 
-export const claude_cmd: FunctionCommand = {
-
+const meta = {
   name: "claude",
   doc: "Ask Anthropic Claude",
-  args: [
-    { name: "prompt", type: "string", required: true, default_value: "" },
-    { name: "model", type: "string", required: false, default_value: "claude-3-opus-20240229" },
-    { name: "max_tokens", type: "number", required: false, default_value: 4096 },
-  ],
-  
-  func: async (context: CommandContext, prompt: string, model: string, max_tokens: number) => {
+  source: import.meta.url,
+  input_formats: ["text"],
+  output_formats: ["text"],
+};
 
-    //const args = options.split(" ");
-    //let {model,max_tokens,prompt} = parseArgs(args);
-    
-    // if (!(model && max_tokens && prompt)) {
-    //   model = "claude-3-opus-20240229";
-    //   max_tokens = 4096;
-    //   prompt = options;
-    // }
+const func = async (context: CommandContext, options: any) => {
+  const model = "claude-3-opus-20240229";
+  const max_tokens = 4096;
 
-    const result = await send(
-      {model,max_tokens},
-      messages(prompt,context.input.content)
-    );
+  const result = await send(
+    {model,max_tokens},
+    messages(options.content,context.input.content)
+  );
 
-    return result.content[0].text;
-  },
+  return {
+    commands: context.commands,
+    output: {
+      format: "text",
+      content: result.content[0].text
+    }
+  };
+};
 
+export const claude_cmd: CommandDefinition = {
+    meta, func
 };

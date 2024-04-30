@@ -38,8 +38,10 @@ Deno.test("Set value can be obtained via get", async () => {
     content: "bar",
   };
   const context = contextWithStore(store);
-  await invoke_command(context, STORE, "set foo", value);
-  const result = await invoke_command(context, STORE, "get foo", {format: "", content: ""});
+  const set_foo = {format: "text", content: "set foo"};
+  await invoke_command(context, STORE, set_foo, value);
+  const get_foo = {format: "text", content: "get foo"};
+  const result = await invoke_command(context, STORE, get_foo, {format: "", content: ""});
   // console.log({result});
   assertEquals(result.output, value);
 });

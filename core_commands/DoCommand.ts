@@ -6,7 +6,7 @@ import { head, invoke_command, tail } from "../ToolsForCommandWriters.ts";
 const meta: CommandMeta = {
     name: DO,
     doc: "Execute a sequence of commands.",
-    args:[],
+    source: import.meta.url,
     input_formats: ["string"],
     output_formats: ["string"]
 }
@@ -67,7 +67,8 @@ const record_step = (context: CommandContext, step: CommandStep, result: Command
     const { command, options } = step;
     const record: CommandRecord = { id, command, options, context, result, duration };
     id += 1;
-    invoke_command(context,LOG,"",{ format: "CommandRecord", content: record });
+    const data = { format: "text", content: "" };
+    invoke_command(context,LOG,data,{ format: "CommandRecord", content: record });
 };
 
 export const do_cmd : CommandDefinition = {

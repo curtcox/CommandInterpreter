@@ -7,7 +7,7 @@ export const nop_cmd: CommandDefinition = {
     meta: {
       name: "nop",
       doc: "",
-      args: [],
+      source: import.meta.url,
       input_formats: [],
       output_formats: []
     },
