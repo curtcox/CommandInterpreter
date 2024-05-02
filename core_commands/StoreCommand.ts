@@ -1,9 +1,11 @@
 import { check } from "../Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../CommandDefinition.ts";
 import { head, tail } from "../ToolsForCommandWriters.ts";
+import { ensureDirSync } from "https://deno.land/std/fs/mod.ts";
+import { join, dirname } from "https://deno.land/std/path/mod.ts";
 
 function store(native: Native, context: CommandContext, code: string): any {
-  const arg = head(code);
+  const arg = check(head(code));
   const key = head(tail(code));
   if (arg === "get") {
     return native.get(key);
@@ -36,16 +38,43 @@ export interface Native {
   set: (key:string, value:any) => void;
 }
 
+export interface IO {
+  read: (value:string) => any;
+  write: (value:any) => string;
+}
+
 export function memory(): Native {
   const memory: Record<string, any> = {};
   return {
+    get: (key: string)             => { return memory[key]; },
+    set: (key: string, value: any) => { memory[key] = value; },
+  };
+}
+
+export function json_io(): IO {
+  return {
+    read: (value: string) => JSON.parse(value),
+    write: (value: any) => JSON.stringify(value),
+  };
+}
+
+export function filesystem(base: string, io: IO, extension: string): Native {
+  check(base);
+  check(io);
+  check(extension);
+  ensureDirSync(base);
+
+  function path(key: string): string {
+    return join(base, `${key}.${extension}`);
+  }
+
+  return {
     get: (key: string) => {
-      // console.log({key, memory});
-      return memory[key];
+      return io.read(Deno.readTextFileSync(path(key)));
     },
     set: (key: string, value: any) => {
-      // console.log({key, value, memory});
-      memory[key] = value;
+      Deno.mkdir(dirname(path(key)), { recursive: true});
+      Deno.writeTextFileSync(path(key), io.write(value));
     },
   };
 }

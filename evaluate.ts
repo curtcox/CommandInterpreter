@@ -3,7 +3,7 @@ import { DO, CommandDefinition } from "./CommandDefinition.ts";
 import { def_from_text } from "./ToolsForCommandWriters.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
-import { store_cmd, memory } from "./core_commands/StoreCommand.ts";
+import { store_cmd, memory, filesystem, json_io } from "./core_commands/StoreCommand.ts";
 
 const env:Map<string,string> = new Map();
 
@@ -12,7 +12,9 @@ const native_env = {
   set: (key:string, value:string) => env.set(key,value)
 }
 
-const native_store = memory();
+const memory_store = memory();
+const file_store = filesystem("store",json_io(),"json");
+const native_store = file_store;
 
 function combine(command: CommandDefinition[], commands: Record<string, CommandDefinition>) : Record<string, CommandDefinition> {
   const extra = command.map((cmd) => [cmd.meta.name, cmd]);
