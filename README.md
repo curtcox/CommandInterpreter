@@ -8,9 +8,14 @@ A simple command interpreter.
 - Making commands should be easy
 - It should run everywhere
 
-## Run
+## Run the CLI
 ```bash
- deno run --allow-all main.ts --commands="11 + 11"
+deno run --allow-all main.ts --commands="11 + 11"
+```
+
+## Run the browser
+```bash
+deno run --allow-net browser.ts
 ```
 
 ### Tests
