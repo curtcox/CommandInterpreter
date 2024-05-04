@@ -1,4 +1,4 @@
-import { CommandDefinition, CommandMeta, CommandRecord, CommandData, Duration } from "../CommandDefinition.ts";
+import { CommandDefinition, CommandMeta, CommandRecord, CommandData, Duration, PreciseTime } from "../CommandDefinition.ts";
 import { CommandContext, CommandResult } from "../CommandDefinition.ts";
 import { HELP, LOG, DO } from "../CommandDefinition.ts";
 import { head, invoke_command, tail } from "../ToolsForCommandWriters.ts";
@@ -11,11 +11,15 @@ const meta: CommandMeta = {
     output_formats: ["string"]
 }
 
+function now_now(): PreciseTime {
+    return { millis: Date.now(), micros: performance.now() };
+}
+
 const func = async (context: CommandContext, data: CommandData): Promise<CommandResult> => {
-    const start = performance.now();
+    const start = now_now();
     const options = data.content;
     const result = await process_entire_pipeline(context, options);
-    const end = performance.now();
+    const end = now_now();
     const step = { command: do_cmd, options };
     record_step(context, step, result, { start, end });
     return result;
@@ -48,9 +52,9 @@ const process_entire_pipeline = async (context: CommandContext, entire_command: 
     let output = null;
     for (const step of steps) {
         const command = parse_command_step(context, step);
-        const start = performance.now();
+        const start = now_now();
         const result = await execute_step(context, command);
-        const end = performance.now();
+        const end = now_now();
         record_step(context, command, result, { start, end });
         output = result;
         context = { commands: result.commands, previous: command.command, input: result.output };

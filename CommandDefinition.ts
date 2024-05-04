@@ -54,9 +54,14 @@ export interface CommandDefinition {
   func: (context: CommandContext, options: CommandData) => Promise<CommandResult>;
 }
 
+export interface PreciseTime {
+  millis: number;
+  micros: number;
+}
+
 export interface Duration {
-  start: number;
-  end: number;
+  start: PreciseTime;
+  end: PreciseTime;
 }
 
 /**
