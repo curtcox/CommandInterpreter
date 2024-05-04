@@ -17,21 +17,27 @@ function table(files: FileInfo[]): string {
     const command = record.command.meta.name;
     const output = record.result.output.content;
     const format = record.result.output.format;
-    htmlContent += `<tr><td>${name}</td><td>${command}</td><td>${output}</td><td>${format}</td></tr>`;
+    const record_link = `<a href="/log/${name}">${name}</a>`;
+    htmlContent += `<tr><td>${record_link}</td><td>${command}</td><td>${output}</td><td>${format}</td></tr>`;
   });
   htmlContent += '</table>';
   return htmlContent;
 }
 
+const logDir = './store/log';
+
+async function log_file_contents(name: string): Promise<CommandRecord> {
+  const filePath = `${logDir}/${name}`;
+  const file = await Deno.readTextFile(filePath);
+  const data = JSON.parse(file) as CommandData;
+  return data.content as CommandRecord;
+}
+
 async function logs(): Promise<FileInfo[]> {
   const files = [];
-  const dir = './store/log';
-  for await (const entry of Deno.readDir(dir)) {
+  for await (const entry of Deno.readDir(logDir)) {
     if (entry.isFile) {
-      const filePath = `${dir}/${entry.name}`;
-      const file = await Deno.readTextFile(filePath);
-      const data = JSON.parse(file) as CommandData;
-      const record = data.content as CommandRecord;
+      const record = await log_file_contents(entry.name);
       const id = entry.name.replace('.json', '');
       files.push({ id, record });
     }
@@ -42,6 +48,16 @@ async function logs(): Promise<FileInfo[]> {
 app.get('/', async (c) => {
   try {
     return c.html(table(await logs()));
+  } catch (error) {
+    console.error('Error:', error);
+    return c.text('Error: ' + error.message);
+  }
+})
+
+app.get('/log/:id', async (c) => {
+  try {
+    const { id } = c.req.param();
+    return c.json(await log_file_contents(`${id}.json`));
   } catch (error) {
     console.error('Error:', error);
     return c.text('Error: ' + error.message);
