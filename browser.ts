@@ -1,16 +1,23 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
+import { CommandData, CommandRecord } from './CommandDefinition.ts';
 
 const app = new Hono()
 
 interface FileInfo {
-  name: string;
-  start: string;
+  id: string;
+  record: CommandRecord;
 }
 
 function table(files: FileInfo[]): string {
-  let htmlContent = `<table border="1"><tr><th>Name</th><th>Start</th></tr>`;
+  let htmlContent = `<table border="1"><tr><th>ID</th><th>Command</th><th>Output</th><th>Format</th></tr>`;
   files.forEach(file => {
-    htmlContent += `<tr><td>${file.name}</td><td>${file.start}</td></tr>`;
+    console.log({file})
+    const name = file.id;
+    const record = file.record;
+    const command = record.command.meta.name;
+    const output = record.result.output.content;
+    const format = record.result.output.format;
+    htmlContent += `<tr><td>${name}</td><td>${command}</td><td>${output}</td><td>${format}</td></tr>`;
   });
   htmlContent += '</table>';
   return htmlContent;
@@ -23,8 +30,10 @@ async function logs(): Promise<FileInfo[]> {
     if (entry.isFile) {
       const filePath = `${dir}/${entry.name}`;
       const file = await Deno.readTextFile(filePath);
-      const first100Chars = file.substring(0, 100);
-      files.push({ name: entry.name, start: first100Chars });
+      const data = JSON.parse(file) as CommandData;
+      const record = data.content as CommandRecord;
+      const id = entry.name.replace('.json', '');
+      files.push({ id, record });
     }
   }
   return files;
