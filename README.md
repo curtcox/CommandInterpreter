@@ -15,7 +15,7 @@ deno run --allow-all main.ts --commands="11 + 11"
 
 ## Run the browser
 ```bash
-deno run --allow-net browser.ts
+deno run --allow-net --allow-read browser.ts
 ```
 
 ### Tests
