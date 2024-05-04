@@ -1,4 +1,4 @@
-import { Hono } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
+import { Hono, Context } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
 import { CommandData, CommandRecord } from './CommandDefinition.ts';
 import { a, tr, th, td, bordered } from './viewer/Html.ts';
 
@@ -44,7 +44,11 @@ async function logs(): Promise<FileInfo[]> {
   return files;
 }
 
-function trap(c,f) {
+async function log_for_id(id: string): Promise<CommandRecord> {
+  return await log_file_contents(`${id}.json`);
+}
+
+function trap(c: Context, f: (c: Context) => any) {
   try {
     return f();
   } catch (error) {
@@ -53,12 +57,23 @@ function trap(c,f) {
   }
 }
 
-async function log_for_id(id: string): Promise<CommandRecord> {
-  return await log_file_contents(`${id}.json`);
+const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, () => {
+  const result = f(c);
+  return Promise.resolve(result).then((response) => {
+    if (typeof response === 'string') {
+      return c.html(response);
+    } else {
+      return c.json(response);
+    }
+  });
+});
+
+const get = <T>(path:string, f: (c: Context) => Promise<T> ) => {
+  app.get(path, handle(f));
 }
 
-app.get('/',                async (c) => trap(c, async () => c.html(table(await logs()))))
-app.get('/log/:id',         async (c) => trap(c, async () => c.json(await log_for_id(c.req.param('id')))))
-app.get('/log/:id/command', async (c) => trap(c, async () => c.json((await log_for_id(c.req.param('id'))).command)))
+get('/',                async ()  => table(await logs()));
+get('/log/:id',         async (c) => await log_for_id(c.req.param('id')));
+get('/log/:id/command', async (c) => (await log_for_id(c.req.param('id'))).command);
 
 Deno.serve(app.fetch)
