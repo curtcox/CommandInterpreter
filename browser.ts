@@ -44,35 +44,21 @@ async function logs(): Promise<FileInfo[]> {
   return files;
 }
 
-app.get('/', async (c) => {
+function trap(c,f) {
   try {
-    return c.html(table(await logs()));
+    return f();
   } catch (error) {
     console.error('Error:', error);
     return c.text('Error: ' + error.message);
   }
-})
+}
 
-app.get('/log/:id', async (c) => {
-  try {
-    const { id } = c.req.param();
-    const record = await log_file_contents(`${id}.json`);
-    return c.json(record);
-  } catch (error) {
-    console.error('Error:', error);
-    return c.text('Error: ' + error.message);
-  }
-})
+async function log_for_id(id: string): Promise<CommandRecord> {
+  return await log_file_contents(`${id}.json`);
+}
 
-app.get('/log/:id/command', async (c) => {
-  try {
-    const { id } = c.req.param();
-    const record = await log_file_contents(`${id}.json`);
-    return c.json(record.command);
-  } catch (error) {
-    console.error('Error:', error);
-    return c.text('Error: ' + error.message);
-  }
-})
+app.get('/',                async (c) => trap(c, async () => c.html(table(await logs()))))
+app.get('/log/:id',         async (c) => trap(c, async () => c.json(await log_for_id(c.req.param('id')))))
+app.get('/log/:id/command', async (c) => trap(c, async () => c.json((await log_for_id(c.req.param('id'))).command)))
 
 Deno.serve(app.fetch)
