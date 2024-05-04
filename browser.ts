@@ -12,12 +12,12 @@ interface FileInfo {
 function table(files: FileInfo[]): string {
   let rows = '';
   files.forEach(file => {
-    const name = file.id;
+    const id = file.id;
     const record = file.record;
     const command = record.command.meta.name;
     const options = record.options;
     const output = record.result.output;
-    rows += tr(td(a(`/log/${name}`,name)),td(command),td(options),td(output.content),td(output.format));
+    rows += tr(td(a(`/log/${id}`,id)),td(a(`/log/${id}/command`,command)),td(options),td(output.content),td(output.format));
   });
   const header = tr(th('ID'),th('Command'),th('Options'),th('Output'),th('Format'));
   return bordered(header, rows);
@@ -56,7 +56,19 @@ app.get('/', async (c) => {
 app.get('/log/:id', async (c) => {
   try {
     const { id } = c.req.param();
-    return c.json(await log_file_contents(`${id}.json`));
+    const record = await log_file_contents(`${id}.json`);
+    return c.json(record);
+  } catch (error) {
+    console.error('Error:', error);
+    return c.text('Error: ' + error.message);
+  }
+})
+
+app.get('/log/:id/command', async (c) => {
+  try {
+    const { id } = c.req.param();
+    const record = await log_file_contents(`${id}.json`);
+    return c.json(record.command);
   } catch (error) {
     console.error('Error:', error);
     return c.text('Error: ' + error.message);
