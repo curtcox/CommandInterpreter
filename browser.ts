@@ -1,5 +1,6 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
 import { CommandData, CommandRecord } from './CommandDefinition.ts';
+import { a, tr, th, td, bordered } from './viewer/Html.ts';
 
 const app = new Hono()
 
@@ -9,19 +10,17 @@ interface FileInfo {
 }
 
 function table(files: FileInfo[]): string {
-  let htmlContent = `<table border="1"><tr><th>ID</th><th>Command</th><th>Output</th><th>Format</th></tr>`;
+  let rows = '';
   files.forEach(file => {
-    console.log({file})
     const name = file.id;
     const record = file.record;
     const command = record.command.meta.name;
-    const output = record.result.output.content;
-    const format = record.result.output.format;
-    const record_link = `<a href="/log/${name}">${name}</a>`;
-    htmlContent += `<tr><td>${record_link}</td><td>${command}</td><td>${output}</td><td>${format}</td></tr>`;
+    const options = record.options;
+    const output = record.result.output;
+    rows += tr(td(a(`/log/${name}`,name)),td(command),td(options),td(output.content),td(output.format));
   });
-  htmlContent += '</table>';
-  return htmlContent;
+  const header = tr(th('ID'),th('Command'),th('Options'),th('Output'),th('Format'));
+  return bordered(header, rows);
 }
 
 const logDir = './store/log';
