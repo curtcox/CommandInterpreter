@@ -1,4 +1,4 @@
-import { CommandContext, CommandDefinition } from "../CommandDefinition.ts";
+import { CommandContext, CommandDefinition, CommandData } from "../CommandDefinition.ts";
 import { send } from "./Anthropic.ts";
 
 const messages = (prompt: string, content: string) => (
@@ -18,7 +18,7 @@ const meta = {
   output_formats: ["text"],
 };
 
-const func = async (context: CommandContext, options: any) => {
+const func = async (context: CommandContext, options: CommandData) => {
   const model = "claude-3-opus-20240229";
   const max_tokens = 4096;
 

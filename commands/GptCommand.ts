@@ -1,4 +1,4 @@
-import { CommandContext, CommandDefinition } from "../CommandDefinition.ts";
+import { CommandContext, CommandDefinition, CommandData } from "../CommandDefinition.ts";
 import { send } from "./OpenAI.ts";
 
 const messages = (prompt: string, content: string) => [
@@ -16,7 +16,7 @@ const meta = {
   output_formats: ["text"],
 };
 
-const func = async (context: CommandContext, options: any) => {
+const func = async (context: CommandContext, options: CommandData) => {
 
   const result = await send(messages(options.content,context.input.content));
 
