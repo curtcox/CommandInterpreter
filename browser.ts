@@ -68,9 +68,7 @@ const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, ()
   });
 });
 
-const get = <T>(path:string, f: (c: Context) => Promise<T> ) => {
-  app.get(path, handle(f));
-}
+const get = <T>(path:string, f: (c: Context) => Promise<T> ) => app.get(path, handle(f));
 
 get('/',                async ()  => table(await logs()));
 get('/log/:id',         async (c) => await log_for_id(c.req.param('id')));
