@@ -2,6 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandData, CommandDefinition } from "../CommandDefinition.ts";
 import { define_cmd } from "./DefineCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
+import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";
 
 const empty_commands: Record<string, CommandDefinition> = {};
 const empty_data: CommandData = {
@@ -34,12 +35,17 @@ const input = (data: CommandData) => ({
 })
 
 const javascript = (content: string) => ({
-  format: "text/javascript",
+  format: "application/javascript",
   content: content
 });
 
 const typescript = (content: string) => ({
-  format: "text/typescript",
+  format: "application/typescript",
+  content: content
+});
+
+const url = (content: string) => ({
+  format: "URL",
   content: content
 });
 
@@ -124,6 +130,31 @@ Deno.test("define function from full TypeScript definition", async () => {
   const result2 = await nop.func(input(data2), empty_data);
   assertEquals(result2.output, data2);
 });
+
+Deno.test("define function from full TypeScript URL", async () => {
+  const defined = await define_cmd.func(empty_context, url("https://esm.town/v/curtcox/EmailCommand"));
+  const out = defined.output.content.meta;
+  assertEquals(out.name, "email");
+  assertEquals(out.input_formats, ["EmailOptions"]);
+  assertEquals(out.output_formats, ["text"]);
+
+  const commands = defined.commands;
+  const email = commands["email"];
+  const meta = email.meta;
+  assertEquals(meta.name, "email");
+  assertEquals(meta.doc, "send an email");
+  assertEquals(meta.input_formats, ["EmailOptions"]);
+  assertEquals(meta.output_formats, ["text"]);
+
+  const message = {format: "EmailOptions", content: {subject:"Hello", text:"There"}};
+  try {
+    await email.func(input(message), message);
+    fail("should have thrown an error");
+  } catch (error) {
+    assertEquals(error.message, "Val Town Email Error: Unauthorized");
+  }
+});
+
 
 
 // Deno.test("define function from options using arrow function", async () => {
