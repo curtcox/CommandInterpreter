@@ -39,7 +39,7 @@ export function head(text: string): string {
     if (!words.length) {
       return "";
     }
-    return words[0].toLowerCase().trim();
+    return words[0].trim();
 }
 
 export function tail(text: string): string {

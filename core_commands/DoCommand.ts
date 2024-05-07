@@ -37,7 +37,7 @@ interface CommandStep {
 }
 
 function parse_command_step(context: CommandContext, single_command: string): CommandStep {
-    const name = head(single_command);
+    const name = head(single_command).toLowerCase();
     const options = tail(single_command);
     const command = context.commands[name] || context.commands[HELP];
     return { command, options };
