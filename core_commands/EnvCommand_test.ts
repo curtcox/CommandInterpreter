@@ -16,16 +16,22 @@ const contextWithEnv = (env: CommandDefinition) : CommandContext => ({
   input: emptyInput,
 });
 
-Deno.test("Set value can be obtained via get", async () => {
+Deno.test("Set value can be obtained via get using command", async () => {
   const env = def_from_text(env_cmd(memory()));
-  const value: CommandData = {
-    format: "jazzy",
-    content: "bar",
-  };
   const context = contextWithEnv(env);
-  const set_foo = {format: "text", content: "set foo"};
-  await invoke(context, ENV, set_foo, value);
+  const set_foo = {format: "text", content: "set foo bar"};
+  await invoke(context, ENV, set_foo);
   const get_foo = {format: "text", content: "get foo"};
   const result = await invoke(context, ENV, get_foo);
-  assertEquals(result.output, value);
+  assertEquals(result.output.content, "bar");
+});
+
+Deno.test("Set value can be obtained via get using function", async () => {
+  const env = def_from_text(env_cmd(memory()));
+  const context = contextWithEnv(env);
+  const set_foo = {format: "text", content: "set foo baz"};
+  await invoke(context, ENV, set_foo);
+  const get_foo = {format: "text", content: "get foo"};
+  const result = await invoke(context, ENV, get_foo);
+  assertEquals(result.output.content, "baz");
 });
