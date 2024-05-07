@@ -1,6 +1,6 @@
 import { check } from "../Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../CommandDefinition.ts";
-import { head, tail, invoke_with_input } from "../ToolsForCommandWriters.ts";
+import { head, tail, invoke, invoke_with_input } from "../ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std/path/mod.ts";
 
@@ -90,4 +90,11 @@ export const set = (context: CommandContext, name: string, data: CommandData): v
   check(name);
   check(data);
   invoke_with_input(context,"store", { format: "string", content: `set ${name}`}, data);
+};
+
+// Convenience function for getting a store value.
+export const get = async (context: CommandContext, name: string): Promise<CommandData> => {
+  check(name);
+  const result = await invoke(context,"store", { format: "string", content: `set ${name}`});
+  return result.output;
 };

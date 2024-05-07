@@ -1,7 +1,8 @@
 import { CommandDefinition, CommandMeta, CommandRecord, CommandData, Duration, PreciseTime } from "../CommandDefinition.ts";
 import { CommandContext, CommandResult } from "../CommandDefinition.ts";
-import { HELP, LOG, DO } from "../CommandDefinition.ts";
-import { head, invoke, invoke_with_input, tail } from "../ToolsForCommandWriters.ts";
+import { HELP, DO } from "../CommandDefinition.ts";
+import { head, invoke, tail } from "../ToolsForCommandWriters.ts";
+import { log } from "./LogCommand.ts";
 
 const meta: CommandMeta = {
     name: DO,
@@ -36,9 +37,9 @@ interface CommandStep {
     options: string;
 }
 
-function parse_command_step(context: CommandContext, single_command: string): CommandStep {
-    const name = head(single_command).toLowerCase();
-    const options = tail(single_command);
+function parse_command_step(context: CommandContext, step_text: string): CommandStep {
+    const name = head(step_text).toLowerCase();
+    const options = tail(step_text);
     const command = context.commands[name] || context.commands[HELP];
     return { command, options };
 }
@@ -71,8 +72,7 @@ const record_step = (context: CommandContext, step: CommandStep, result: Command
     const { command, options } = step;
     const record: CommandRecord = { id, command, options, context, result, duration };
     id += 1;
-    const data = { format: "text", content: "" };
-    invoke_with_input(context,LOG,data,{ format: "CommandRecord", content: record });
+    log(context, record);
 };
 
 export const do_cmd : CommandDefinition = {

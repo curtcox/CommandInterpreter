@@ -3,6 +3,7 @@ import { CommandDefinition, CommandMeta, CommandRecord, CommandData } from "../C
 import { CommandContext, CommandResult } from "../CommandDefinition.ts";
 import { LOG } from "../CommandDefinition.ts";
 import { set } from "./StoreCommand.ts";
+import { invoke_with_input } from "../ToolsForCommandWriters.ts";
 
 const meta: CommandMeta = {
     name: LOG,
@@ -33,3 +34,8 @@ const func = (context: CommandContext, _options: CommandData): Promise<CommandRe
 export const log_cmd : CommandDefinition = {
     meta, func
 };
+
+export const log = async (context: CommandContext, record: CommandRecord) => {
+    const data = { format: "text", content: "" };
+    invoke_with_input(context,LOG,data,{ format: "CommandRecord", content: record });
+}
