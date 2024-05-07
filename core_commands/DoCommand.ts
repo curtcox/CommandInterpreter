@@ -1,7 +1,7 @@
 import { CommandDefinition, CommandMeta, CommandRecord, CommandData, Duration, PreciseTime } from "../CommandDefinition.ts";
 import { CommandContext, CommandResult } from "../CommandDefinition.ts";
 import { HELP, LOG, DO } from "../CommandDefinition.ts";
-import { head, invoke_with_input, tail } from "../ToolsForCommandWriters.ts";
+import { head, invoke, invoke_with_input, tail } from "../ToolsForCommandWriters.ts";
 
 const meta: CommandMeta = {
     name: DO,
@@ -77,4 +77,8 @@ const record_step = (context: CommandContext, step: CommandStep, result: Command
 
 export const do_cmd : CommandDefinition = {
     meta, func
+};
+
+export const run = (context: CommandContext, expression: string): Promise<CommandResult> => {
+    return invoke(context, 'do', {format: "text", content: expression});
 };

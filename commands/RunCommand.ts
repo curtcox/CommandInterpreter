@@ -13,8 +13,6 @@ function replace_all(command: string, replacements: Record<string, string>) : st
     return result;
 }
 
-
-
 function command_with_replacements(context: CommandContext, options: CommandData) {
     const command = check(options.content);
     const input = context.input.content || "";
@@ -38,7 +36,7 @@ async function run(command: string) : Promise<Result> {
 
 const meta = {
     name: "run",
-    doc: "Run a command.",
+    doc: "Run a command from the underlying system.",
     source: import.meta.url,
     input_formats: ["text"],
     output_formats: ["text"],
