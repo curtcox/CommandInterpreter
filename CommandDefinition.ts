@@ -7,6 +7,7 @@ export const DO = "do";
 export const IO = "io";
 export const LOG = "log";
 export const STORE = "store";
+export const ENV = "env";
 
 export interface CommandData {
   format: string;

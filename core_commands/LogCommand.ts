@@ -1,8 +1,8 @@
 import { check } from "../Check.ts";
 import { CommandDefinition, CommandMeta, CommandRecord, CommandData } from "../CommandDefinition.ts";
 import { CommandContext, CommandResult } from "../CommandDefinition.ts";
-import { LOG, STORE } from "../CommandDefinition.ts";
-import { invoke_command } from "../ToolsForCommandWriters.ts";
+import { LOG } from "../CommandDefinition.ts";
+import { set } from "./StoreCommand.ts";
 
 const meta: CommandMeta = {
     name: LOG,
@@ -21,9 +21,7 @@ const result = (record: CommandRecord): CommandResult => {
 
 const save_record = (context: CommandContext, record: CommandRecord): void => {
     check(record);
-    invoke_command(context,STORE,
-        { format: "string", content: `set log/${record.id}`},
-        { format: "CommandRecord", content: record });
+    set(context,`log/${record.id}`, { format: "CommandRecord", content: record });
 };
 
 const func = (context: CommandContext, _options: CommandData): Promise<CommandResult> => {

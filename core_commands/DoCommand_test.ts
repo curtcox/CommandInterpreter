@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext } from "../CommandDefinition.ts";
-import { invoke_command, def_from_text } from "../ToolsForCommandWriters.ts";
+import { invoke, def_from_text } from "../ToolsForCommandWriters.ts";
 import { version_cmd } from "./VersionCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { do_cmd } from "./DoCommand.ts";
@@ -23,8 +23,7 @@ Deno.test("do version returns current version.", async () => {
     previous: nop_cmd,
     input: {format: "", content: ""},
   };
-  const ignore = {format: "", content: ""}
-  const result = await invoke_command(context, "do", {format:"text", content:"version"}, ignore);
+  const result = await invoke(context, "do", {format:"text", content:"version"});
   assertEquals(result.output.content, "0.0.7");
 });
 
@@ -45,7 +44,6 @@ Deno.test("do version piped thu nop is still version", async () => {
     previous: nop_cmd,
     input: {format: "", content: ""},
   };
-  const ignore = {format: "", content: ""}
-  const result = await invoke_command(context, "do", {format:"text", content:"version | nop"}, ignore);
+  const result = await invoke(context, "do", {format:"text", content:"version | nop"});
   assertEquals(result.output.content, "0.0.7");
 });

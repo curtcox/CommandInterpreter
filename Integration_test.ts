@@ -1,5 +1,5 @@
 import { assertEquals, fail } from "https://deno.land/std/assert/mod.ts";
-import { def_from_text, def_from_simple, SimpleCommand, TextCommand, use, invoke_command } from "./ToolsForCommandWriters.ts";
+import { def_from_text, def_from_simple, SimpleCommand, TextCommand, use, invoke_with_input } from "./ToolsForCommandWriters.ts";
 import { CommandContext } from "./CommandDefinition.ts";
 import { CommandDefinition } from "./CommandDefinition.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";

@@ -97,12 +97,17 @@ export function use(command: CommandDefinition, commands: Record<string, Command
     };
 }
 
+// Invoke the named command using the supplied context.
+export const invoke = async (context: CommandContext, name: string, options: CommandData) => {
+  const command = context.commands[name];
+  if (!command) {
+    throw new Error(`Command not found: ${name} in ${Object.keys(context.commands)}`);
+  }
+  return await command.func(context, options);
+}
+
 // Invoke the named command using the supplied input rather than the context input.
-export const invoke_command = async (context: CommandContext, name: string, data: CommandData, input: CommandData) => {
-    const command = context.commands[name];
-    if (!command) {
-      throw new Error(`Command not found: ${name} in ${Object.keys(context.commands)}`);
-    }
+export const invoke_with_input = async (context: CommandContext, name: string, options: CommandData, input: CommandData) => {
     const with_input: CommandContext = { commands: context.commands, previous: context.previous, input };
-    return await command.func(with_input, data);
+    return await invoke(with_input, name, options);
 }

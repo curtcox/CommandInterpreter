@@ -1,9 +1,12 @@
 import { check } from "../Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../CommandDefinition.ts";
-import { head, tail } from "../ToolsForCommandWriters.ts";
+import { head, tail, invoke_with_input } from "../ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std/path/mod.ts";
 
+/**
+ * Think filesystem. 
+ */
 function store(native: Native, context: CommandContext, code: string): any {
   const arg = check(head(code));
   const key = head(tail(code));
@@ -38,6 +41,9 @@ export interface Native {
   set: (key:string, value:any) => void;
 }
 
+/**
+ * Translates between strings and objects.
+ */
 export interface IO {
   read: (value:string) => any;
   write: (value:any) => string;
@@ -78,3 +84,10 @@ export function filesystem(base: string, io: IO, extension: string): Native {
     },
   };
 }
+
+// Convenience function for setting a store value.
+export const set = (context: CommandContext, name: string, data: CommandData): void => {
+  check(name);
+  check(data);
+  invoke_with_input(context,"store", { format: "string", content: `set ${name}`}, data);
+};

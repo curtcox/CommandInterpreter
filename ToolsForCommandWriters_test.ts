@@ -1,5 +1,5 @@
 import { assertEquals, fail } from "https://deno.land/std/assert/mod.ts";
-import { def_from_text, def_from_simple, SimpleCommand, TextCommand, use, invoke_command } from "./ToolsForCommandWriters.ts";
+import { def_from_text, def_from_simple, SimpleCommand, TextCommand, use, invoke_with_input } from "./ToolsForCommandWriters.ts";
 import { CommandContext } from "./CommandDefinition.ts";
 import { CommandDefinition } from "./CommandDefinition.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
@@ -80,7 +80,7 @@ Deno.test("Invoke command returns input from nop command", async () => {
   const ctx = { commands: use(nop_cmd,commands), previous: nop_cmd, input: ignored };
   const input = {format: "text", content: "value"};
   const data = {format: "text", content: ""};
-  const result = await invoke_command(ctx, "nop", data, input);
+  const result = await invoke_with_input(ctx, "nop", data, input);
   assertEquals(result.output, input);
 });
 
@@ -90,7 +90,7 @@ Deno.test("Invoke command throws a helpful exception when command not found.", a
   const input = {format: "text", content: "value"};
   const data = {format: "text", content: ""};
   try {
-    await invoke_command(ctx, "nope", data, input);
+    await invoke_with_input(ctx, "nope", data, input);
     fail("Expected an exception.");
   } catch (e) {
     assertEquals(e.message, "Command not found: nope in nop");

@@ -1,4 +1,4 @@
-import { CommandContext, CommandDefinition } from "../CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition } from "../CommandDefinition.ts";
 import { check } from "../Check.ts";
 
 function replace_all(command: string, replacements: Record<string, string>) : string {
@@ -13,10 +13,12 @@ function replace_all(command: string, replacements: Record<string, string>) : st
     return result;
 }
 
-function command_with_replacements(context: CommandContext, options: any) {
+
+
+function command_with_replacements(context: CommandContext, options: CommandData) {
     const command = check(options.content);
-    const input = check(context.input.content);
-    const format = check(context.input.format);
+    const input = context.input.content || "";
+    const format = context.input.format || "";
     const replacements = {
         "${input}": input,
         "${format}": format,
@@ -42,7 +44,7 @@ const meta = {
     output_formats: ["text"],
 };
 
-const func = async (context: CommandContext, options: any) => {
+const func = async (context: CommandContext, options: CommandData) => {
     return {
         commands: context.commands,
         output: {

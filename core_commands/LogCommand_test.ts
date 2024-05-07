@@ -1,9 +1,9 @@
-import { assertEquals } from "https://deno.land/std/assert/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandRecord } from "../CommandDefinition.ts";
-import { Native, store_cmd } from "./StoreCommand.ts";
+import { store_cmd, memory } from "./StoreCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { log_cmd } from "./LogCommand.ts";
-import { invoke_command } from "../ToolsForCommandWriters.ts";
+import { invoke, invoke_with_input } from "../ToolsForCommandWriters.ts";
 import { STORE } from "../CommandDefinition.ts";
 
 const contextWithStore = (store: CommandDefinition) : CommandContext => ({
@@ -12,39 +12,26 @@ const contextWithStore = (store: CommandDefinition) : CommandContext => ({
   input: {format: "", content: ""},
 });
 
-function newMemory(): Native {
-  const memory: Record<string, any> = {};
-  return {
-    get: (key: string) => {
-      // console.log({key, memory});
-      return memory[key];
-    },
-    set: (key: string, value: any) => {
-      // console.log({key, value, memory});
-      memory[key] = value;
-    },
-  };
-}
 
 Deno.test("Logged data can be read from the store", async () => {
-  const memory = newMemory();
-  const store = store_cmd(memory);
+  const store = store_cmd(memory());
   const record: CommandRecord = {
     id: 42,
     command: nop_cmd,
     options: "Hey!!! It's a NOP!!!",
     context: {commands: {}, previous: nop_cmd, input: {format: "", content: ""}},
     result: {commands: {}, output: {format: "jazzy", content: "bar"}},
-    duration: {start: 10, end: 20},
+    duration: {start: { millis: 10, micros: 11}, end: {millis: 20, micros: 21}},
   };
   const value: CommandData = {
     format: "CommandRecord",
     content: record,
   };
   const context = contextWithStore(store);
-  await invoke_command(context, "log", {format:"", content:""}, value);
+  const options = {format: "", content: ""};
+  await invoke_with_input(context, "log", options, value);
   const data = {format: "text", content: "get log/42"};
-  const result = await invoke_command(context, STORE, data, {format: "", content: ""});
+  const result = await invoke(context, STORE, data);
   // console.log({result});
   assertEquals(result.output, value);
 });
