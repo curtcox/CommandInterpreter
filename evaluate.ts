@@ -1,9 +1,10 @@
 import { commands } from "./Commands.ts";
-import { DO, CommandDefinition } from "./CommandDefinition.ts";
+import { DO, CommandDefinition, CommandResult } from "./CommandDefinition.ts";
 import { def_from_text } from "./ToolsForCommandWriters.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
 import { store_cmd, memory, filesystem, json_io } from "./core_commands/StoreCommand.ts";
+import { invoke } from "./ToolsForCommandWriters.ts";
 
 const env:Map<string,string> = new Map();
 
@@ -33,10 +34,8 @@ const context = (format: string, content: string) => ({
     input: { format: format, content: content }
 });
 
-const evaluate = (format: string, content: string, expression: string): any => {
-  const ctx = context(format,content);
-  const cmd = ctx.commands[DO];
-  return cmd.func(ctx, {format: "text", content: expression});
+const evaluate = (format: string, content: string, expression: string): Promise<CommandResult> => {
+  return invoke(context(format,content), DO, {format: "text", content: expression});
 };
   
 export default evaluate;
