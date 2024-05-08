@@ -10,8 +10,6 @@ const meta = {
     name: "define",
     doc: "define a command",
     source: import.meta.url,
-    input_formats: [url,javascript,typescript],
-    output_formats: [definition],
 };
 
 async function define_from_module(module:any): Promise<CommandDefinition> {
@@ -58,7 +56,6 @@ const func = async (context: CommandContext, data: CommandData) => {
         }
     );
 }
-
 
 export const define_cmd: CommandDefinition = {
     meta, func

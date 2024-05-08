@@ -18,8 +18,6 @@ const context: CommandContext = {
 const dasher: SimpleCommand = {
   name: "dasher",
   doc: "put in a dash",
-  input_format: "text",
-  output_format: "text",
   func: async (context: CommandContext, options: string) => {
     return `${options}-${context.input.content}`;
   }
@@ -30,8 +28,6 @@ Deno.test("def from simple produces expected command", () => {
   const meta = command.meta;
   assertEquals(meta.name, "dasher");
   assertEquals(meta.doc, "put in a dash");
-  assertEquals(meta.input_formats, ["text"]);
-  assertEquals(meta.output_formats, ["text"]);
 });
 
 Deno.test("calling def from simple produces the expected result", async () => {
@@ -59,8 +55,6 @@ Deno.test("def from text produces expected command", () => {
   const meta = command.meta;
   assertEquals(meta.name, "coloner");
   assertEquals(meta.doc, "put in a colon");
-  assertEquals(meta.input_formats, ["text"]);
-  assertEquals(meta.output_formats, ["text"]);
 });
 
 Deno.test("calling def from text produces expected value", async () => {

@@ -38,8 +38,6 @@ const meta = {
     name: "run",
     doc: "Run a command from the underlying system.",
     source: import.meta.url,
-    input_formats: ["text"],
-    output_formats: ["text"],
 };
 
 const func = async (context: CommandContext, options: CommandData) => {

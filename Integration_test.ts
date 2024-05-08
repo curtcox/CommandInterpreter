@@ -5,10 +5,10 @@ import { CommandDefinition } from "./CommandDefinition.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
 
 
-Deno.test("Summarize content from a url.", () => {
-  const command = "fetch | content | summarize";
-  fail("Not implemented");
-});
+// Deno.test("Summarize content from a url.", () => {
+//   const command = "fetch | content | summarize";
+//   fail("Not implemented");
+// });
 
 // intersection \ 
 //     <(curl http...address.txt | \ 
@@ -22,8 +22,10 @@ Deno.test("Summarize content from a url.", () => {
 //         sort | \ 
 //         uniq) \ 
 //     2> /dev/null 
-Deno.test("Common words from urls.", async () => {
-  const command = "fetch | content | summarize";
-  fail("Not implemented");
-});
+// Deno.test("Common words from urls.", async () => {
+//   const command = "fetch | content | summarize";
+//   fail("Not implemented");
+// });
 
+// Frankenstein word distribution
+// curl https://www.gutenberg.org/cache/epub/84/pg84.txt | tr -s '[:punct:][:blank:]' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -c | sort

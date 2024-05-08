@@ -1,6 +1,6 @@
-import { promised, TextCommand } from "../ToolsForCommandWriters.ts";
+import { promised, SimpleCommand } from "../ToolsForCommandWriters.ts";
 
-export const version_cmd: TextCommand = {
+export const version_cmd: SimpleCommand = {
   name: "version",
   doc: "version info",
   source: import.meta.url,

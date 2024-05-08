@@ -14,8 +14,6 @@ const meta: CommandMeta = {
   name: "fetch",
   source: import.meta.url,
   doc: "fetch from a given URL like say https://api64.ipify.org?format=json",
-  input_formats: ["FetchOptions"],
-  output_formats: ["JSON","Object"]
 }
 
 export interface FetchOptions {

@@ -38,8 +38,6 @@ Deno.test("function command meta has function info", () => {
   const meta = command.meta;
   assertEquals(meta.name, "duper");
   assertEquals(meta.doc, "make duplicates");
-  assertEquals(meta.input_formats, ["text"]);
-  assertEquals(meta.output_formats, ["text"]);
 });
 
 Deno.test("function command can be invoked with all args", async () => {

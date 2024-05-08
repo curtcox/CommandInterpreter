@@ -48,8 +48,6 @@ function command_meta(functionMeta: FunctionMeta, args: CommandArg[]) : CommandM
     name: functionMeta.name,
     doc: functionMeta.name,
     args: args,
-    input_formats: ["text"],
-    output_formats: ["text"]
   };
 }
 

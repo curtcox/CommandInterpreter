@@ -1,6 +1,6 @@
 import { commands } from "./Commands.ts";
 import { CommandDefinition, CommandResult } from "./CommandDefinition.ts";
-import { def_from_text } from "./ToolsForCommandWriters.ts";
+import { def_from_simple } from "./ToolsForCommandWriters.ts";
 import { run } from "./core_commands/DoCommand.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
@@ -27,7 +27,7 @@ function combine(command: CommandDefinition[], commands: Record<string, CommandD
 
 const context = (format: string, content: string) => ({
     commands: combine([
-      def_from_text(env_cmd(native_env)),
+      def_from_simple(env_cmd(native_env)),
       store_cmd(native_store),
     ], commands),
     previous: nop_cmd,

@@ -1,23 +1,13 @@
 import { CommandContext, CommandDefinition, CommandData } from "./CommandDefinition.ts";
 
 // A simplified version of CommandDefinition.
-// Assume no format choices and no command modification.
+// Assume no command modification.
 export interface SimpleCommand {
     name: string;
     doc: string;
     source: string;
-    input_format: string;
-    output_format: string;
     func: (context: CommandContext, options: string) => Promise<string>;
   }
-
-// A simplified version of SimpleCommand. Assume text IO.
-export interface TextCommand {
-    name: string;
-    doc: string;
-    source: string;
-    func: (context: CommandContext, options: string) => Promise<string>;
-}
 
 export function string_for(x: any) {
    return JSON.stringify(x);
@@ -59,8 +49,6 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
         name: command.name,
         doc: command.doc,
         source: command.source,
-        input_formats: [command.input_format],
-        output_formats: [command.output_format],
       },
       func: async (context: CommandContext, data: CommandData) => {
         const options = data.content;
@@ -68,24 +56,12 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
         return {
           commands: context.commands,
           output: {
-            format: command.output_format,
+            format: typeof result,
             content: result,
           },
         };
       },
     };
-}
-
-export function def_from_text(command: TextCommand): CommandDefinition {
-    const simple = {
-      name: command.name,
-      doc: command.doc,
-      source: command.source,
-      input_format: "text",
-      output_format: "text",
-      func: command.func,
-    };
-    return def_from_simple(simple);
 }
 
 // Return a new set of commands with the new command added.

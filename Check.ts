@@ -7,3 +7,10 @@ export function check<T>(value: T) : T {
     }
     return value;
 }
+
+export function isString(obj: unknown): string {
+  if (typeof obj === 'string') {
+    return obj;
+  }
+  throw new Error('Must be a string');
+}

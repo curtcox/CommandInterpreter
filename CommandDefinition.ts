@@ -9,9 +9,11 @@ export const LOG = "log";
 export const STORE = "store";
 export const ENV = "env";
 
+// Input to, output from, or configuration for a command.
 export interface CommandData {
   format: string;
-  content: any;
+  content: any; // commands should consider exporting interfaces for the content they need,
+  // or accept a universal format like plain text or JSON.
 }
 
 export interface CommandContext {
@@ -33,8 +35,6 @@ export interface CommandMeta {
   name: string;
   doc: string;
   source: string;
-  input_formats: string[];
-  output_formats: string[];
 }
 
 /**
@@ -69,10 +69,10 @@ export interface Duration {
  * A record of a command that has been run.
  */
 export interface CommandRecord {
-  id: number;
-  command: CommandDefinition;
-  options: string;
-  context: CommandContext;
-  result: CommandResult;
-  duration: Duration;
+  id: number; // A unique sequence number for the command.
+  command: CommandDefinition; // The command that was run.
+  options: CommandData; // The options that were passed to the command.
+  context: CommandContext; // The context in which the command was run.
+  result: CommandResult; // The result of running the command.
+  duration: Duration; // The duration of the command.
 }

@@ -9,8 +9,6 @@ const meta: CommandMeta = {
     name: LOG,
     doc: "Log command result",
     source: import.meta.url,
-    input_formats: ["CommandRecord"],
-    output_formats: ["any"]
 }
 
 const result = (record: CommandRecord): CommandResult => {

@@ -24,8 +24,6 @@ const meta: CommandMeta = {
   name: "store",
   doc: "Store and retrieve values.",
   source: import.meta.url,
-  input_formats: ["any"],
-  output_formats: ["any"]
 }
 
 export const store_cmd = (native:Native): CommandDefinition => ({

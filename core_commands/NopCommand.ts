@@ -8,8 +8,6 @@ export const nop_cmd: CommandDefinition = {
       name: "nop",
       doc: "",
       source: import.meta.url,
-      input_formats: [],
-      output_formats: []
     },
     func: (context: CommandContext, _options: CommandData) => {
       return Promise.resolve({

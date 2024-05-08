@@ -1,11 +1,11 @@
 import { CommandContext } from "../CommandDefinition.ts";
-import { simple, TextCommand } from "../ToolsForCommandWriters.ts";
+import { simple, SimpleCommand } from "../ToolsForCommandWriters.ts";
 
 function safeEval(context: CommandContext, code: string) {
   return new Function('context', `with (context) { return ${code} }`)(context);
 }
 
-export const eval_cmd: TextCommand = {
+export const eval_cmd: SimpleCommand = {
   name: "eval",
   doc: "Evaluate some code.",
   source: import.meta.url,
