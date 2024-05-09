@@ -1,7 +1,8 @@
 import { isString } from "../Check.ts";
-import { CommandDefinition, CommandMeta, CommandData } from "../CommandDefinition.ts";
-import { CommandContext, CommandResult } from "../CommandDefinition.ts";
-import { head, tail, use } from "../ToolsForCommandWriters.ts";
+import { CommandDefinition, CommandMeta, CommandData } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
+import { use } from "../command/ToolsForCommandWriters.ts";
+import { head, tail } from "../Strings.ts";
 import { run } from "../core_commands/DoCommand.ts";
 
 const meta: CommandMeta = {

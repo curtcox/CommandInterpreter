@@ -1,4 +1,6 @@
 import { CommandContext, CommandDefinition, CommandData } from "./CommandDefinition.ts";
+import { replace_all } from "../Strings.ts";
+import { isString } from "../Check.ts";
 
 // A simplified version of CommandDefinition.
 // Assume no command modification.
@@ -8,6 +10,17 @@ export interface SimpleCommand {
     source: string;
     func: (context: CommandContext, options: string) => Promise<string>;
   }
+
+export function command_with_replacements(context: CommandContext, original: string) {
+    const text = isString(original);
+    const input = context.input.content || "";
+    const format = context.input.format || "";
+    const replacements = {
+        "${input}": input,
+        "${format}": format,
+    };
+    return replace_all(text, replacements);
+}
 
 export function string_for(x: any) {
    return JSON.stringify(x);
@@ -19,28 +32,6 @@ export function simple(stuff: any) {
 
 export function promised(text: string) {
    return Promise.resolve(text);
-}
-
-export function head(text: string): string {
-    if (text === undefined) {
-      return "";
-    }
-    const words = text.split(/\s+/);
-    if (!words.length) {
-      return "";
-    }
-    return words[0].trim();
-}
-
-export function tail(text: string): string {
-    const trimmed = text.trimStart();
-    const index = trimmed.indexOf(" ");
-
-    if (index !== -1) {
-      return trimmed.substring(index + 1);
-    } else {
-      return "";
-    }
 }
 
 export function def_from_simple(command: SimpleCommand): CommandDefinition {

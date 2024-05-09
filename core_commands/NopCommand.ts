@@ -1,4 +1,4 @@
-import { CommandDefinition, CommandContext, CommandData } from "../CommandDefinition.ts";
+import { CommandDefinition, CommandContext, CommandData } from "../command/CommandDefinition.ts";
 
 /**
  * Right now, this isn't completely information preserving and thus a bit of an op.

@@ -1,4 +1,4 @@
-import { CommandDefinition, CommandMeta, CommandResult, CommandContext, CommandData } from "../CommandDefinition.ts";
+import { CommandDefinition, CommandMeta, CommandResult, CommandContext, CommandData } from "../command/CommandDefinition.ts";
 
 const func = async (context: CommandContext, data: CommandData): Promise<CommandResult> => {
     const {url, options} = data.content;

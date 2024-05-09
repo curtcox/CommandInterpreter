@@ -1,4 +1,4 @@
-import { promised, SimpleCommand } from "../ToolsForCommandWriters.ts";
+import { promised, SimpleCommand } from "../command/ToolsForCommandWriters.ts";
 
 export const version_cmd: SimpleCommand = {
   name: "version",

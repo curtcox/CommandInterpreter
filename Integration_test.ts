@@ -27,5 +27,7 @@ import { nop_cmd } from "./core_commands/NopCommand.ts";
 //   fail("Not implemented");
 // });
 
+// alias x2 eval ${input} * 2 | eval 2 | x2 | x2 | x2 | x2 | x2
+
 // Frankenstein word distribution
 // curl https://www.gutenberg.org/cache/epub/84/pg84.txt | tr -s '[:punct:][:blank:]' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -c | sort

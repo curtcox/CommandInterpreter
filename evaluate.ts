@@ -1,6 +1,6 @@
-import { commands } from "./Commands.ts";
-import { CommandDefinition, CommandResult } from "./CommandDefinition.ts";
-import { def_from_simple } from "./ToolsForCommandWriters.ts";
+import { commands } from "./commands/Commands.ts";
+import { CommandDefinition, CommandResult } from "./command/CommandDefinition.ts";
+import { def_from_simple } from "./command/ToolsForCommandWriters.ts";
 import { run } from "./core_commands/DoCommand.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";

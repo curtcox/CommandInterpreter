@@ -1,8 +1,8 @@
 import { assertEquals, fail } from "https://deno.land/std/assert/mod.ts";
-import { def_from_text, def_from_simple, SimpleCommand, TextCommand, use, invoke_with_input } from "./ToolsForCommandWriters.ts";
+import { def_from_simple, SimpleCommand, use, invoke_with_input } from "./ToolsForCommandWriters.ts";
 import { CommandContext } from "./CommandDefinition.ts";
 import { CommandDefinition } from "./CommandDefinition.ts";
-import { nop_cmd } from "./core_commands/NopCommand.ts";
+import { nop_cmd } from "../core_commands/NopCommand.ts";
 
 const commands: Record<string, CommandDefinition> = {};
 
@@ -18,6 +18,7 @@ const context: CommandContext = {
 const dasher: SimpleCommand = {
   name: "dasher",
   doc: "put in a dash",
+  source: import.meta.url,
   func: async (context: CommandContext, options: string) => {
     return `${options}-${context.input.content}`;
   }
@@ -42,23 +43,24 @@ Deno.test("calling def from simple produces the expected result", async () => {
   });
 });
 
-const coloner: TextCommand = {
+const coloner: SimpleCommand = {
   name: "coloner",
   doc: "put in a colon",
+  source: import.meta.url,
   func: (context: CommandContext, options: string) => {
     return Promise.resolve(`${options}:${context.input.content}`);
   }
 };
 
 Deno.test("def from text produces expected command", () => {
-  const command = def_from_text(coloner);
+  const command = def_from_simple(coloner);
   const meta = command.meta;
   assertEquals(meta.name, "coloner");
   assertEquals(meta.doc, "put in a colon");
 });
 
 Deno.test("calling def from text produces expected value", async () => {
-  const command = def_from_text(coloner);
+  const command = def_from_simple(coloner);
   const result = await command.func(context, {format:"text", content:"Hello"});
   assertEquals(result, {
     commands: commands,

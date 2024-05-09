@@ -1,10 +1,10 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition, CommandRecord } from "../CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition, CommandRecord } from "../command/CommandDefinition.ts";
 import { store_cmd, memory } from "./StoreCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { log_cmd } from "./LogCommand.ts";
-import { invoke, invoke_with_input } from "../ToolsForCommandWriters.ts";
-import { STORE } from "../CommandDefinition.ts";
+import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
+import { STORE } from "../command/CommandDefinition.ts";
 
 const contextWithStore = (store: CommandDefinition) : CommandContext => ({
   commands: {"store": store, "log": log_cmd},
@@ -18,7 +18,7 @@ Deno.test("Logged data can be read from the store", async () => {
   const record: CommandRecord = {
     id: 42,
     command: nop_cmd,
-    options: "Hey!!! It's a NOP!!!",
+    options: {format:"", content:"Hey!!! It's a NOP!!!"},
     context: {commands: {}, previous: nop_cmd, input: {format: "", content: ""}},
     result: {commands: {}, output: {format: "jazzy", content: "bar"}},
     duration: {start: { millis: 10, micros: 11}, end: {millis: 20, micros: 21}},

@@ -1,6 +1,6 @@
-import { simple, TextCommand } from "../ToolsForCommandWriters.ts";
+import { simple, SimpleCommand } from "../command/ToolsForCommandWriters.ts";
 
-export const io_cmd: TextCommand = {
+export const io_cmd: SimpleCommand = {
   name: "io",
   doc: "Read from input and write to output",
   source: import.meta.url,

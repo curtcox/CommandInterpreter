@@ -1,5 +1,6 @@
-import { CommandContext } from "../CommandDefinition.ts";
-import { TextCommand, head, invoke, tail } from "../ToolsForCommandWriters.ts";
+import { CommandContext } from "../command/CommandDefinition.ts";
+import { SimpleCommand, invoke } from "../command/ToolsForCommandWriters.ts";
+import { head, tail } from "../Strings.ts";
 
 function env(native: Native, code: string): string {
   const arg = head(code);
@@ -15,7 +16,7 @@ function env(native: Native, code: string): string {
   return `Invalid argument: ${arg}`;
 }
 
-export const env_cmd = (native:Native): TextCommand => ({
+export const env_cmd = (native:Native): SimpleCommand => ({
   name: "env",
   doc: "Get, set, or supply an environment variables.",
   source: import.meta.url,

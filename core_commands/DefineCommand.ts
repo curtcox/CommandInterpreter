@@ -1,5 +1,5 @@
-import { CommandDefinition, CommandContext, CommandData } from "../CommandDefinition.ts";
-import { use } from "../ToolsForCommandWriters.ts";
+import { CommandDefinition, CommandContext, CommandData } from "../command/CommandDefinition.ts";
+import { use } from "../command/ToolsForCommandWriters.ts";
 
 const url = "URL";
 const javascript = "application/javascript";

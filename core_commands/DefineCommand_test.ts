@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition } from "../CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
 import { define_cmd } from "./DefineCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";

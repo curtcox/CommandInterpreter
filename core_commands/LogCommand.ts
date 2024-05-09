@@ -1,9 +1,9 @@
 import { check } from "../Check.ts";
-import { CommandDefinition, CommandMeta, CommandRecord, CommandData } from "../CommandDefinition.ts";
-import { CommandContext, CommandResult } from "../CommandDefinition.ts";
-import { LOG } from "../CommandDefinition.ts";
+import { CommandDefinition, CommandMeta, CommandRecord, CommandData } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
+import { LOG } from "../command/CommandDefinition.ts";
 import { set } from "./StoreCommand.ts";
-import { invoke_with_input } from "../ToolsForCommandWriters.ts";
+import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 
 const meta: CommandMeta = {
     name: LOG,
@@ -35,5 +35,5 @@ export const log_cmd : CommandDefinition = {
 
 export const log = async (context: CommandContext, record: CommandRecord) => {
     const data = { format: "text", content: "" };
-    invoke_with_input(context,LOG,data,{ format: "CommandRecord", content: record });
+    await invoke_with_input(context,LOG,data,{ format: "CommandRecord", content: record });
 }

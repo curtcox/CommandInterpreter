@@ -1,5 +1,5 @@
-import { CommandDefinition } from "../CommandDefinition.ts";
-import { def_from_simple } from "../ToolsForCommandWriters.ts";
+import { CommandDefinition } from "../command/CommandDefinition.ts";
+import { def_from_simple } from "../command/ToolsForCommandWriters.ts";
 import { echo_cmd } from "./EchoCommand.ts";
 import { eval_cmd } from "./EvalCommand.ts";
 import { which_cmd } from "./WhichCommand.ts";

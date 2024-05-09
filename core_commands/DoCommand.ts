@@ -1,7 +1,8 @@
-import { CommandDefinition, CommandMeta, CommandRecord, CommandData, Duration, PreciseTime } from "../CommandDefinition.ts";
-import { CommandContext, CommandResult } from "../CommandDefinition.ts";
-import { HELP, DO } from "../CommandDefinition.ts";
-import { head, invoke, tail } from "../ToolsForCommandWriters.ts";
+import { CommandDefinition, CommandMeta, CommandRecord, CommandData, PreciseTime } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
+import { HELP, DO } from "../command/CommandDefinition.ts";
+import { head, tail } from "../Strings.ts";
+import { invoke } from "../command/ToolsForCommandWriters.ts";
 import { log } from "./LogCommand.ts";
 import { isString } from "../Check.ts";
 

@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandDefinition } from "../CommandDefinition.ts";
+import { CommandContext, CommandDefinition } from "../command/CommandDefinition.ts";
 import { nop_cmd } from "../core_commands/NopCommand.ts";
 import { alias_cmd, alias } from "./AliasCommand.ts";
 

@@ -1,28 +1,5 @@
-import { CommandContext, CommandData, CommandDefinition } from "../CommandDefinition.ts";
-import { check } from "../Check.ts";
-
-function replace_all(command: string, replacements: Record<string, string>) : string {
-    let result = command;
-
-    for (const [key, value] of Object.entries(replacements)) {
-      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(escapedKey, "g");
-      result = result.replace(regex, value);
-    }
-
-    return result;
-}
-
-function command_with_replacements(context: CommandContext, options: CommandData) {
-    const command = check(options.content);
-    const input = context.input.content || "";
-    const format = context.input.format || "";
-    const replacements = {
-        "${input}": input,
-        "${format}": format,
-    };
-    return replace_all(command, replacements);
-}
+import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
+import { command_with_replacements } from "../command/ToolsForCommandWriters.ts";
 
 async function run(command: string) : Promise<Result> {
     const result = Deno.run({ cmd: command.split(" "), stdout: "piped"});
@@ -45,7 +22,7 @@ const func = async (context: CommandContext, options: CommandData) => {
         commands: context.commands,
         output: {
             format: "Run.Result",
-            content: run(command_with_replacements(context, options))
+            content: run(command_with_replacements(context, options.content))
         },
     };
 };

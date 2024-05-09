@@ -1,9 +1,9 @@
 import { assertEquals } from "https://deno.land/std/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition } from "../CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
 import { memory, store_cmd } from "./StoreCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
-import { invoke, invoke_with_input } from "../ToolsForCommandWriters.ts";
-import { STORE } from "../CommandDefinition.ts";
+import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
+import { STORE } from "../command/CommandDefinition.ts";
 
 const emptyInput = {
   format: "",

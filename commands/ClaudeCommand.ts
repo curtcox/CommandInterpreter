@@ -1,4 +1,4 @@
-import { CommandContext, CommandDefinition, CommandData } from "../CommandDefinition.ts";
+import { CommandContext, CommandDefinition, CommandData } from "../command/CommandDefinition.ts";
 import { get } from "../core_commands/EnvCommand.ts";
 
 export interface Options {

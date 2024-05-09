@@ -1,4 +1,4 @@
-import { simple, SimpleCommand } from "../ToolsForCommandWriters.ts";
+import { simple, SimpleCommand } from "../command/ToolsForCommandWriters.ts";
 
 export const which_cmd: SimpleCommand = {
   name: "which",
