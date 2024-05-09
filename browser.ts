@@ -1,5 +1,5 @@
 import { Hono, Context } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
-import { CommandData, CommandRecord } from './CommandDefinition.ts';
+import { CommandData, CommandRecord } from './command/CommandDefinition.ts';
 import { a, tr, th, td, bordered } from './viewer/Html.ts';
 
 const app = new Hono()
@@ -15,7 +15,7 @@ function table(files: FileInfo[]): string {
     const id = file.id;
     const record = file.record;
     const command = record.command.meta.name;
-    const options = record.options;
+    const options = record.options.content;
     const output = record.result.output;
     rows += tr(td(a(`/log/${id}`,id)),td(a(`/log/${id}/command`,command)),td(options),td(output.content),td(output.format));
   });
@@ -32,6 +32,10 @@ async function log_file_contents(name: string): Promise<CommandRecord> {
   return data.content as CommandRecord;
 }
 
+function sort(files: FileInfo[]): FileInfo[] {
+  return files.sort((a, b) => parseInt(a.id) - parseInt(b.id) );
+}
+
 async function logs(): Promise<FileInfo[]> {
   const files = [];
   for await (const entry of Deno.readDir(logDir)) {
@@ -41,7 +45,7 @@ async function logs(): Promise<FileInfo[]> {
       files.push({ id, record });
     }
   }
-  return files;
+  return sort(files);
 }
 
 async function log_for_id(id: string): Promise<CommandRecord> {
