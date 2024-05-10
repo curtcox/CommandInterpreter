@@ -47,7 +47,11 @@ function parse_command_step(context: CommandContext, step_text: string): Command
 }
 
 function command_to_run(context: CommandContext, name: string): CommandDefinition {
-    return context.commands[name] || context.commands[HELP];
+    const command = context.commands[name] || context.commands[HELP];
+    if (!command) {
+        throw new Error(`Command not found: ${name}`);
+    }
+    return command;
 }
 
 function execute_step(context: CommandContext, step: CommandStep): Promise<CommandResult> {
