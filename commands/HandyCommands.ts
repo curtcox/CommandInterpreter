@@ -4,6 +4,7 @@ import { fetch_cmd } from "./FetchCommand.ts";
 import { run_cmd } from "./RunCommand.ts";
 import { CommandDefinition } from "../command/CommandDefinition.ts";
 import { unix_cmd } from "../standard_commands/UnixCommand.ts";
+import { combine } from "../command/ToolsForCommandWriters.ts";
 
 const handy_commands = [
   gpt_cmd,
@@ -13,6 +14,4 @@ const handy_commands = [
   unix_cmd
 ];
 
-export const commands: Record<string, CommandDefinition> = Object.fromEntries(
-  [...handy_commands].map((cmd) => [cmd.meta.name, cmd]),
-);
+export const commands: Record<string, CommandDefinition> = combine(handy_commands);

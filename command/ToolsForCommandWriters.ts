@@ -1,6 +1,6 @@
 import { CommandContext, CommandDefinition, CommandData } from "./CommandDefinition.ts";
 import { replace_all } from "../Strings.ts";
-import { isString } from "../Check.ts";
+import { isString, check } from "../Check.ts";
 
 // A simplified version of CommandDefinition.
 // Assume no command modification.
@@ -41,9 +41,9 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
         doc: command.doc,
         source: command.source,
       },
-      func: async (context: CommandContext, data: CommandData) => {
-        const options = data.content;
-        const result = await command.func(context,options);
+      func: async (context: CommandContext, options: CommandData) => {
+        const args = check(options).content;
+        const result = check(await command.func(context,isString(args)));
         return {
           commands: context.commands,
           output: {
@@ -52,15 +52,6 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
           },
         };
       },
-    };
-}
-
-// Return a new set of commands with the new command added.
-// Replaces any existing command with the same name.
-export function use(command: CommandDefinition, commands: Record<string, CommandDefinition>) : Record<string, CommandDefinition> {
-    return {
-      ...commands,
-      [command.meta.name]: command,
     };
 }
 
@@ -77,4 +68,31 @@ export const invoke = async (context: CommandContext, name: string, options: Com
 export const invoke_with_input = async (context: CommandContext, name: string, options: CommandData, input: CommandData) => {
     const with_input: CommandContext = { commands: context.commands, previous: context.previous, input };
     return await invoke(with_input, name, options);
+}
+
+export type CommandCollection = CommandDefinition | CommandDefinition[] | Record<string, CommandDefinition>;
+
+function add(a: Record<string, CommandDefinition>, b: CommandCollection) {
+  if (Array.isArray(b)) {
+    for (const cmd of b) {
+      a[cmd.meta.name] = cmd;
+    }
+  } else if ('meta' in b) {
+    const definition = b as CommandDefinition;
+    a[definition.meta.name] = check(definition);
+  } else {
+    for (const name in b) {
+      a[name] = b[name];
+    }
+  }
+  return a;
+}
+
+// Return the combined commands of the two collections.
+export function combine(...collections: CommandCollection[]) : Record<string, CommandDefinition> {
+  const all: Record<string, CommandDefinition> = {}
+  for (const a of check(collections)) {
+    add(all, check(a));
+  }
+  return all;
 }

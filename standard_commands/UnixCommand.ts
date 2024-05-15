@@ -1,7 +1,6 @@
 import { CommandDefinition, CommandMeta, CommandData } from "../command/CommandDefinition.ts";
 import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
-import { use } from "../command/ToolsForCommandWriters.ts";
-import { alias } from "./AliasCommand.ts";
+import { aliases } from "./AliasesCommand.ts";
 
 const meta: CommandMeta = {
     name: 'unix',
@@ -10,21 +9,8 @@ const meta: CommandMeta = {
 }
 
 const func = async (context: CommandContext, _options: CommandData): Promise<CommandResult> => {
-    let commands = context.commands;
-    let ctx = context;
-    for (const word of ["awk", "sed", "tr", "curl", "say", "uniq", "head", "tail", "echo", "cat", "sort", "wc"]) {
-        const result = await alias(ctx,word,`run ${word}`);
-        const command = result.commands[word];
-        commands = use(command,commands);
-        ctx = {
-            ...ctx,
-            commands: commands
-        }
-    }
-    return Promise.resolve({
-        commands: commands,
-        output: context.input
-    });
+    const words = ["awk", "sed", "tr", "curl", "say", "uniq", "head", "tail", "echo", "cat", "sort", "wc"];
+    return await aliases(context, words.map(word => { return { name: word, expansion: `run ${word}` } } ) );
 }
 
 export const unix_cmd : CommandDefinition = {
@@ -32,9 +18,8 @@ export const unix_cmd : CommandDefinition = {
 };
 
 export const unix = (context: CommandContext): Promise<CommandResult> => {
-    const options = {
+    return func(context, {
         format: "",
         content: ""
-    }
-    return func(context, options);
+    });
 }

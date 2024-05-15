@@ -1,6 +1,6 @@
 import { commands } from "./commands/Commands.ts";
-import { CommandDefinition, CommandResult } from "./command/CommandDefinition.ts";
-import { def_from_simple } from "./command/ToolsForCommandWriters.ts";
+import { CommandContext, CommandResult } from "./command/CommandDefinition.ts";
+import { def_from_simple, combine } from "./command/ToolsForCommandWriters.ts";
 import { run } from "./core_commands/DoCommand.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
@@ -17,20 +17,12 @@ const memory_store = memory();
 const file_store = filesystem("store",json_io(),"json");
 const native_store = file_store;
 
-function combine(command: CommandDefinition[], commands: Record<string, CommandDefinition>) : Record<string, CommandDefinition> {
-  const extra = command.map((cmd) => [cmd.meta.name, cmd]);
-  return {
-    ...commands,
-    ...Object.fromEntries(extra),
-  };
-}
-
-const context = (format: string, content: string) => ({
+const context = (format: string, content: string) : CommandContext => ({
     commands: combine([
       def_from_simple(env_cmd(native_env)),
       store_cmd(native_store),
     ], commands),
-    previous: nop_cmd,
+    previous: {command: nop_cmd, options: { format: "", content: "" }},
     input: { format: format, content: content }
 });
 

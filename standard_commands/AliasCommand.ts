@@ -1,7 +1,7 @@
 import { isString } from "../Check.ts";
 import { CommandDefinition, CommandMeta, CommandData } from "../command/CommandDefinition.ts";
 import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
-import { use } from "../command/ToolsForCommandWriters.ts";
+import { combine } from "../command/ToolsForCommandWriters.ts";
 import { head, tail } from "../Strings.ts";
 import { run } from "../core_commands/DoCommand.ts";
 
@@ -20,17 +20,25 @@ const new_alias = (alias: string, expansion: string): CommandDefinition => ({
     func: async (context: CommandContext, options: CommandData) => {
         const { content } = options;
         isString(content);
-        return run(context, `${expansion} ${content}`);
+        // console.log({alias,expansion,content});
+        return await run(context, `${expansion} ${content}`);
     }
 });
+
+function check_alias(alias: string, expansion: string) {
+    if (alias.toLowerCase() === head(expansion).toLowerCase()) {
+        throw new Error(`Alias (${alias}) cannot be the same as the command it expands to. (${expansion})`);
+    }
+}
 
 const func = (context: CommandContext, options: CommandData): Promise<CommandResult> => {
     const { content } = options;
     const alias = head(content);
     const expansion = tail(content);
+    check_alias(alias, expansion);
     const command = new_alias(alias, expansion);
     return Promise.resolve({
-        commands: use(command,context.commands),
+        commands: combine(context.commands,command),
         output: context.input
     });
 }
@@ -39,10 +47,15 @@ export const alias_cmd : CommandDefinition = {
     meta, func
 };
 
-export const alias = (context: CommandContext, alias: string, expansion: string): Promise<CommandResult> => {
-    const options = {
+export interface Alias {
+    name: string;
+    expansion: string;
+}
+
+export const alias = (context: CommandContext, alias: Alias): Promise<CommandResult> => {
+    const { name, expansion } = alias;
+    return func(context, {
         format: "text",
-        content: `${alias} ${expansion}`
-    }
-    return func(context, options);
+        content: `${name} ${expansion}`
+    });
 }

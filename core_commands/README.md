@@ -8,7 +8,7 @@ Core commands that would otherwise depend on things that might not be
 available (env & store) use a Native interface to supply them.
 
 ```mermaid
-do -> {help log context}
+do -> {help log io context}
 log -> store
 context -> {define nop}
 ```

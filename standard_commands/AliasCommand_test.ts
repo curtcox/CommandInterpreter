@@ -2,6 +2,8 @@ import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandDefinition } from "../command/CommandDefinition.ts";
 import { nop_cmd } from "../core_commands/NopCommand.ts";
 import { alias_cmd, alias } from "./AliasCommand.ts";
+import { combine } from "../command/ToolsForCommandWriters.ts";
+import { echo_cmd } from "./EchoCommand.ts";
 
 const emptyInput = {
   format: "",
@@ -25,8 +27,8 @@ const resolve = (context: CommandContext, text: string): CommandDefinition => {
 }
 
 const contextWith = (commands: CommandDefinition[]) : CommandContext => ({
-  commands: commands.reduce((acc, cmd) => ({ ...acc, [cmd.meta.name]: cmd }), {}),
-  previous: nop_cmd,
+  commands: combine(commands),
+  previous: {command: nop_cmd, options: emptyInput},
   input: emptyInput,
 });
 
@@ -42,6 +44,14 @@ Deno.test("Text resolves to itself when no aliases", () => {
 
 Deno.test("Can use alias to supply prefix", async () => {
   const context = contextWith([alias_cmd]);
-  const defined = await alias(context, 'say', 'run','say');
-  assertEquals('run', defined.commands['say'].meta.name);
+  const defined = await alias(context, { name: 'say', expansion: 'run say' });
+  assertEquals('say', defined.commands['say'].meta.name);
+});
+
+Deno.test("Can use alias to replace a command", async () => {
+  const context = contextWith([alias_cmd, nop_cmd]);
+  const defined = await alias(context, { name: 'nop', expansion: 'debug' });
+  const replaced = defined.commands['nop'];
+  assertEquals('nop', replaced.meta.name);
+  assertEquals('Alias for debug', replaced.meta.doc);
 });

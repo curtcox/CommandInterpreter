@@ -1,5 +1,5 @@
 import { CommandDefinition, CommandContext, CommandData } from "../command/CommandDefinition.ts";
-import { use } from "../command/ToolsForCommandWriters.ts";
+import { combine } from "../command/ToolsForCommandWriters.ts";
 
 const url = "URL";
 const javascript = "application/javascript";
@@ -48,7 +48,7 @@ async function define(data: CommandData): Promise<CommandDefinition> {
 const func = async (context: CommandContext, data: CommandData) => {
     const command = await define(data);
     return Promise.resolve({
-           commands: use(command, context.commands),
+           commands: combine(command, context.commands),
            output: {
                format: definition,
                content: command

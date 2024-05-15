@@ -1,6 +1,7 @@
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { SimpleCommand, simple } from "../command/ToolsForCommandWriters.ts";
 import { command_with_replacements } from "../command/ToolsForCommandWriters.ts";
+import { isString } from "../Check.ts";
 
 function safeEval(context: CommandContext, code: string) {
   return new Function('context', `with (context) { return ${code} }`)(context);
@@ -18,5 +19,5 @@ export const eval_cmd: SimpleCommand = {
   name: "eval",
   doc: "Evaluate some code.",
   source: import.meta.url,
-  func: (context: CommandContext, code: string) => evaluate(context, code)
+  func: (context: CommandContext, code: string) => evaluate(context, isString(code))
 };

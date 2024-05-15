@@ -16,9 +16,14 @@ export interface CommandData {
   // or accept a universal format like plain text or JSON.
 }
 
+export interface CommandInvocation {
+  command: CommandDefinition;
+  options: CommandData;
+}
+
 export interface CommandContext {
   commands: Record<string, CommandDefinition>;
-  previous: CommandDefinition;
+  previous: CommandInvocation; // The command that was run before this one. Probably where the input came from.
   input: CommandData;
 }
 

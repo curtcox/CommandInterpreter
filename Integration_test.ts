@@ -1,41 +1,107 @@
 import { assertEquals } from "https://deno.land/std/assert/mod.ts";
-import { CommandContext } from "./command/CommandDefinition.ts";
+import { commands } from "./commands/Commands.ts";
+import { CommandContext, CommandResult } from "./command/CommandDefinition.ts";
 import { run } from "./core_commands/DoCommand.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
-import { do_cmd } from "./core_commands/DoCommand.ts";
-import { log_cmd } from "./core_commands/LogCommand.ts";
-import { store_cmd } from "./core_commands/StoreCommand.ts";
-import { eval_cmd } from "./standard_commands/EvalCommand.ts";
-import { def_from_simple } from "./command/ToolsForCommandWriters.ts";
-import { alias_cmd } from "./standard_commands/AliasCommand.ts";
+import { aliases_from_lines } from "./standard_commands/AliasesCommand.ts";
+import { store_cmd, memory } from "./core_commands/StoreCommand.ts";
+import { combine } from "./command/ToolsForCommandWriters.ts";
+import { unix } from "./standard_commands/UnixCommand.ts";
 
-const context: CommandContext = {
-    commands: {
-        "eval": def_from_simple(eval_cmd),
-        "alias": alias_cmd,
-        "do": do_cmd,
-        "log": log_cmd,
-        "store": store_cmd({
-            get: (_key: string) => {
-                return {};
-            },
-            set: (_key: string, _value: any) => {},
-        }),
-    },
-    previous: nop_cmd,
-    input: {format: "", content: ""},
-  };
+const memory_store = memory();
+const native_store = memory_store;
+const empty = { format: "", content: "" };
+
+const context = () => ({
+    commands: combine(commands, [store_cmd(native_store)]),
+    previous: { command: nop_cmd, options: empty},
+    input: empty
+});
+
+const after = (result: CommandResult): CommandContext =>  {
+    const previous = { command:nop_cmd, options: result.output };
+    return { commands: result.commands, previous, input: result.output };
+}
 
 Deno.test("eval and alias", async () => {
     const pipeline = "eval 8 * 8";
-    const result = await run(context, pipeline);
+    const result = await run(context(), pipeline);
     assertEquals(result.output.content, "64");
 });
 
 Deno.test("Pipeline using eval and alias", async () => {
     const pipeline = "alias x2 eval ${input} * 2 | eval 2 | x2 | x2 | x2 | x2 | x2 | x2 | x2 ";
-    const result = await run(context, pipeline);
+    const result = await run(context(), pipeline);
     assertEquals(result.output.content, "256");
+});
+
+Deno.test("unix echo output", async () => {
+    const tools = await unix(context());
+
+    const result = await run(after(tools),
+      'echo What say you good sir?'
+    );
+    const content = result.output.content;
+    const output = content.output;
+    assertEquals(output, "What say you good sir?\n");
+});
+
+
+Deno.test("Pipeline using nested aliases", async () => {
+    const tools = await unix(context());
+    const definitions = await aliases_from_lines(after(tools), [
+        'words tr -s [:punct:][:blank:] \\n',
+        "source echo 'When in the course of human events'",
+        "counts wc -w",
+    ]);
+
+    const result = await run(after(definitions),
+      "source | words | counts"
+    );
+    const content = result.output.content;
+    const output = content.output;
+    assertEquals(output.trim(), "7");
+});
+
+Deno.test("Pipeline with alias that has a pipe", async () => {
+    const tools = await unix(context());
+    const definitions = await aliases_from_lines(after(tools), [
+        'words tr -s [:punct:][:blank:] \\n',
+        "source echo I love the smell of napalm in the morning",
+        "counts sort | uniq -c",
+        "reverse sort --reverse",
+        "top head -n 1"
+    ]);
+    const result = await run(after(definitions),
+      "source | words | sort | counts | reverse | top"
+    );
+    const content = result.output.content;
+    const output = content.output;
+    assertEquals(output.trim(), "2 the");
+});
+
+
+// Frankenstein word distribution
+// curl https://www.gutenberg.org/cache/epub/84/pg84.txt | tr -s '[:punct:][:blank:]' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -c | sort
+Deno.test("Longer pipeline using nested aliases", async () => {
+    const tools = await unix(context());
+    const books = await aliases_from_lines(after(tools), [
+        "frankenstein curl https://www.gutenberg.org/cache/epub/84/pg84.txt"
+    ]);
+    const distribution = await aliases_from_lines(after(books), [
+        "words tr -s [:punct:][:blank:] \\n",
+        "lowercase tr [:upper:] [:lower:]",
+        "reverse sort --reverse",
+        "counts sort | uniq -c",
+        "top head -n 1"
+    ]);
+
+    const result = await run(after(distribution),
+        "frankenstein | words | lowercase | sort | counts | reverse | top"
+    );
+    const content = result.output.content;
+    const output = content.output;
+    assertEquals(output.trim(), "526 the");
 });
 
 // Deno.test("Summarize content from a url.", () => {
@@ -61,5 +127,3 @@ Deno.test("Pipeline using eval and alias", async () => {
 // });
 
 
-// Frankenstein word distribution
-// curl https://www.gutenberg.org/cache/epub/84/pg84.txt | tr -s '[:punct:][:blank:]' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -c | sort
