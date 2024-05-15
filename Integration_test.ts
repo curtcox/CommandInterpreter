@@ -1,14 +1,113 @@
-import { assertEquals, fail } from "https://deno.land/std/assert/mod.ts";
-import { def_from_text, def_from_simple, SimpleCommand, TextCommand, use, invoke_with_input } from "./ToolsForCommandWriters.ts";
-import { CommandContext } from "./CommandDefinition.ts";
-import { CommandDefinition } from "./CommandDefinition.ts";
+import { assertEquals } from "https://deno.land/std/assert/mod.ts";
+import { commands } from "./commands/Commands.ts";
+import { CommandContext, CommandResult } from "./command/CommandDefinition.ts";
+import { run } from "./core_commands/DoCommand.ts";
 import { nop_cmd } from "./core_commands/NopCommand.ts";
+import { aliases_from_lines } from "./standard_commands/AliasesCommand.ts";
+import { store_cmd, memory } from "./core_commands/StoreCommand.ts";
+import { combine } from "./command/ToolsForCommandWriters.ts";
+import { unix } from "./standard_commands/UnixCommand.ts";
 
+const memory_store = memory();
+const native_store = memory_store;
+const empty = { format: "", content: "" };
 
-Deno.test("Summarize content from a url.", () => {
-  const command = "fetch | content | summarize";
-  fail("Not implemented");
+const context = () => ({
+    commands: combine(commands, [store_cmd(native_store)]),
+    previous: { command: nop_cmd, options: empty},
+    input: empty
 });
+
+const after = (result: CommandResult): CommandContext =>  {
+    const previous = { command:nop_cmd, options: result.output };
+    return { commands: result.commands, previous, input: result.output };
+}
+
+Deno.test("eval and alias", async () => {
+    const pipeline = "eval 8 * 8";
+    const result = await run(context(), pipeline);
+    assertEquals(result.output.content, "64");
+});
+
+Deno.test("Pipeline using eval and alias", async () => {
+    const pipeline = "alias x2 eval ${input} * 2 | eval 2 | x2 | x2 | x2 | x2 | x2 | x2 | x2 ";
+    const result = await run(context(), pipeline);
+    assertEquals(result.output.content, "256");
+});
+
+Deno.test("unix echo output", async () => {
+    const tools = await unix(context());
+
+    const result = await run(after(tools),
+      'echo What say you good sir?'
+    );
+    const content = result.output.content;
+    const output = content.output;
+    assertEquals(output, "What say you good sir?\n");
+});
+
+
+Deno.test("Pipeline using nested aliases", async () => {
+    const tools = await unix(context());
+    const definitions = await aliases_from_lines(after(tools), [
+        'words tr -s [:punct:][:blank:] \\n',
+        "source echo 'When in the course of human events'",
+        "counts wc -w",
+    ]);
+
+    const result = await run(after(definitions),
+      "source | words | counts"
+    );
+    const content = result.output.content;
+    const output = content.output;
+    assertEquals(output.trim(), "7");
+});
+
+Deno.test("Pipeline with alias that has a pipe", async () => {
+    const tools = await unix(context());
+    const definitions = await aliases_from_lines(after(tools), [
+        'words tr -s [:punct:][:blank:] \\n',
+        "source echo I love the smell of napalm in the morning",
+        "counts sort | uniq -c",
+        "reverse sort --reverse",
+        "top head -n 1"
+    ]);
+    const result = await run(after(definitions),
+      "source | words | sort | counts | reverse | top"
+    );
+    const content = result.output.content;
+    const output = content.output;
+    assertEquals(output.trim(), "2 the");
+});
+
+
+// Frankenstein word distribution
+// curl https://www.gutenberg.org/cache/epub/84/pg84.txt | tr -s '[:punct:][:blank:]' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -c | sort
+Deno.test("Longer pipeline using nested aliases", async () => {
+    const tools = await unix(context());
+    const books = await aliases_from_lines(after(tools), [
+        "frankenstein curl https://www.gutenberg.org/cache/epub/84/pg84.txt"
+    ]);
+    const distribution = await aliases_from_lines(after(books), [
+        "words tr -s [:punct:][:blank:] \\n",
+        "lowercase tr [:upper:] [:lower:]",
+        "reverse sort --reverse",
+        "counts sort | uniq -c",
+        "top head -n 1"
+    ]);
+
+    const result = await run(after(distribution),
+        "frankenstein | words | lowercase | sort | counts | reverse | top"
+    );
+    const content = result.output.content;
+    const output = content.output;
+    assertEquals(output.trim(), "526 the");
+});
+
+// Deno.test("Summarize content from a url.", () => {
+//   const command = "fetch | content | summarize";
+//   fail("Not implemented");
+// });
 
 // intersection \ 
 //     <(curl http...address.txt | \ 
@@ -22,8 +121,9 @@ Deno.test("Summarize content from a url.", () => {
 //         sort | \ 
 //         uniq) \ 
 //     2> /dev/null 
-Deno.test("Common words from urls.", async () => {
-  const command = "fetch | content | summarize";
-  fail("Not implemented");
-});
+// Deno.test("Common words from urls.", async () => {
+//   const command = "fetch | content | summarize";
+//   fail("Not implemented");
+// });
+
 

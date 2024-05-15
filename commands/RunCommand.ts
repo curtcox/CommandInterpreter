@@ -1,36 +1,28 @@
-import { CommandContext, CommandData, CommandDefinition } from "../CommandDefinition.ts";
-import { check } from "../Check.ts";
+import { isString } from "../Check.ts";
+import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
+import { command_with_replacements } from "../command/ToolsForCommandWriters.ts";
 
-function replace_all(command: string, replacements: Record<string, string>) : string {
-    let result = command;
+async function run(command: string, stdin: string) : Promise<Result> {
+    isString(command);
+    isString(stdin);
+    console.log(`Running command: ${command}`);
+    const parts = command.split(" ");
+    const process = Deno.run({
+         cmd: parts,
+         stdin: "piped",
+         stdout: "piped",
+    });
+    const encoder = new TextEncoder();
+    const input = encoder.encode(stdin);
+    await process.stdin.write(input);
+    process.stdin.close();
+    const rawOutput = await process.output();
+    const decodedOut = new TextDecoder().decode(rawOutput);
 
-    for (const [key, value] of Object.entries(replacements)) {
-      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(escapedKey, "g");
-      result = result.replace(regex, value);
-    }
+    const status = await process.status();
+    process.close();
+    const output = decodedOut || "";
 
-    return result;
-}
-
-function command_with_replacements(context: CommandContext, options: CommandData) {
-    const command = check(options.content);
-    const input = context.input.content || "";
-    const format = context.input.format || "";
-    const replacements = {
-        "${input}": input,
-        "${format}": format,
-    };
-    return replace_all(command, replacements);
-}
-
-async function run(command: string) : Promise<Result> {
-    const result = Deno.run({ cmd: command.split(" "), stdout: "piped"});
-    const rawOutput = await result.output();
-    const decoded = (new TextDecoder().decode(rawOutput)).trim();
-    const status = await result.status();
-    result.close();
-    const output = decoded || "";
     return { status, output };
 }
 
@@ -38,16 +30,17 @@ const meta = {
     name: "run",
     doc: "Run a command from the underlying system.",
     source: import.meta.url,
-    input_formats: ["text"],
-    output_formats: ["text"],
 };
 
 const func = async (context: CommandContext, options: CommandData) => {
+    console.log({options});
+    const stdin = context.input.content || "";
+    const command = command_with_replacements(context, options.content);
     return {
         commands: context.commands,
         output: {
-            format: "Run.Result",
-            content: run(command_with_replacements(context, options))
+            format: "string",
+            content: await run(command, stdin)
         },
     };
 };

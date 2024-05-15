@@ -1,6 +1,7 @@
 import { check } from "../Check.ts";
-import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../CommandDefinition.ts";
-import { head, tail, invoke, invoke_with_input } from "../ToolsForCommandWriters.ts";
+import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
+import { head, tail } from "../Strings.ts";
+import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std/path/mod.ts";
 
@@ -24,8 +25,6 @@ const meta: CommandMeta = {
   name: "store",
   doc: "Store and retrieve values.",
   source: import.meta.url,
-  input_formats: ["any"],
-  output_formats: ["any"]
 }
 
 export const store_cmd = (native:Native): CommandDefinition => ({

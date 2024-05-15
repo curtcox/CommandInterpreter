@@ -1,5 +1,5 @@
-import { CommandDefinition, CommandContext, CommandData } from "../CommandDefinition.ts";
-import { use } from "../ToolsForCommandWriters.ts";
+import { CommandDefinition, CommandContext, CommandData } from "../command/CommandDefinition.ts";
+import { combine } from "../command/ToolsForCommandWriters.ts";
 
 const url = "URL";
 const javascript = "application/javascript";
@@ -10,8 +10,6 @@ const meta = {
     name: "define",
     doc: "define a command",
     source: import.meta.url,
-    input_formats: [url,javascript,typescript],
-    output_formats: [definition],
 };
 
 async function define_from_module(module:any): Promise<CommandDefinition> {
@@ -50,7 +48,7 @@ async function define(data: CommandData): Promise<CommandDefinition> {
 const func = async (context: CommandContext, data: CommandData) => {
     const command = await define(data);
     return Promise.resolve({
-           commands: use(command, context.commands),
+           commands: combine(command, context.commands),
            output: {
                format: definition,
                content: command
@@ -58,7 +56,6 @@ const func = async (context: CommandContext, data: CommandData) => {
         }
     );
 }
-
 
 export const define_cmd: CommandDefinition = {
     meta, func

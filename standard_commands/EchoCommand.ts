@@ -1,6 +1,6 @@
-import { simple, TextCommand } from "../ToolsForCommandWriters.ts";
+import { simple, SimpleCommand } from "../command/ToolsForCommandWriters.ts";
 
-export const echo_cmd: TextCommand = {
+export const echo_cmd: SimpleCommand = {
   name: "echo",
   doc: "show the info given to the command",
   source: import.meta.url,

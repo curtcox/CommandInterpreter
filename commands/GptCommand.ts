@@ -1,4 +1,4 @@
-import { CommandContext, CommandDefinition, CommandData } from "../CommandDefinition.ts";
+import { CommandContext, CommandDefinition, CommandData } from "../command/CommandDefinition.ts";
 import { get } from "../core_commands/EnvCommand.ts";
 
 export interface Message {
@@ -70,8 +70,6 @@ const meta = {
   name: "gpt",
   doc: "ask OpenAI ChatGPT",
   source: import.meta.url,
-  input_formats: ["text"],
-  output_formats: ["text"],
 };
 
 const func = async (context: CommandContext, options: CommandData) => {

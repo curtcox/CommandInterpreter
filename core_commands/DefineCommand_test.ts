@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition } from "../CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
 import { define_cmd } from "./DefineCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";
@@ -18,15 +18,6 @@ const empty_context: CommandContext = {
     content: "prefix"
   }
 }
-
-const context_with_func = (content: string) => ({
-  commands: empty_commands,
-  previous: nop_cmd,
-  input: {
-    format: "text",
-    content: content
-  }
-});
 
 const input = (data: CommandData) => ({
   commands: empty_commands,
@@ -56,8 +47,6 @@ Deno.test("define function from full JavaScript definition", async () => {
           name: "nop",
           doc: "javascript nop",
           source: import.meta.url,
-          input_formats: [],
-          output_formats: []
         },
         func: (context, _options) => {
           return Promise.resolve({
@@ -69,16 +58,12 @@ Deno.test("define function from full JavaScript definition", async () => {
     `));
     const out = defined.output.content.meta;
     assertEquals(out.name, "nop");
-    assertEquals(out.input_formats, []);
-    assertEquals(out.output_formats, []);
 
     const commands = defined.commands;
     const nop = commands["nop"];
     const meta = nop.meta;
     assertEquals(meta.name, "nop");
     assertEquals(meta.doc, "javascript nop");
-    assertEquals(meta.input_formats, []);
-    assertEquals(meta.output_formats, []);
 
     const data1 = {format: "URL", content: new URL(import.meta.url)};
     const result1 = await nop.func(input(data1), empty_data);
@@ -98,8 +83,6 @@ Deno.test("define function from full TypeScript definition", async () => {
           name: "nop",
           doc: "typescript nop",
           source: import.meta.url,
-          input_formats: [],
-          output_formats: []
         },
         func: (context: CommandContext, _options: CommandData) => {
           return Promise.resolve({
@@ -111,16 +94,12 @@ Deno.test("define function from full TypeScript definition", async () => {
   `));
   const out = defined.output.content.meta;
   assertEquals(out.name, "nop");
-  assertEquals(out.input_formats, []);
-  assertEquals(out.output_formats, []);
 
   const commands = defined.commands;
   const nop = commands["nop"];
   const meta = nop.meta;
   assertEquals(meta.name, "nop");
   assertEquals(meta.doc, "typescript nop");
-  assertEquals(meta.input_formats, []);
-  assertEquals(meta.output_formats, []);
 
   const data1 = {format: "URL", content: new URL(import.meta.url)};
   const result1 = await nop.func(input(data1), empty_data);
@@ -135,16 +114,12 @@ Deno.test("define function from full TypeScript URL", async () => {
   const defined = await define_cmd.func(empty_context, url("https://esm.town/v/curtcox/EmailCommand"));
   const out = defined.output.content.meta;
   assertEquals(out.name, "email");
-  assertEquals(out.input_formats, ["EmailOptions"]);
-  assertEquals(out.output_formats, ["text"]);
 
   const commands = defined.commands;
   const email = commands["email"];
   const meta = email.meta;
   assertEquals(meta.name, "email");
   assertEquals(meta.doc, "send an email");
-  assertEquals(meta.input_formats, ["EmailOptions"]);
-  assertEquals(meta.output_formats, ["text"]);
 
   const message = {format: "EmailOptions", content: {subject:"Hello", text:"There"}};
   try {
@@ -164,7 +139,6 @@ Deno.test("define function from full TypeScript URL", async () => {
 //     const commands = defined.commands;
 //     const add = commands["add"];
 //     assertEquals(add.meta.name, "add");
-//     assertEquals(add.meta.input_formats, ["Object","JSON"]);
 
 //     const json = await add.func(empty_context, { format: "JSON", content: '{"x":10, "y":2}' });
 //     assertEquals(json.output.content, 12);
@@ -180,7 +154,6 @@ Deno.test("define function from full TypeScript URL", async () => {
 //     const commands = defined.commands;
 //     const cat = commands["cat"];
 //     assertEquals(cat.meta.name, "cat");
-//     assertEquals(cat.meta.input_formats, ["JSON"]);
     
 //     const json = await cat.func(empty_context, { format: "JSON", content: '{"p1":"Hey", "p2":"You"}' });
 //     assertEquals(json.output.content, "HeyYou");
@@ -196,7 +169,6 @@ Deno.test("define function from full TypeScript URL", async () => {
 //     const commands = defined.commands;
 //     const rgb = commands["rgb"];
 //     assertEquals(rgb.meta.name, "rgb");
-//     assertEquals(rgb.meta.input_formats, ["JSON"]);
     
 //     const json = await rgb.func(empty_context, { format: "JSON", content: '{"r":10, "g":4, "b":2}' });
 //     assertEquals(json.output.content, "rgb(10,4,2)");
@@ -212,7 +184,6 @@ Deno.test("define function from full TypeScript URL", async () => {
 //     const commands = defined.commands;
 //     const multiply = commands["multiply"];
 //     assertEquals(multiply.meta.name, "multiply");
-//     assertEquals(multiply.meta.input_formats, ["JSON"]);
     
 //     const json = await multiply.func(empty_context, { format: "JSON", content: '{"a":10, "b":2 }' });
 //     assertEquals(json.output.content, 20);
@@ -234,7 +205,6 @@ Deno.test("define function from full TypeScript URL", async () => {
 //     const commands = defined.commands;
 //     const dup = commands["dup"];
 //     assertEquals(dup.meta.name, "dup");
-//     assertEquals(dup.meta.input_formats, ["JSON"]);
 
 //     const json = await dup.func(context_with_func("root"), { format: "JSON", content: '{"times":3}' });
 //     assertEquals(json.output.content, "rootrootroot");
