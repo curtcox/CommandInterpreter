@@ -1,5 +1,8 @@
 import { CommandContext, CommandDefinition, CommandData } from "../command/CommandDefinition.ts";
 import { get } from "../core_commands/EnvCommand.ts";
+import { isString } from "../Check.ts";
+
+// See https://docs.anthropic.com/en/api/messages
 
 export interface Options {
   model: string;
@@ -61,7 +64,7 @@ const messages = (prompt: string, content: string) => (
   [
     {
       role: "user",
-      content: prompt + "\n" + content,
+      content: isString(prompt) + "\n" + isString(content),
     },
   ]
 );
@@ -76,7 +79,6 @@ const func = async (context: CommandContext, options: CommandData) => {
   const model = "claude-3-opus-20240229";
   const max_tokens = 4096;
   const apiKey = await get(context, "ANTHROPIC_API_KEY");
-  console.log({apiKey});
 
   const result = await send(
     {model,max_tokens},

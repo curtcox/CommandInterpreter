@@ -14,3 +14,10 @@ export function isString(obj: unknown): string {
   }
   throw new Error('Must be a string');
 }
+
+export function nonEmpty(obj: unknown): string {
+  if (isString(obj) === '') {
+    throw new Error('Must not be empty');
+  }
+  return obj as string;
+}

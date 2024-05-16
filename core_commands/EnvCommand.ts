@@ -1,10 +1,11 @@
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { SimpleCommand, invoke } from "../command/ToolsForCommandWriters.ts";
 import { head, tail } from "../Strings.ts";
+import { nonEmpty } from "../Check.ts";
 
 function env(native: Native, code: string): string {
-  const arg = head(code);
-  const key = head(tail(code));
+  const arg = nonEmpty(head(code));
+  const key = nonEmpty(head(tail(code)));
   if (arg === "get") {
     return native.get(key);
   }
@@ -24,7 +25,7 @@ export const env_cmd = (native:Native): SimpleCommand => ({
 });
 
 export const get = async (context: CommandContext, key: string) : Promise<string> => {
-  const result = await invoke(context,"env", {format: "text", content:`get ${key}`});
+  const result = await invoke(context,"env", {format: "text", content:`get ${nonEmpty(key)}`});
   return await result.output.content;
 };
 
