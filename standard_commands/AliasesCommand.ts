@@ -23,7 +23,7 @@ const split_into_aliases = (text: string | string[]): Alias[] => {
 }
 
 const func = async (context: CommandContext, _options: CommandData): Promise<CommandResult> => {
-    return define(context, split_into_aliases(context.input.content));
+    return await define(context, split_into_aliases(context.input.content));
 }
 
 const define = async (context: CommandContext, aliases: Alias[]): Promise<CommandResult> => {

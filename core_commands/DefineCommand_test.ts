@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
+import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
 import { define_cmd } from "./DefineCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
@@ -9,10 +9,11 @@ const empty_data: CommandData = {
   format: "text",
   content: ""
 }
+const no_previous = {command: nop_cmd, options: empty_data};
 
 const empty_context: CommandContext = {
   commands: empty_commands,
-  previous: nop_cmd,
+  previous: no_previous,
   input: {
     format: "text",
     content: "prefix"
@@ -21,7 +22,7 @@ const empty_context: CommandContext = {
 
 const input = (data: CommandData) => ({
   commands: empty_commands,
-  previous: nop_cmd,
+  previous: no_previous,
   input: data
 })
 
@@ -130,85 +131,22 @@ Deno.test("define function from full TypeScript URL", async () => {
   }
 });
 
+Deno.test("execute function definedfrom full TypeScript URL", async () => {
+  const defined = await define_cmd.func(empty_context, url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
+  const out = defined.output.content.meta;
+  assertEquals(out.name, "markdown");
 
-
-// Deno.test("define function from options using arrow function", async () => {
-//     const defined = await define_cmd.func(empty_context, javascript("add: (x: number, y: number) => x + y"));
-//     assertEquals(defined.output.content, "defined add");
-
-//     const commands = defined.commands;
-//     const add = commands["add"];
-//     assertEquals(add.meta.name, "add");
-
-//     const json = await add.func(empty_context, { format: "JSON", content: '{"x":10, "y":2}' });
-//     assertEquals(json.output.content, 12);
-
-//     const obj = await add.func(empty_context, { format: "object", content: {x:10, y:2} });
-//     assertEquals(obj.output.content, 12);
-// });
-
-// Deno.test("define function from options using function declaration", async () => {
-//     const defined = await define_cmd.func(empty_context, javascript("function cat(p1, p2) { return p1 + p2; }"));
-//     assertEquals(defined.output.content, "defined cat");
-
-//     const commands = defined.commands;
-//     const cat = commands["cat"];
-//     assertEquals(cat.meta.name, "cat");
-    
-//     const json = await cat.func(empty_context, { format: "JSON", content: '{"p1":"Hey", "p2":"You"}' });
-//     assertEquals(json.output.content, "HeyYou");
-
-//     const obj = await cat.func(empty_context, { format: "object", content: {p1:"Hello", p2:"There"} });
-//     assertEquals(obj.output.content, "HelloThere");
-// });
-
-// Deno.test("define function from options using function expression", async () => {
-//     const defined = await define_cmd.func(empty_context, javascript("const rgb = function(r, g, b) { return `rgb(${r},${g},${b})`; }"));
-//     assertEquals(defined.output.content, "defined rgb");
-
-//     const commands = defined.commands;
-//     const rgb = commands["rgb"];
-//     assertEquals(rgb.meta.name, "rgb");
-    
-//     const json = await rgb.func(empty_context, { format: "JSON", content: '{"r":10, "g":4, "b":2}' });
-//     assertEquals(json.output.content, "rgb(10,4,2)");
-
-//     const obj = await rgb.func(empty_context, { format: "object", content: {r:3, g:6, b:9} });
-//     assertEquals(obj.output.content, "rgb(3,6,9)");
-// });
-
-// Deno.test("define function from input using arrow function", async () => {
-//     const defined = await define_cmd.func(empty_context, javascript("multiply: (a: number, b: number) => a * b"));
-//     assertEquals(defined.output.content, "defined multiply");
-
-//     const commands = defined.commands;
-//     const multiply = commands["multiply"];
-//     assertEquals(multiply.meta.name, "multiply");
-    
-//     const json = await multiply.func(empty_context, { format: "JSON", content: '{"a":10, "b":2 }' });
-//     assertEquals(json.output.content, 20);
-
-//     const obj = await multiply.func(empty_context, { format: "object", content: {a:3, b:9} });
-//     assertEquals(obj.output.content, 27);
-// });
-
-// Deno.test("define function from input using function declaration", async () => {
-//     const f = `
-//     function dup(times: number) {
-//         let out = "";
-//         for (let i = 0; i < times; i++) {
-//             out += input;
-//         }
-//         return out;
-//     }`;
-//     const defined = await define_cmd.func(context_with_func(f), javascript(""));
-//     const commands = defined.commands;
-//     const dup = commands["dup"];
-//     assertEquals(dup.meta.name, "dup");
-
-//     const json = await dup.func(context_with_func("root"), { format: "JSON", content: '{"times":3}' });
-//     assertEquals(json.output.content, "rootrootroot");
-
-//     const obj = await dup.func(context_with_func("Run"), { format: "JSON", content: '{"times":4}' });
-//     assertEquals(json.output.content, "RunRunRunRun");
-// });
+  const commands = defined.commands;
+  const markdown = commands["markdown"];
+  const meta = markdown.meta;
+  assertEquals(meta.name, "markdown");
+  assertEquals(meta.doc, "return the contents of a specified URL as markdown.");
+  const content = "https://www.nytimes.com/2024/04/12/podcasts/transcript-ezra-klein-interviews-dario-amodei.html";
+  const options = {format: "text", content};
+  const result = await markdown.func(input(empty_data), options);
+  const contents = result.output.content;
+  assertStringIncludes(contents, "The Ezra Klein Show");
+  assertStringIncludes(contents, "The really disorienting thing about talking");
+  assertStringIncludes(contents, "I’m a believer in exponentials.");
+  assertStringIncludes(contents, "Behind those predictions are what are called the scaling laws.");
+});
