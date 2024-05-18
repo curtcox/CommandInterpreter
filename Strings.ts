@@ -1,7 +1,7 @@
 import { isString, nonEmpty } from "./Check.ts";
 
-export function replace_all(command: string, replacements: Record<string, string>) : string {
-  let result = command;
+export function replace_all(template: string, replacements: Record<string, string>) : string {
+  let result = template;
 
   for (const [key, value] of Object.entries(replacements)) {
     const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
