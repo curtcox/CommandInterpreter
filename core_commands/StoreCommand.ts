@@ -1,16 +1,23 @@
-import { check } from "../Check.ts";
+import { check, isString, nonEmpty } from "../Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
-import { head, tail } from "../Strings.ts";
+import { words } from "../Strings.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std/path/mod.ts";
+import { STORE } from "../command/CommandDefinition.ts";
 
 /**
  * Think filesystem. 
  */
 function store(native: Native, context: CommandContext, code: string): any {
-  const arg = check(head(code));
-  const key = head(tail(code));
+  const trimmed = nonEmpty(code).trim();
+  const parts = words(trimmed);
+  if (parts.length < 2 || parts.length > 3) {
+    throw `Invalid store command: ${trimmed}`;
+  }
+  const arg = parts[0];
+  const key = parts[1];
+  console.log({arg, key});
   if (arg === "get") {
     return native.get(key);
   }
@@ -18,7 +25,7 @@ function store(native: Native, context: CommandContext, code: string): any {
     native.set(key,context.input);
     return "";
   }
-  return `Invalid argument: ${arg}`;
+  throw `Invalid store command: ${arg}`;
 }
 
 const meta: CommandMeta = {
@@ -64,9 +71,9 @@ export function json_io(): IO {
 }
 
 export function filesystem(base: string, io: IO, extension: string): Native {
-  check(base);
+  isString(base);
   check(io);
-  check(extension);
+  isString(extension);
   ensureDirSync(base);
 
   function path(key: string): string {
@@ -86,14 +93,14 @@ export function filesystem(base: string, io: IO, extension: string): Native {
 
 // Convenience function for setting a store value.
 export const set = (context: CommandContext, name: string, data: CommandData): void => {
-  check(name);
+  isString(name);
   check(data);
-  invoke_with_input(context,"store", { format: "string", content: `set ${name}`}, data);
+  invoke_with_input(context, STORE, { format: "string", content: `set ${name}`}, data);
 };
 
 // Convenience function for getting a store value.
 export const get = async (context: CommandContext, name: string): Promise<CommandData> => {
-  check(name);
-  const result = await invoke(context,"store", { format: "string", content: `set ${name}`});
+  isString(name);
+  const result = await invoke(context, STORE, { format: "string", content: `get ${name}`});
   return result.output;
 };
