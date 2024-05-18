@@ -4,6 +4,7 @@ import { after } from "./Strings.ts";
 import { replace_all } from "./Strings.ts";
 import { head } from "./Strings.ts";
 import { tail } from "./Strings.ts";
+import { words } from "./Strings.ts";
 
 Deno.test("Head returns the first word in a string", () => {
     assertEquals(head("first"), "first");
@@ -26,4 +27,15 @@ Deno.test("After returns the part of a string after a divider", () => {
 Deno.test("Replace all replaces every instance of the keys in the template with values", () => {
     assertEquals(replace_all("the same",{}) , "the same");
     assertEquals(replace_all("a rose by any other name",{"rose":"gun"}) , "a gun by any other name");
+});
+
+Deno.test("Words splits the given string into words using whitespace", () => {
+    assertEquals(words('='), ["="]);
+    assertEquals(words('When'), ["When"]);
+    assertEquals(words('When in the course of human events'), ["When", "in", "the", "course", "of", "human", "events"]);
+    assertEquals(words('Multiple  spaces'), ["Multiple", "spaces"]);
+    assertEquals(words(' ignore leading spaces'), ["ignore", "leading", "spaces"]);
+    assertEquals(words('ignore trailing spaces '), ["ignore", "trailing", "spaces"]);
+    assertEquals(words(' ignore  multiple  spaces '), ["ignore", "multiple", "spaces"]);
+    assertEquals(words('ignore leading and trailing spaces '), ["ignore", "leading", "and", "trailing", "spaces"]);
 });

@@ -36,3 +36,7 @@ export function after(divider: string, text: string): string {
     return trimmed.substring(index + 1);
   }
 }
+
+export function words(text: string): string[] {
+  return text.trim().split(/\s+/);
+}
