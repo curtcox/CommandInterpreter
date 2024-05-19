@@ -4,12 +4,13 @@ import { def_from_simple, invoke } from "../command/ToolsForCommandWriters.ts";
 import { nop_cmd } from "../core_commands/NopCommand.ts";
 import { unix_cmd } from "./UnixCommand.ts";
 import { echo_cmd } from "./EchoCommand.ts";
+import { emptyContextMeta } from "../command/Empty.ts";
 
 Deno.test("unix returns commands with unix commands", async () => {
   const empty = {format: "", content: ""};
   const context: CommandContext = {
     commands: {"unix": unix_cmd},
-    previous: {command: nop_cmd, options: empty},
+    meta: emptyContextMeta,
     input: empty,
   };
   const options = empty;
@@ -23,7 +24,7 @@ Deno.test("unix replaces existing echo", async () => {
   const empty = {format: "", content: ""};
   const context: CommandContext = {
     commands: {"unix": unix_cmd, "echo": def_from_simple(echo_cmd) },
-    previous: {command: nop_cmd, options: empty},
+    meta: emptyContextMeta,
     input: empty,
   };
   const options = empty;

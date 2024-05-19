@@ -1,16 +1,15 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
 import { memory, store_cmd, get, set } from "./StoreCommand.ts";
-import { nop_cmd } from "./NopCommand.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { STORE } from "../command/CommandDefinition.ts";
+import { emptyContextMeta } from "../command/Empty.ts";
 
 const empty = {format:"", content:""};
-const previous = { command: nop_cmd, options: empty };
 
 const contextWithStore = (store: CommandDefinition) : CommandContext => ({
   commands: {"store": store},
-  previous,
+  meta: emptyContextMeta,
   input: empty,
 });
 

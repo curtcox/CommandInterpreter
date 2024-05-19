@@ -3,12 +3,9 @@ import { CommandContext, CommandDefinition } from "../command/CommandDefinition.
 import { nop_cmd } from "../core_commands/NopCommand.ts";
 import { alias_cmd, alias } from "./AliasCommand.ts";
 import { combine } from "../command/ToolsForCommandWriters.ts";
-import { echo_cmd } from "./EchoCommand.ts";
+import { emptyContextMeta, emptyData } from "../command/Empty.ts";
 
-const emptyInput = {
-  format: "",
-  content: "",
-};
+const emptyInput = emptyData;
 
 const def = (name: string): CommandDefinition => ({
   meta: {
@@ -28,7 +25,7 @@ const resolve = (context: CommandContext, text: string): CommandDefinition => {
 
 const contextWith = (commands: CommandDefinition[]) : CommandContext => ({
   commands: combine(commands),
-  previous: {command: nop_cmd, options: emptyInput},
+  meta: emptyContextMeta,
   input: emptyInput,
 });
 

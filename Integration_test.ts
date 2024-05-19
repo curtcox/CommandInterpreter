@@ -2,33 +2,33 @@ import { assertEquals } from "https://deno.land/std/assert/mod.ts";
 import { commands } from "./commands/Commands.ts";
 import { CommandContext, CommandDefinition, CommandResult } from "./command/CommandDefinition.ts";
 import { run } from "./core_commands/DoCommand.ts";
-import { nop_cmd } from "./core_commands/NopCommand.ts";
 import { aliases_from_lines } from "./standard_commands/AliasesCommand.ts";
 import { store_cmd, memory } from "./core_commands/StoreCommand.ts";
 import { combine } from "./command/ToolsForCommandWriters.ts";
 import { unix } from "./standard_commands/UnixCommand.ts";
 import { define } from "./core_commands/DefineCommand.ts";
 import { alias } from "./standard_commands/AliasCommand.ts";
+import { emptyContextMeta } from "./command/Empty.ts";
 
 const memory_store = memory();
 const native_store = memory_store;
 const empty = { format: "", content: "" };
 
-const context = () => ({
+const context = (): CommandContext => ({
     commands: combine(commands, [store_cmd(native_store)]),
-    previous: { command: nop_cmd, options: empty},
+    meta: emptyContextMeta,
     input: empty
 });
 
-const context_with = (extra: CommandDefinition) => ({
+const context_with = (extra: CommandDefinition): CommandContext => ({
     commands: combine(commands, store_cmd(native_store), extra),
-    previous: { command: nop_cmd, options: empty},
+    meta: emptyContextMeta,
     input: empty
 });
 
 const after = (result: CommandResult): CommandContext =>  {
-    const previous = { command:nop_cmd, options: result.output };
-    return { commands: result.commands, previous, input: result.output };
+    const meta = emptyContextMeta;
+    return { commands: result.commands, meta, input: result.output };
 }
 
 const url = (content: string) => ({

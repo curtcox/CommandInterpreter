@@ -20,7 +20,7 @@ const new_alias = (alias: string, expansion: string): CommandDefinition => ({
     func: async (context: CommandContext, options: CommandData) => {
         const { content } = options;
         isString(content);
-        // console.log({alias,expansion,content});
+        // console.log({alias, expansion, content});
         return await run(context, `${expansion} ${content}`);
     }
 });

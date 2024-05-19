@@ -2,8 +2,8 @@ import { check, isString, nonEmpty } from "../Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
 import { words } from "../Strings.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
-import { ensureDirSync } from "https://deno.land/std/fs/mod.ts";
-import { join, dirname } from "https://deno.land/std/path/mod.ts";
+import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
+import { join, dirname } from "https://deno.land/std@0.224.0/path/mod.ts";
 import { STORE } from "../command/CommandDefinition.ts";
 
 /**
@@ -17,7 +17,7 @@ function store(native: Native, context: CommandContext, code: string): any {
   }
   const arg = parts[0];
   const key = parts[1];
-  console.log({arg, key});
+  // console.log({code, arg, key});
   if (arg === "get") {
     return native.get(key);
   }

@@ -1,28 +1,27 @@
 import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
 import { define_cmd } from "./DefineCommand.ts";
-import { nop_cmd } from "./NopCommand.ts";
 import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";
+import { emptyContextMeta } from "../command/Empty.ts";
 
 const empty_commands: Record<string, CommandDefinition> = {};
 const empty_data: CommandData = {
   format: "text",
   content: ""
 }
-const no_previous = {command: nop_cmd, options: empty_data};
 
 const empty_context: CommandContext = {
   commands: empty_commands,
-  previous: no_previous,
+  meta: emptyContextMeta,
   input: {
     format: "text",
     content: "prefix"
   }
 }
 
-const input = (data: CommandData) => ({
+const input = (data: CommandData): CommandContext => ({
   commands: empty_commands,
-  previous: no_previous,
+  meta: emptyContextMeta,
   input: data
 })
 

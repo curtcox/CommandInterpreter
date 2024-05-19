@@ -1,25 +1,28 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition, CommandRecord } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition, CommandRecord, ContextMeta } from "../command/CommandDefinition.ts";
 import { store_cmd, memory } from "./StoreCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
-import { log_cmd } from "./LogCommand.ts";
+import { log_cmd, log } from "./LogCommand.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
-import { STORE } from "../command/CommandDefinition.ts";
+import { STORE, LOG } from "../command/CommandDefinition.ts";
+import { emptyContextMeta } from "../command/Empty.ts";
+
+const empty = {format:"", content:""};
+const contextMeta: ContextMeta = emptyContextMeta;
 
 const contextWithStore = (store: CommandDefinition) : CommandContext => ({
   commands: {"store": store, "log": log_cmd},
-  previous: nop_cmd,
+  meta: contextMeta,
   input: {format: "", content: ""},
 });
 
-
-Deno.test("Logged data can be read from the store", async () => {
+Deno.test("Command record logged via invoke with input can be read from the store", async () => {
   const store = store_cmd(memory());
   const record: CommandRecord = {
     id: 42,
     command: nop_cmd,
     options: {format:"", content:"Hey!!! It's a NOP!!!"},
-    context: {commands: {}, previous: nop_cmd, input: {format: "", content: ""}},
+    context: {commands: {}, meta: contextMeta, input: empty },
     result: {commands: {}, output: {format: "jazzy", content: "bar"}},
     duration: {start: { millis: 10, micros: 11}, end: {millis: 20, micros: 21}},
   };
@@ -28,10 +31,30 @@ Deno.test("Logged data can be read from the store", async () => {
     content: record,
   };
   const context = contextWithStore(store);
-  const options = {format: "", content: ""};
-  await invoke_with_input(context, "log", options, value);
+  const options = empty;
+  await invoke_with_input(context, LOG, options, value);
   const data = {format: "text", content: "get log/42"};
   const result = await invoke(context, STORE, data);
-  // console.log({result});
+  assertEquals(result.output, value);
+});
+
+Deno.test("Command record logged via log function can be read from the store", async () => {
+  const store = store_cmd(memory());
+  const record: CommandRecord = {
+    id: 12,
+    command: nop_cmd,
+    options: {format:"??", content:"noppy nop nop"},
+    context: {commands: {}, meta: contextMeta, input: empty },
+    result: {commands: {}, output: {format: "foosy", content: "bingo"}},
+    duration: {start: { millis: 1, micros: 1}, end: {millis: 2, micros: 2}},
+  };
+  const value: CommandData = {
+    format: "CommandRecord",
+    content: record,
+  };
+  const context = contextWithStore(store);
+  await log(context, record);
+  const data = {format: "text", content: "get log/12"};
+  const result = await invoke(context, STORE, data);
   assertEquals(result.output, value);
 });

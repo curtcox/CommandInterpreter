@@ -43,7 +43,7 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
       },
       func: async (context: CommandContext, options: CommandData) => {
         const args = check(options).content;
-        const result = check(await command.func(context,isString(args)));
+        const result = await command.func(context,isString(args));
         return {
           commands: context.commands,
           output: {
@@ -57,6 +57,7 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
 
 // Invoke the named command using the supplied context.
 export const invoke = async (context: CommandContext, name: string, options: CommandData) => {
+  // console.log({invoke, name, options});
   const command = context.commands[name];
   if (!command) {
     throw new Error(`Command not found: ${name} in ${Object.keys(context.commands)}`);
@@ -66,7 +67,9 @@ export const invoke = async (context: CommandContext, name: string, options: Com
 
 // Invoke the named command using the supplied input rather than the context input.
 export const invoke_with_input = async (context: CommandContext, name: string, options: CommandData, input: CommandData) => {
-    const with_input: CommandContext = { commands: context.commands, previous: context.previous, input };
+    const meta = context.meta;
+    const commands = context.commands;
+    const with_input: CommandContext = { commands, meta, input };
     return await invoke(with_input, name, options);
 }
 
