@@ -11,10 +11,12 @@ import { CommandDefinition } from "../command/CommandDefinition.ts";
 import { memory } from "./StoreCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { emptyContextMeta } from "../command/Empty.ts";
+import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 
-const commands = () => ({
+const commands = ():Record<string, CommandDefinition> => ({
   "nop": nop_cmd,
   "version": def_from_simple(version_cmd),
+  "echo": def_from_simple(echo_cmd),
   "do": do_cmd,
   "log": log_cmd,
   "io": io_cmd,
@@ -77,27 +79,71 @@ Deno.test("Exception is thrown when there is no matching command and no help", a
 Deno.test("The store starts with no log records", async () => {
   const result = await run([],"store get log/0");
   assertEquals(result.output, undefined);
-
 });
 
 Deno.test("Execution records can be read from the log", async () => {
-  const result = await run([],"version | store get log/0");
-  console.log({result});
-  const actual = result.output.content;
-  const record = actual as CommandRecord;
-  assertEquals(version_cmd.name, record.command.meta.name);
-  assertEquals(version_cmd.doc, record.command.meta.doc);
-  assertEquals(version_cmd.source, record.command.meta.source);
+  const { output } = await run([],"version | store get log/0");
+  assertEquals(output.format, "CommandRecord");
+  const record = output.content as CommandRecord;
+  const { content } = output;
+  assertEquals(content.id, 0);
+  assertEquals(content.options, {format: "string", content: ""});
+  const meta = record.command.meta;
+  assertEquals(version_cmd.name, meta.name);
+  assertEquals(version_cmd.doc, meta.doc);
+  assertEquals(version_cmd.source, meta.source);
   assertEquals("0.0.7", record.result.output.content);
 });
 
-// Deno.test("A single command is given the expected options", async () => {
-//   assertEquals(true, false);
-// });
+Deno.test("Execution records in the log contain expected command info", async () => {
+  // content.command, content.context.commands, and result.commands should all agree
+  const { output } = await run([],"version | store get log/0");
+  const record = output.content as CommandRecord;
+  const { content } = output;
+  assertEquals(content.command, record.command);
+  assertEquals(content.context.commands, record.context.commands);
+  assertEquals(record.context.commands, record.result.commands);
+});
 
-// Deno.test("Multiple commands are given the expected options", async () => {
-//   assertEquals(true, false);
-// });
+Deno.test("A single command with no args is given the expected options", async () => {
+  const { output, commands } = await run([],"echo");
+  // This uses the fact that echo simply returns the options it was given.
+  const { format, content } = output;
+  assertEquals(format, "string");
+  const { options, context } = JSON.parse(content);
+  assertEquals(options, "");
+  assertEquals(context.commands["echo"].meta, commands["echo"].meta);
+  assertEquals(context.input, {format: "", content: ""});
+  assertEquals(context.meta.id, 0);
+});
+
+Deno.test("A single command with 1 arg is given the expected options", async () => {
+  const { output, commands } = await run([],"echo base");
+  // This uses the fact that echo simply returns the options it was given.
+  const { format, content } = output;
+  assertEquals(format, "string");
+  const { options, context } = JSON.parse(content);
+  assertEquals(options, "base");
+  assertEquals(context.commands["echo"].meta, commands["echo"].meta);
+  assertEquals(context.input, {format: "", content: ""});
+  assertEquals(context.meta.id, 0);
+});
+
+Deno.test("A single command with 3 args is given the expected options", async () => {
+  const { output, commands } = await run([],"echo whiskey tango foxtrot");
+  // This uses the fact that echo simply returns the options it was given.
+  const { format, content } = output;
+  assertEquals(format, "string");
+  const { options, context } = JSON.parse(content);
+  assertEquals(options, "whiskey tango foxtrot");
+  assertEquals(context.commands["echo"].meta, commands["echo"].meta);
+  assertEquals(context.input, {format: "", content: ""});
+  assertEquals(context.meta.id, 0);
+});
+
+Deno.test("Multiple commands are given the expected options", async () => {
+  assertEquals(true, false);
+});
 
 // Deno.test("One step pipeline only has one log entry", async () => {
 //   assertEquals(true, false);

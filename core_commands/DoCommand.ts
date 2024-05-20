@@ -51,7 +51,7 @@ function parse_command_step(context: CommandContext, id: number, step_text: stri
     const name = head(step_text).toLowerCase();
     const command = command_to_run(context, name);
     const content = tail(step_text);
-    const options = { format: "text", content };
+    const options = { format: "string", content };
     // console.log({parse_command_step, name, step_text, options});
     return { id, command, options };
 }
