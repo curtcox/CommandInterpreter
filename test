@@ -1,4 +1,6 @@
 set -x
+set -e
 
-deno test --allow-all *_test.ts
-deno test --allow-all core_commands/*_test.ts 
+deno test --allow-all --fail-fast *_test.ts
+deno test --allow-all --fail-fast core_commands/*_test.ts
+deno test --allow-all --fail-fast standard_commands/*_test.ts 
