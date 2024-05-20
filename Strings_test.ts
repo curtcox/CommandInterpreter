@@ -8,20 +8,24 @@ import { words } from "./Strings.ts";
 
 Deno.test("Head returns the first word in a string", () => {
     assertEquals(head("first"), "first");
+    assertEquals(head("head tail"), "head");
     assertEquals(head("1 2 3 4"), "1");
 });
 
 Deno.test("Tail returns all after the first word in a string", () => {
-    assertEquals(tail("first"), "first");
+    assertEquals(tail("first"), "");
+    assertEquals(tail("head tail"), "tail");
     assertEquals(tail("1 2 3 4"), "2 3 4");
 });
 
 Deno.test("Before returns the part of a string before a divider", () => {
     assertEquals(before('=',"f=ma"), "f");
+    assertEquals(before('=',"there is no divider"), "there is no divider");
 });
 
 Deno.test("After returns the part of a string after a divider", () => {
     assertEquals(after('=',"f=ma"), "ma");
+    assertEquals(after('=',"there is no divider"), "");
 });
 
 Deno.test("Replace all replaces every instance of the keys in the template with values", () => {

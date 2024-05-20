@@ -31,7 +31,7 @@ export function after(divider: string, text: string): string {
   const index = trimmed.indexOf(nonEmpty(divider));
 
   if (index == -1) {
-    return trimmed;
+    return "";
   } else {
     return trimmed.substring(index + 1);
   }
