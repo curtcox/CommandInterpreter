@@ -95,7 +95,6 @@ async function context_for_step(id: number, previousContext: CommandContext, pre
     const converted = await convert_data(previousContext, output_to_input(result, previousInvocation, current));
     let input = result.output;
     if (!are_equal(converted.output,result.output)) {
-        console.log({context_for_step, y:"converted",i:result.output, o:converted.output});
         id = id + 1;
         input = converted.output;
     }

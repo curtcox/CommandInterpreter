@@ -4,10 +4,12 @@ import { command_with_replacements } from "../command/ToolsForCommandWriters.ts"
 import { isString } from "../Check.ts";
 
 function safeEval(context: CommandContext, code: string) {
+  // console.log({code});
   return new Function('context', `with (context) { return ${code} }`)(context);
 }
 
 function unsafeEval(context: CommandContext, code: string) {
+  // console.log({code});
   return eval(code);
 }
 

@@ -8,13 +8,15 @@ import { store_cmd } from "./StoreCommand.ts";
 import { io_cmd } from "./IoCommand.ts";
 import { CommandRecord, CommandResult } from "../command/CommandDefinition.ts";
 import { CommandDefinition } from "../command/CommandDefinition.ts";
+import { CommandData } from "../command/CommandDefinition.ts";
 import { memory as memoryStore } from "./StoreCommand.ts";
 import { Native } from "./StoreCommand.ts";
 import { memory as memoryEnv } from "./EnvCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
-import { emptyContextMeta } from "../command/Empty.ts";
+import { emptyContextMeta, emptyData } from "../command/Empty.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { env_cmd } from "./EnvCommand.ts";
+import { alias_cmd } from "../standard_commands/AliasCommand.ts";
 
 const commands = (store: Native):Record<string, CommandDefinition> => ({
   "nop": nop_cmd,
@@ -24,21 +26,22 @@ const commands = (store: Native):Record<string, CommandDefinition> => ({
   "do": do_cmd,
   "log": log_cmd,
   "io": io_cmd,
+  "alias": alias_cmd,
   "store": store_cmd(store),
 });
 
-const context = (store: Native, extra: CommandDefinition[]): CommandContext => ({
+const context = (store: Native, extra: CommandDefinition[], input: CommandData): CommandContext => ({
   meta: emptyContextMeta,
   commands: combine(commands(store), extra),
-  input: {format: "", content: ""},
+  input,
 });
 
 async function run_with(store: Native, extra: CommandDefinition[], pipeline: string): Promise<CommandResult> {
-  return await invoke(context(store, extra), "do", {format:"text", content:pipeline});
+  return await invoke(context(store, extra, emptyData), "do", {format:"text", content:pipeline});
 }
 
 async function run(pipeline: string): Promise<CommandResult> {
-  return await invoke(context(memoryStore(),[]), "do", {format:"text", content:pipeline});
+  return await invoke(context(memoryStore(),[], emptyData), "do", {format:"text", content:pipeline});
 }
 
 async function assertPipelineResult(pipeline: string, expected: string) {
@@ -167,22 +170,29 @@ Deno.test("Two step pipeline only has 3 log entries (1 for the pipeline itself)"
   await run_with(store,[],"version | nop");
   assertEquals(store.get("log/0").format, "CommandRecord");
   assertEquals(store.get("log/1").format, "CommandRecord");
-  console.log({store});
-  console.log({0:store.get("log/0")});
-  console.log({1:store.get("log/1")});
-  console.log({2:store.get("log/2")});
   assertEquals(store.get("log/2").format, "CommandRecord");
   assertEquals(store.get("log/3"), undefined);
 });
 
-// Deno.test("1st pipeline step gets input from context", async () => {
-//   assertEquals(true, false);
-// });
+Deno.test("1st pipeline step gets input from context", async () => {
+  const store = memoryStore();
+  const pipeline = "nop";
+  const input = {format:"secret", content:"from input"};
+  const result = await invoke(context(store, [], input), "do", {format:"text", content:pipeline});
+  const { output } = result;
+  assertEquals(output.format, input.format);
+  assertEquals(output.content, input.content);
+});
 
-// Deno.test("1st pipeline step gets commands from context", async () => {
-//   assertEquals(true, false);
-// });
+Deno.test("1st pipeline step gets commands from context", async () => {
+  try {
+    await run("boo");
+    assertEquals(true, false);
+  } catch (e) {
+    assertEquals(e.message, "Command not found: boo");
+  }
+});
 
-// Deno.test("2nd pipeline step gets commands from 1st", async () => {
-//   assertEquals(true, false);
-// });
+Deno.test("2nd pipeline step gets commands from 1st", async () => {
+  await assertPipelineResult("alias boo version | boo", "0.0.7");
+});

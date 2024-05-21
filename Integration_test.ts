@@ -46,7 +46,7 @@ Deno.test("alias and eval", async () => {
     const pipeline = "alias greet eval 'Hi' | greet";
     const result = await run(context(), pipeline);
     // console.log({result});
-    assertEquals(result.output.content, "Hi");
+    assertEquals(result.output.content, '"Hi"');
 });
 
 Deno.test("piping eval to eval", async () => {

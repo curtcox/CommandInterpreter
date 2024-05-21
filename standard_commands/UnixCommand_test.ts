@@ -1,7 +1,6 @@
 import { assertEquals } from "https://deno.land/std/assert/mod.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
-import { def_from_simple, invoke } from "../command/ToolsForCommandWriters.ts";
-import { nop_cmd } from "../core_commands/NopCommand.ts";
+import { invoke } from "../command/ToolsForCommandWriters.ts";
 import { unix_cmd } from "./UnixCommand.ts";
 import { echo_cmd } from "./EchoCommand.ts";
 import { emptyContextMeta } from "../command/Empty.ts";
@@ -23,7 +22,7 @@ Deno.test("unix returns commands with unix commands", async () => {
 Deno.test("unix replaces existing echo", async () => {
   const empty = {format: "", content: ""};
   const context: CommandContext = {
-    commands: {"unix": unix_cmd, "echo": def_from_simple(echo_cmd) },
+    commands: {"unix": unix_cmd, "echo": echo_cmd },
     meta: emptyContextMeta,
     input: empty,
   };

@@ -11,7 +11,7 @@ function env(native: Native, code: string): string {
   }
   const arg = parts[0];
   const key = parts[1];
-  console.log({code, arg, key});
+  // console.log({code, arg, key});
   if (arg === "get") {
     return native.get(key);
   }
