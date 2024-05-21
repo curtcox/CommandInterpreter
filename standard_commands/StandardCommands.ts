@@ -10,8 +10,7 @@ import { aliases_cmd } from "./AliasesCommand.ts";
 const text_commands = [
   eval_cmd,
   version_cmd,
-  echo_cmd,
   which_cmd,
 ].map((cmd) => def_from_simple(cmd));
 
-export const commands: Record<string, CommandDefinition> = combine(text_commands, alias_cmd, aliases_cmd);
+export const commands: Record<string, CommandDefinition> = combine(text_commands, alias_cmd, aliases_cmd, echo_cmd);
