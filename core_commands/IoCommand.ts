@@ -15,6 +15,7 @@ const meta: CommandMeta = {
 }
 
 // This would be a good place for extensive conversion logic.
+// deno-lint-ignore no-explicit-any
 function convert_to_target_input(content: any, target_source: string): string {
   if (typeof content === "string") {
       return content;
@@ -28,7 +29,7 @@ function convert_to_target_input(content: any, target_source: string): string {
   return content;
 }
 
-const convert = async (context: CommandContext, conversion: DataConversion): Promise<CommandData> => {
+const convert = async (_context: CommandContext, conversion: DataConversion): Promise<CommandData> => {
   const output = conversion.result.output;
   const format = output.format;
   const unconverted = output.content;
@@ -48,7 +49,7 @@ async function fetch_source(url: string): Promise<string> {
 }
 
 const func = async (context: CommandContext, _options: CommandData): Promise<CommandResult> => {
-  const conversion = check(context.input.content);
+  const conversion = check(context.input.content) as DataConversion;
   const commands = context.commands;
   const output = await convert(context, conversion);
   const result: CommandResult = { commands, output }

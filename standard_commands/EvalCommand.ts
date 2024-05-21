@@ -8,10 +8,10 @@ function safeEval(context: CommandContext, code: string) {
   return new Function('context', `with (context) { return ${code} }`)(context);
 }
 
-function unsafeEval(context: CommandContext, code: string) {
-  // console.log({code});
-  return eval(code);
-}
+// function unsafeEval(context: CommandContext, code: string) {
+//   // console.log({code});
+//   return eval(code);
+// }
 
 function evaluate(context: CommandContext, code: string) {
   return simple(safeEval(context,command_with_replacements(context,code)));

@@ -11,10 +11,10 @@ export interface SimpleCommand {
     func: (context: CommandContext, options: string) => Promise<string>;
   }
 
-export function command_with_replacements(context: CommandContext, original: string) {
+export function command_with_replacements(context: CommandContext, original: string): string {
     const text = isString(original);
-    const input = context.input.content || "";
-    const format = context.input.format || "";
+    const input = isString(context.input.content || "");
+    const format = isString(context.input.format || "");
     const replacements = {
         "${input}": input,
         "${format}": format,
@@ -22,11 +22,11 @@ export function command_with_replacements(context: CommandContext, original: str
     return replace_all(text, replacements);
 }
 
-export function string_for(x: any) {
+export function string_for(x: unknown) {
    return JSON.stringify(x);
 }
 
-export function simple(stuff: any) {
+export function simple(stuff: unknown): Promise<string> {
    return Promise.resolve(string_for(stuff));
 }
 

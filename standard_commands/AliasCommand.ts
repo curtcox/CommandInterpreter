@@ -1,4 +1,4 @@
-import { isString } from "../Check.ts";
+import { isString, nonEmpty } from "../Check.ts";
 import { CommandDefinition, CommandMeta, CommandData } from "../command/CommandDefinition.ts";
 import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
 import { combine } from "../command/ToolsForCommandWriters.ts";
@@ -33,8 +33,9 @@ function check_alias(alias: string, expansion: string) {
 
 const func = (context: CommandContext, options: CommandData): Promise<CommandResult> => {
     const { content } = options;
-    const alias = head(content);
-    const expansion = tail(content);
+    const text = nonEmpty(content);
+    const alias = head(text);
+    const expansion = tail(text);
     check_alias(alias, expansion);
     const command = define(alias, expansion);
     return Promise.resolve({

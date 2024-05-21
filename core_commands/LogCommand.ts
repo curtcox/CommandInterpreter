@@ -23,8 +23,13 @@ const save_record = (context: CommandContext, record: CommandRecord): void => {
     set(context,`log/${record.id}`, { format: "CommandRecord", content: record });
 };
 
+function record_from_context(context: CommandContext): CommandRecord {
+    const record = context.input.content as CommandRecord;
+    return check(record);
+}
+
 const func = (context: CommandContext, _options: CommandData): Promise<CommandResult> => {
-    const record = context.input.content;
+    const record = record_from_context(context);
     save_record(context,record);
     return Promise.resolve(result(record));
 }

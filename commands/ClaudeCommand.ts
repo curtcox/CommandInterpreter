@@ -40,6 +40,7 @@ function createRequestOptions(apiKey: string, requestData: RequestData) {
   };
 }
 
+// deno-lint-ignore no-explicit-any
 async function send(options: Options, messages: Message[], apiKey: string) : Promise<any> {
   const requestData = createRequestData(options, messages);
   const requestOptions = createRequestOptions(apiKey, requestData);
@@ -79,10 +80,12 @@ const func = async (context: CommandContext, options: CommandData) => {
   const model = "claude-3-opus-20240229";
   const max_tokens = 4096;
   const apiKey = await get(context, "ANTHROPIC_API_KEY");
+  const prompt = isString(options.content);
+  const input = isString(context.input.content);
 
   const result = await send(
     {model,max_tokens},
-    messages(options.content,context.input.content),
+    messages(prompt, input),
     apiKey
   );
 

@@ -9,7 +9,7 @@ import { STORE } from "../command/CommandDefinition.ts";
 /**
  * Think filesystem. 
  */
-function store(native: Native, context: CommandContext, code: string): any {
+function store(native: Native, context: CommandContext, code: string): unknown {
   const trimmed = nonEmpty(code).trim();
   const parts = words(trimmed);
   if (parts.length < 2 || parts.length > 3) {
@@ -28,6 +28,11 @@ function store(native: Native, context: CommandContext, code: string): any {
   throw `Invalid store command: ${arg}`;
 }
 
+function result_from_store(native: Native, context: CommandContext, code: string): CommandData {
+  const value = store(native, context, code);
+  return value as CommandData;
+}
+
 const meta: CommandMeta = {
   name: "store",
   doc: "Store and retrieve values.",
@@ -38,35 +43,35 @@ export const store_cmd = (native:Native): CommandDefinition => ({
   meta,
   func: (context: CommandContext, options: CommandData) => Promise.resolve({
     commands: context.commands,
-    output: store(native,context,check(options.content))
+    output: result_from_store(native,context,isString(options.content))
   })
 });
 
 export interface Native {
-  get: (key:string) => any;
-  set: (key:string, value:any) => void;
+  get: (key:string)                => unknown;
+  set: (key:string, value:unknown) => void;
 }
 
 /**
  * Translates between strings and objects.
  */
 export interface IO {
-  read: (value:string) => any;
-  write: (value:any) => string;
+  read: (value:string) => unknown;
+  write: (value:unknown) => string;
 }
 
 export function memory(): Native {
-  const memory: Record<string, any> = {};
+  const memory: Record<string, unknown> = {};
   return {
-    get: (key: string)             => { return memory[key]; },
-    set: (key: string, value: any) => { memory[key] = value; },
+    get: (key: string)                 => { return memory[key]; },
+    set: (key: string, value: unknown) => { memory[key] = value; },
   };
 }
 
 export function json_io(): IO {
   return {
     read: (value: string) => JSON.parse(value),
-    write: (value: any) => JSON.stringify(value),
+    write: (value: unknown) => JSON.stringify(value),
   };
 }
 
@@ -84,7 +89,7 @@ export function filesystem(base: string, io: IO, extension: string): Native {
     get: (key: string) => {
       return io.read(Deno.readTextFileSync(path(key)));
     },
-    set: (key: string, value: any) => {
+    set: (key: string, value: unknown) => {
       Deno.mkdir(dirname(path(key)), { recursive: true});
       Deno.writeTextFileSync(path(key), io.write(value));
     },

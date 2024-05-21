@@ -3,6 +3,7 @@ import { CommandContext, CommandData, CommandDefinition } from "../command/Comma
 import { define_cmd } from "./DefineCommand.ts";
 import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";
 import { emptyContextMeta } from "../command/Empty.ts";
+import { nonEmpty } from "../Check.ts";
 
 const empty_commands: Record<string, CommandDefinition> = {};
 const empty_data: CommandData = {
@@ -56,8 +57,8 @@ Deno.test("define function from full JavaScript definition", async () => {
         }
       };
     `));
-    const out = defined.output.content.meta;
-    assertEquals(out.name, "nop");
+    const out = defined.output.content as CommandDefinition;
+    assertEquals(out.meta.name, "nop");
 
     const commands = defined.commands;
     const nop = commands["nop"];
@@ -92,8 +93,8 @@ Deno.test("define function from full TypeScript definition", async () => {
         }
       };
   `));
-  const out = defined.output.content.meta;
-  assertEquals(out.name, "nop");
+  const out = defined.output.content as CommandDefinition;
+  assertEquals(out.meta.name, "nop");
 
   const commands = defined.commands;
   const nop = commands["nop"];
@@ -112,8 +113,8 @@ Deno.test("define function from full TypeScript definition", async () => {
 
 Deno.test("define function from full TypeScript URL", async () => {
   const defined = await define_cmd.func(empty_context, url("https://esm.town/v/curtcox/EmailCommand"));
-  const out = defined.output.content.meta;
-  assertEquals(out.name, "email");
+  const out = defined.output.content as CommandDefinition;
+  assertEquals(out.meta.name, "email");
 
   const commands = defined.commands;
   const email = commands["email"];
@@ -132,8 +133,8 @@ Deno.test("define function from full TypeScript URL", async () => {
 
 Deno.test("execute function definedfrom full TypeScript URL", async () => {
   const defined = await define_cmd.func(empty_context, url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
-  const out = defined.output.content.meta;
-  assertEquals(out.name, "markdown");
+  const out = defined.output.content as CommandDefinition;
+  assertEquals(out.meta.name, "markdown");
 
   const commands = defined.commands;
   const markdown = commands["markdown"];
@@ -143,7 +144,7 @@ Deno.test("execute function definedfrom full TypeScript URL", async () => {
   const content = "https://www.nytimes.com/2024/04/12/podcasts/transcript-ezra-klein-interviews-dario-amodei.html";
   const options = {format: "text", content};
   const result = await markdown.func(input(empty_data), options);
-  const contents = result.output.content;
+  const contents = nonEmpty(result.output.content);
   assertStringIncludes(contents, "The Ezra Klein Show");
   assertStringIncludes(contents, "The really disorienting thing about talking");
   assertStringIncludes(contents, "I’m a believer in exponentials.");

@@ -15,5 +15,8 @@ Deno.test("evaluate invalid expression", async () => {
   try {
     await evaluate("","","eval 2 + 3 * 4 /");
     fail();
-  } catch (error) {} // should throw an error
+  } catch (_error) {
+   // should throw an error
+  }
+
 });

@@ -10,6 +10,7 @@ import { define } from "./core_commands/DefineCommand.ts";
 import { alias } from "./standard_commands/AliasCommand.ts";
 import { emptyContextMeta } from "./command/Empty.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
+import { Result } from "./commands/RunCommand.ts";
 
 const memory_store = memory();
 const native_store = memory_store;
@@ -52,7 +53,6 @@ Deno.test("eval", async () => {
 Deno.test("alias and eval", async () => {
     const pipeline = "alias greet eval 'Hi' | greet";
     const result = await run(context(), pipeline);
-    // console.log({result});
     assertEquals(result.output.content, '"Hi"');
 });
 
@@ -71,11 +71,11 @@ Deno.test("Pipeline using alias with multiple stages", async () => {
 Deno.test("unix echo output", async () => {
     const tools = await unix(context());
 
-    const result = await run(after(tools),
+    const commandResult = await run(after(tools),
       'echo What say you good sir?'
     );
-    const content = result.output.content;
-    const output = content.output;
+    const result = commandResult.output.content as Result;
+    const output = result.output;
     assertEquals(output, "What say you good sir?\n");
 });
 
@@ -88,11 +88,11 @@ Deno.test("Pipeline using nested aliases", async () => {
         "counts wc -w",
     ]);
 
-    const result = await run(after(definitions),
+    const commandResult = await run(after(definitions),
       "source | words | counts"
     );
-    const content = result.output.content;
-    const output = content.output;
+    const result = commandResult.output.content as Result;
+    const output = result.output;
     assertEquals(output.trim(), "7");
 });
 
@@ -105,11 +105,11 @@ Deno.test("Pipeline with alias that has a pipe", async () => {
         "reverse sort --reverse",
         "top head -n 1"
     ]);
-    const result = await run(after(definitions),
+    const commandResult = await run(after(definitions),
       "source | words | sort | counts | reverse | top"
     );
-    const content = result.output.content;
-    const output = content.output;
+    const result = commandResult.output.content as Result;
+    const output = result.output;
     assertEquals(output.trim(), "2 the");
 });
 
@@ -127,26 +127,32 @@ Deno.test("The most frequently ocurring word in Frankenstein.", async () => {
         "top head -n 1"
     ]);
 
-    const result = await run(after(distribution),
+    const commandResult = await run(after(distribution),
         "frankenstein | words | lowercase | sort | counts | reverse | top"
     );
-    const content = result.output.content;
-    const output = content.output;
+    const result = commandResult.output.content as Result;
+    const output = result.output;
     assertEquals(output.trim(), "526 the");
 });
 
-Deno.test("Summarize content from a url.", async () => {
-    const markdown = await define(url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
-    const ctx = context_with(markdown);
-    // const summarize = await alias(context_with(markdown), {name: "summarize", expansion: "run cat"});
-    const summarize = await alias(ctx, {name: "summarize", expansion: "gpt Summarize the following text.\n\n"});
-    const page = "https://www.nytimes.com/2024/04/12/podcasts/transcript-ezra-klein-interviews-dario-amodei.html";
-
-    const result = await run(after(summarize),
-        `markdown ${page} | summarize`
-    );
-    console.log({o:result.output.content.output});
-});
+Deno.test({
+    name: "Summarize content from a url.", 
+    ignore: true, // This line makes the test ignored
+    async fn() {
+      const markdown = await define(url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
+      const ctx = context_with(markdown);
+      // const summarize = await alias(context_with(markdown), {name: "summarize", expansion: "run cat"});
+      const summarize = await alias(ctx, {name: "summarize", expansion: "gpt Summarize the following text.\n\n"});
+      const page = "https://www.nytimes.com/2024/04/12/podcasts/transcript-ezra-klein-interviews-dario-amodei.html";
+  
+      const commandResult = await run(after(summarize),
+          `markdown ${page} | summarize`
+      );
+      const result = commandResult.output.content as Result;
+      const output = result.output;
+      console.log({output});
+    }
+  });
 
 // intersection \ 
 //     <(curl http...address.txt | \ 

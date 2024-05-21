@@ -20,8 +20,8 @@ const dasher: SimpleCommand = {
   name: "dasher",
   doc: "put in a dash",
   source: import.meta.url,
-  func: async (context: CommandContext, options: string) => {
-    return `${options}-${context.input.content}`;
+  func: (context: CommandContext, options: string) => {
+    return Promise.resolve(`${options}-${context.input.content}`);
   }
 };
 

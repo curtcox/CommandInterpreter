@@ -13,7 +13,7 @@ const native_env = {
   set: (key:string, value:string) => env.set(key,value)
 }
 
-const memory_store = memory();
+const _memory_store = memory();
 const file_store = filesystem("store",json_io(),"json");
 const native_store = file_store;
 

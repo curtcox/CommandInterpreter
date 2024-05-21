@@ -52,9 +52,9 @@ async function log_for_id(id: string): Promise<CommandRecord> {
   return await log_file_contents(`${id}.json`);
 }
 
-function trap(c: Context, f: (c: Context) => any) {
+function trap(c: Context, f: (c: Context) => unknown) : unknown {
   try {
-    return f();
+    return f(c);
   } catch (error) {
     console.error('Error:', error);
     return c.text('Error: ' + error.message);

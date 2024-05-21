@@ -31,7 +31,7 @@ Deno.test("Get command throws an exception when no key specified", async () => {
   }
 });
 
-function bogus(result: any) {
+function bogus(result: unknown) {
   console.log({result});
   throw "A result was returned when an exception should have been thrown.";
 }

@@ -1,5 +1,6 @@
 import { CommandDefinition, CommandContext, CommandData } from "../command/CommandDefinition.ts";
 import { combine } from "../command/ToolsForCommandWriters.ts";
+import { nonEmpty } from "../Check.ts";
 
 const url = "URL";
 const javascript = "application/javascript";
@@ -12,7 +13,8 @@ const meta = {
     source: import.meta.url,
 };
 
-function define_from_module(module:any): Promise<CommandDefinition> {
+// deno-lint-ignore no-explicit-any
+function define_from_module(module: any): Promise<CommandDefinition> {
     if (!module) throw new Error("no module found");
     if (module.command) return module.command;
     if (module.meta && module.func) return Promise.resolve({ meta: module.meta, func: module.func });
@@ -32,10 +34,11 @@ async function define_from_script(type: string, script: string): Promise<Command
 }
 
 export async function define(data: CommandData): Promise<CommandDefinition> {
-    const format = data.format;
-    if (format === url)        return await define_from_url(data.content);
-    if (format === javascript) return await define_from_script(javascript,data.content);
-    if (format === typescript) return await define_from_script(typescript,data.content);
+    const format = nonEmpty(data.format);
+    const content = nonEmpty(data.content);
+    if (format === url)        return await define_from_url(content);
+    if (format === javascript) return await define_from_script(javascript,content);
+    if (format === typescript) return await define_from_script(typescript,content);
     throw new Error(`Unsupported format ${format}`);
 }
 

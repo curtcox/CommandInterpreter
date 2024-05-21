@@ -1,5 +1,5 @@
-import { isString } from "../Check.ts";
-import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
+import { isString, nonEmpty } from "../Check.ts";
+import { CommandContext, CommandData, CommandDefinition, CommandResult } from "../command/CommandDefinition.ts";
 import { command_with_replacements } from "../command/ToolsForCommandWriters.ts";
 
 async function run(command: string, stdin: string) : Promise<Result> {
@@ -7,6 +7,7 @@ async function run(command: string, stdin: string) : Promise<Result> {
     isString(stdin);
     console.log(`Running command: ${command}`);
     const parts = command.split(" ");
+    // deno-lint-ignore no-deprecated-deno-api
     const process = Deno.run({
          cmd: parts,
          stdin: "piped",
@@ -32,10 +33,11 @@ const meta = {
     source: import.meta.url,
 };
 
-const func = async (context: CommandContext, options: CommandData) => {
+const func = async (context: CommandContext, options: CommandData): Promise<CommandResult> => {
     console.log({options});
-    const stdin = context.input.content || "";
-    const command = command_with_replacements(context, options.content);
+    const stdin = isString(context.input.content || "");
+    const command_string = nonEmpty(options.content);
+    const command = command_with_replacements(context, command_string);
     return {
         commands: context.commands,
         output: {

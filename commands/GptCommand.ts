@@ -75,7 +75,9 @@ const meta = {
 
 const func = async (context: CommandContext, options: CommandData) => {
   const apiKey = await get(context, "OPENAI_API_KEY");
-  const result = await send(messages(options.content,context.input.content),apiKey);
+  const prompt = isString(options.content);
+  const input = isString(context.input.content);
+  const result = await send(messages(prompt,input),apiKey);
 
   return {
     commands: context.commands,

@@ -12,7 +12,7 @@ export const ENV = "env";
 // Input to, output from, or configuration for a command.
 export interface CommandData {
   format: string;
-  content: any; // commands should consider exporting interfaces for the content they need,
+  content: unknown; // commands should consider exporting interfaces for the content they need,
   // or accept a universal format like plain text or JSON.
 }
 

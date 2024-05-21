@@ -1,7 +1,7 @@
 import { a, table, td, tr } from "https://esm.town/v/curtcox/Html";
 import { asParts, follow } from "https://esm.town/v/curtcox/Object";
 
-function objectable(obj: any): string {
+function objectable(obj: unknown): string {
   let rows = "";
   const parts = asParts(obj);
   for (const key in parts) {
@@ -23,7 +23,7 @@ function trimmed(input: string): string {
   }
 }
 
-function summary(chain, at) {
+function summary(chain: string[], at: unknown) : string {
   const name = chain.length > 0 ? chain.at(-1) : "Roots";
   const type = typeof at;
   const str = trimmed(Deno.inspect(at));
@@ -37,7 +37,7 @@ function body(request: Request) {
   return summary(chain, at) + objectable(at);
 }
 
-function pathSegments(request: Request) {
+function pathSegments(request: Request) : string[] {
   const url = new URL(request.url);
   const pathSegments = url.pathname.split("/");
   return pathSegments.filter(segment => segment.length > 0);

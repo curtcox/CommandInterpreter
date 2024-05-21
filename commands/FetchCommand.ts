@@ -1,8 +1,14 @@
 import { CommandDefinition, CommandMeta, CommandResult, CommandContext, CommandData } from "../command/CommandDefinition.ts";
+import { check } from "../Check.ts";
+
+function as_fetch_options(data: CommandData): FetchOptions {
+  const options = data.content as FetchOptions;
+  return check(options);
+}
 
 const func = async (context: CommandContext, data: CommandData): Promise<CommandResult> => {
-    const {url, options} = data.content;
-    const result = await fetch(url, options);
+    const options = as_fetch_options(data);
+    const result = await fetch(options.url, options.optons);
     const json = await result.json();
     return Promise.resolve({
       commands: context.commands,

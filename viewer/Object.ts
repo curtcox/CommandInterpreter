@@ -1,6 +1,7 @@
 const self = "this";
 
-export function follow(obj: any, chain: (string | number)[]): any {
+// deno-lint-ignore no-explicit-any
+export function follow(obj: any, chain: (string | number)[]): unknown {
   let current = obj;
 
   for (const key of chain) {
@@ -32,11 +33,12 @@ export interface ObjectPart {
   parts: number;
 }
 
-export function asParts(obj: any): ObjectPart[] {
+export function asParts(obj: unknown): ObjectPart[] {
   const objectParts: ObjectPart[] = [];
   const record = asMap(obj);
   for (const key in record) {
-    const value = record[key];
+    // deno-lint-ignore no-explicit-any
+    const value = record[key] as any;
 
     if (value[self] && typeof value[self].count === "number") {
       const { count, obj, type } = value[self];
@@ -54,8 +56,8 @@ export function asParts(obj: any): ObjectPart[] {
   return objectParts;
 }
 
-export function asMap(obj: any, deep: number = 1): Record<string, any> {
-  const objectMap: Record<string, any> = {};
+export function asMap(obj: unknown, deep: number = 1): Record<string, unknown> {
+  const objectMap: Record<string, unknown> = {};
 
   // Bind the object to globalThis
   const globalObj = globalThis.Object(obj);

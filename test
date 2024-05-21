@@ -4,3 +4,4 @@ set -e
 deno test --allow-all --fail-fast *_test.ts
 deno test --allow-all --fail-fast core_commands/*_test.ts
 deno test --allow-all --fail-fast standard_commands/*_test.ts 
+deno test --allow-all --fail-fast external_commands/*_test.ts 

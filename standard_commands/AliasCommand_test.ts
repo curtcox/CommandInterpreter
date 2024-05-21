@@ -13,10 +13,10 @@ const def = (name: string): CommandDefinition => ({
     doc: "",
     source: "",
   },
-  func: async (context, _options) => ({
+  func: (context, _options) => (Promise.resolve({
     commands: context.commands,
     output: context.input,
-  }),
+  })),
 });
 
 const resolve = (context: CommandContext, text: string): CommandDefinition => {

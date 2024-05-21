@@ -17,6 +17,7 @@ import { emptyContextMeta, emptyData } from "../command/Empty.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { env_cmd } from "./EnvCommand.ts";
 import { alias_cmd } from "../standard_commands/AliasCommand.ts";
+import { check } from "../Check.ts";
 
 const commands = (store: Native):Record<string, CommandDefinition> => ({
   "nop": nop_cmd,
@@ -96,9 +97,8 @@ Deno.test("Execution records can be read from the log", async () => {
   const { output } = await run("version | store get log/0");
   assertEquals(output.format, "CommandRecord");
   const record = output.content as CommandRecord;
-  const { content } = output;
-  assertEquals(content.id, 0);
-  assertEquals(content.options, {format: "string", content: ""});
+  assertEquals(record.id, 0);
+  assertEquals(record.options, {format: "string", content: ""});
   const meta = record.command.meta;
   assertEquals(version_cmd.name, meta.name);
   assertEquals(version_cmd.doc, meta.doc);
@@ -110,9 +110,6 @@ Deno.test("Execution records in the log contain expected command info", async ()
   // content.command, content.context.commands, and result.commands should all agree
   const { output } = await run("version | store get log/0");
   const record = output.content as CommandRecord;
-  const { content } = output;
-  assertEquals(content.command, record.command);
-  assertEquals(content.context.commands, record.context.commands);
   assertEquals(record.context.commands, record.result.commands);
 });
 
@@ -121,7 +118,7 @@ Deno.test("A single command with no args is given the expected options", async (
   // This uses the fact that echo simply returns the options it was given.
   const { format, content } = output;
   assertEquals(format, "string");
-  const { options, context } = JSON.parse(content);
+  const { options, context } = JSON.parse(content as string);
   assertEquals(options, {"format":"string", "content":""});
   assertEquals(context.commands["echo"].meta, commands["echo"].meta);
   assertEquals(context.input, {format: "", content: ""});
@@ -133,7 +130,7 @@ Deno.test("A single command with 1 arg is given the expected options", async () 
   // This uses the fact that echo simply returns the options it was given.
   const { format, content } = output;
   assertEquals(format, "string");
-  const { options, context } = JSON.parse(content);
+  const { options, context } = JSON.parse(content as string);
   assertEquals(options, {format:"string", content:"base"});
   assertEquals(context.commands["echo"].meta, commands["echo"].meta);
   assertEquals(context.input, {format: "", content: ""});
@@ -145,7 +142,7 @@ Deno.test("A single command with 3 args is given the expected options", async ()
   // This uses the fact that echo simply returns the options it was given.
   const { format, content } = output;
   assertEquals(format, "string");
-  const { options, context } = JSON.parse(content);
+  const { options, context } = JSON.parse(content as string);
   assertEquals(options, {format:"string", content:"whiskey tango foxtrot"});
   assertEquals(context.commands["echo"].meta, commands["echo"].meta);
   assertEquals(context.input, {format: "", content: ""});
@@ -160,19 +157,27 @@ Deno.test("Multiple commands are given the expected options", async () => {
 Deno.test("One step pipeline only has 2 log entries (1 for the pipeline itself)", async () => {
   const store = memoryStore();
   await run_with(store,[],"version");
-  assertEquals(store.get("log/0").format, "CommandRecord");
-  assertEquals(store.get("log/1").format, "CommandRecord");
+  command_record(store,0);
+  command_record(store,1);
   assertEquals(store.get("log/2"), undefined);
 });
 
 Deno.test("Two step pipeline only has 3 log entries (1 for the pipeline itself)", async () => {
   const store = memoryStore();
   await run_with(store,[],"version | nop");
-  assertEquals(store.get("log/0").format, "CommandRecord");
-  assertEquals(store.get("log/1").format, "CommandRecord");
-  assertEquals(store.get("log/2").format, "CommandRecord");
+  command_record(store,0);
+  command_record(store,1);
+  command_record(store,2);
   assertEquals(store.get("log/3"), undefined);
 });
+
+function command_record(store: Native, id: number) : CommandRecord {
+  const data = store.get(`log/${id}`) as CommandData;
+  assertEquals(data.format, "CommandRecord");
+  const record = data.content as CommandRecord;
+  return check(record);
+}
+
 
 Deno.test("1st pipeline step gets input from context", async () => {
   const store = memoryStore();
@@ -194,5 +199,9 @@ Deno.test("1st pipeline step gets commands from context", async () => {
 });
 
 Deno.test("2nd pipeline step gets commands from 1st", async () => {
+  await assertPipelineResult("alias boo version | boo", "0.0.7");
+});
+
+Deno.test("IO will convert a string to a URL", async () => {
   await assertPipelineResult("alias boo version | boo", "0.0.7");
 });

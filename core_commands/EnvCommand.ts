@@ -32,7 +32,8 @@ export const env_cmd = (native:Native): SimpleCommand => ({
 
 export const get = async (context: CommandContext, key: string) : Promise<string> => {
   const result = await invoke(context,"env", {format: "text", content:`get ${nonEmpty(key)}`});
-  return await result.output.content;
+  const value = await result.output.content;
+  return isString(value);
 };
 
 export const set = (context: CommandContext, key: string, value: string): void => {
