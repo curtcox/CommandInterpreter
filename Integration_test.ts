@@ -4,24 +4,31 @@ import { CommandContext, CommandDefinition, CommandResult } from "./command/Comm
 import { run } from "./core_commands/DoCommand.ts";
 import { aliases_from_lines } from "./standard_commands/AliasesCommand.ts";
 import { store_cmd, memory } from "./core_commands/StoreCommand.ts";
-import { combine } from "./command/ToolsForCommandWriters.ts";
+import { combine, def_from_simple } from "./command/ToolsForCommandWriters.ts";
 import { unix } from "./standard_commands/UnixCommand.ts";
 import { define } from "./core_commands/DefineCommand.ts";
 import { alias } from "./standard_commands/AliasCommand.ts";
 import { emptyContextMeta } from "./command/Empty.ts";
+import { env_cmd } from "./core_commands/EnvCommand.ts";
 
 const memory_store = memory();
 const native_store = memory_store;
 const empty = { format: "", content: "" };
 
+const env:Map<string,string> = new Map();
+const native_env = {
+    get: (key:string) => env.get(key) || Deno.env.get(key) || `Missing environment variable: ${key}`,
+    set: (key:string, value:string) => env.set(key,value)
+}
+
 const context = (): CommandContext => ({
-    commands: combine(commands, [store_cmd(native_store)]),
+    commands: combine(commands, [store_cmd(native_store), def_from_simple(env_cmd(native_env))]),
     meta: emptyContextMeta,
     input: empty
 });
 
 const context_with = (extra: CommandDefinition): CommandContext => ({
-    commands: combine(commands, store_cmd(native_store), extra),
+    commands: combine(commands, store_cmd(native_store), def_from_simple(env_cmd(native_env)), extra),
     meta: emptyContextMeta,
     input: empty
 });
@@ -130,14 +137,15 @@ Deno.test("The most frequently ocurring word in Frankenstein.", async () => {
 
 Deno.test("Summarize content from a url.", async () => {
     const markdown = await define(url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
-    const summarize = await alias(context_with(markdown), {name: "summarize", expansion: "run cat"});
-    // const summarize = await alias(markdown, {name: "summarize", expansion: "gpt Summarize the following text.\n\n"});
-    const page = "";
+    const ctx = context_with(markdown);
+    // const summarize = await alias(context_with(markdown), {name: "summarize", expansion: "run cat"});
+    const summarize = await alias(ctx, {name: "summarize", expansion: "gpt Summarize the following text.\n\n"});
+    const page = "https://www.nytimes.com/2024/04/12/podcasts/transcript-ezra-klein-interviews-dario-amodei.html";
 
     const result = await run(after(summarize),
         `markdown ${page} | summarize`
     );
-    console.log({result});
+    console.log({o:result.output.content.output});
 });
 
 // intersection \ 
