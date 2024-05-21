@@ -12,7 +12,8 @@ import { invoke } from "../command/ToolsForCommandWriters.ts";
 import { log } from "./LogCommand.ts";
 import { isString } from "../Check.ts";
 import { nop_cmd } from "./NopCommand.ts";
-import { convert_data, Conversion } from "./IoCommand.ts";
+import { convert_data, DataConversion } from "./IoCommand.ts";
+import { are_equal } from "../Objects.ts";
 
 const meta: CommandMeta = {
     name: DO,
@@ -24,14 +25,18 @@ function now_now(): PreciseTime {
     return { millis: Date.now(), micros: performance.now() };
 }
 
+interface NumberedCommandResult {
+    id: number;
+    result: CommandResult;
+}
+
 const func = async (context: CommandContext, options: CommandData): Promise<CommandResult> => {
     // console.log({func, options});
     const start = now_now();
-    const result = await process_entire_pipeline(context, options);
+    const {id, result} = await process_entire_pipeline(context, options);
     const end = now_now();
     const duration = { start, end };
     const command = do_cmd;
-    const id = context.meta.id;
     const record = {id, command, options, context, result, duration };
     record_step(context, record);
     return result;
@@ -80,17 +85,22 @@ async function execute_step(context: CommandContext, step: CommandInvocation): P
     return Promise.resolve({ duration, result, step });
 }
 
-function output_to_input(data: CommandResult, previous: CommandInvocation, current:CommandInvocation): Conversion {
-    return { data, source: previous, target: current };
+function output_to_input(result: CommandResult, source: CommandInvocation, target: CommandInvocation): DataConversion {
+    return { result, source, target };
 }
 
-async function context_for_step(id: number, previousContext: CommandContext, previous: CommandInvocation, result: CommandResult, current:CommandInvocation): Promise<CommandContext> {
-    const commands = (previous === null_step) ? previousContext.commands: result.commands;
-    const data = (result === null_result) ? { commands, output: previousContext.input } : result;
-    const converted = await convert_data(previousContext, output_to_input(data, previous, current));
-    const input = converted.output;
+async function context_for_step(id: number, previousContext: CommandContext, previousInvocation: CommandInvocation, previousResult: CommandResult, current:CommandInvocation): Promise<CommandContext> {
+    const commands = (previousInvocation === null_step) ? previousContext.commands: previousResult.commands;
+    const result = (previousResult === null_result) ? { commands, output: previousContext.input } : previousResult;
+    const converted = await convert_data(previousContext, output_to_input(result, previousInvocation, current));
+    let input = result.output;
+    if (!are_equal(converted.output,result.output)) {
+        console.log({context_for_step, y:"converted",i:result.output, o:converted.output});
+        id = id + 1;
+        input = converted.output;
+    }
     const prior = previousContext;
-    const source = previous;
+    const source = previousInvocation;
     const start = now_now();
     const meta = {id, start, source, prior };
     return {meta, commands, input};
@@ -98,7 +108,7 @@ async function context_for_step(id: number, previousContext: CommandContext, pre
 
 const null_result: CommandResult = { commands: {}, output: { format: "", content: "" } };
 
-const process_entire_pipeline = async (context: CommandContext, options: CommandData): Promise<CommandResult> => {
+const process_entire_pipeline = async (context: CommandContext, options: CommandData): Promise<NumberedCommandResult> => {
     const steps = split_into_commands(options);
     // console.log({process_entire_pipeline, steps});
     let output: CommandResult = null_result;
@@ -111,7 +121,8 @@ const process_entire_pipeline = async (context: CommandContext, options: Command
         context = await context_for_step(id, context, previousStep, result, currentStep);
         const execution = await execute_step(context, currentStep);
         await record_step(context, record(context, execution));
-        const meta = context.meta;
+        id = id + 1;
+        const meta = {id, start: now_now(), source: currentStep, prior: context};
         context = { meta, commands: execution.result.commands, input: result.output };
         result = execution.result;
         output = result;
@@ -120,7 +131,7 @@ const process_entire_pipeline = async (context: CommandContext, options: Command
     if (output === null) {
         throw new Error(`No output from command: ${options}`);
     }
-    return Promise.resolve(output);
+    return Promise.resolve({id, result:output});
 };
 
 function record(context: CommandContext, invocation: TimedInvocation) : CommandRecord {
