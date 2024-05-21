@@ -1,5 +1,7 @@
-export function replace_all(command: string, replacements: Record<string, string>) : string {
-  let result = command;
+import { isString, nonEmpty } from "./Check.ts";
+
+export function replace_all(template: string, replacements: Record<string, string>) : string {
+  let result = template;
 
   for (const [key, value] of Object.entries(replacements)) {
     const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -10,24 +12,31 @@ export function replace_all(command: string, replacements: Record<string, string
   return result;
 }
 
-export function head(text: string): string {
-  if (text === undefined) {
-    return "";
+export const head = (text: string): string => before(" ", text);
+export const tail = (text: string): string => after(" ", text);
+
+export function before(divider: string, text: string): string {
+  const trimmed = isString(text).trim();
+  const index = trimmed.indexOf(nonEmpty(divider));
+
+  if (index == -1) {
+    return trimmed;
+  } else {
+    return trimmed.substring(0,index);
   }
-  const words = text.split(/\s+/);
-  if (!words.length) {
-    return "";
-  }
-  return words[0].trim();
 }
 
-export function tail(text: string): string {
-  const trimmed = text.trimStart();
-  const index = trimmed.indexOf(" ");
+export function after(divider: string, text: string): string {
+  const trimmed = isString(text).trim();
+  const index = trimmed.indexOf(nonEmpty(divider));
 
-  if (index !== -1) {
-    return trimmed.substring(index + 1);
-  } else {
+  if (index == -1) {
     return "";
+  } else {
+    return trimmed.substring(index + 1);
   }
+}
+
+export function words(text: string): string[] {
+  return text.trim().split(/\s+/);
 }

@@ -17,14 +17,26 @@ export interface CommandData {
 }
 
 export interface CommandInvocation {
+  id: number; // A unique sequence number for the command.
   command: CommandDefinition;
   options: CommandData;
 }
 
+export interface ContextMeta {
+  id: number; // The sequence number that the next command executed in this context will have.
+  start: PreciseTime; // The time the context was created.
+  source: CommandInvocation; // The command that produced this context.
+  prior: CommandContext; // The context that produced this context.
+}
+
+/**
+ * The context in which a command is run.
+ * The context includes the commands that are available, the input to the command, and metadata about the context.
+ */
 export interface CommandContext {
-  commands: Record<string, CommandDefinition>;
-  previous: CommandInvocation; // The command that was run before this one. Probably where the input came from.
-  input: CommandData;
+  meta: ContextMeta; // Metadata about the context.
+  commands: Record<string, CommandDefinition>; // The commands that are available.
+  input: CommandData; // Data that is passed to the command.
 }
 
 /**
@@ -36,6 +48,9 @@ export interface CommandResult {
   output: CommandData;
 }
 
+/**
+ * The metadata for a command.
+ */
 export interface CommandMeta {
   name: string;
   doc: string;
@@ -60,6 +75,7 @@ export interface CommandDefinition {
   func: (context: CommandContext, options: CommandData) => Promise<CommandResult>;
 }
 
+// The exact time as far as we can determine it.
 export interface PreciseTime {
   millis: number;
   micros: number;
@@ -73,10 +89,7 @@ export interface Duration {
 /**
  * A record of a command that has been run.
  */
-export interface CommandRecord {
-  id: number; // A unique sequence number for the command.
-  command: CommandDefinition; // The command that was run.
-  options: CommandData; // The options that were passed to the command.
+export interface CommandRecord extends CommandInvocation {
   context: CommandContext; // The context in which the command was run.
   result: CommandResult; // The result of running the command.
   duration: Duration; // The duration of the command.

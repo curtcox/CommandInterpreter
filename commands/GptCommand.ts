@@ -1,5 +1,6 @@
 import { CommandContext, CommandDefinition, CommandData } from "../command/CommandDefinition.ts";
 import { get } from "../core_commands/EnvCommand.ts";
+import { isString } from "../Check.ts";
 
 export interface Message {
   role: string;
@@ -18,7 +19,7 @@ interface RequestData {
 
 function createRequestData(messages: Message[]) : RequestData {
   return {
-    model: "gpt-4-turbo-preview",
+    model: "gpt-4o-2024-05-13",
     messages: messages,
     temperature: 1,
     max_tokens: 4096,
@@ -62,7 +63,7 @@ export async function send(messages: Message[], apiKey: string) {
 const messages = (prompt: string, content: string) => [
   {
     role: "user",
-    content: prompt + "\n" + content,
+    content: isString(prompt) + "\n" + isString(content),
   },
 ];
 

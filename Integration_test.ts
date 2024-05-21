@@ -1,35 +1,68 @@
 import { assertEquals } from "https://deno.land/std/assert/mod.ts";
 import { commands } from "./commands/Commands.ts";
-import { CommandContext, CommandResult } from "./command/CommandDefinition.ts";
+import { CommandContext, CommandDefinition, CommandResult } from "./command/CommandDefinition.ts";
 import { run } from "./core_commands/DoCommand.ts";
-import { nop_cmd } from "./core_commands/NopCommand.ts";
 import { aliases_from_lines } from "./standard_commands/AliasesCommand.ts";
 import { store_cmd, memory } from "./core_commands/StoreCommand.ts";
-import { combine } from "./command/ToolsForCommandWriters.ts";
+import { combine, def_from_simple } from "./command/ToolsForCommandWriters.ts";
 import { unix } from "./standard_commands/UnixCommand.ts";
+import { define } from "./core_commands/DefineCommand.ts";
+import { alias } from "./standard_commands/AliasCommand.ts";
+import { emptyContextMeta } from "./command/Empty.ts";
+import { env_cmd } from "./core_commands/EnvCommand.ts";
 
 const memory_store = memory();
 const native_store = memory_store;
 const empty = { format: "", content: "" };
 
-const context = () => ({
-    commands: combine(commands, [store_cmd(native_store)]),
-    previous: { command: nop_cmd, options: empty},
+const env:Map<string,string> = new Map();
+const native_env = {
+    get: (key:string) => env.get(key) || Deno.env.get(key) || `Missing environment variable: ${key}`,
+    set: (key:string, value:string) => env.set(key,value)
+}
+
+const context = (): CommandContext => ({
+    commands: combine(commands, [store_cmd(native_store), def_from_simple(env_cmd(native_env))]),
+    meta: emptyContextMeta,
+    input: empty
+});
+
+const context_with = (extra: CommandDefinition): CommandContext => ({
+    commands: combine(commands, store_cmd(native_store), def_from_simple(env_cmd(native_env)), extra),
+    meta: emptyContextMeta,
     input: empty
 });
 
 const after = (result: CommandResult): CommandContext =>  {
-    const previous = { command:nop_cmd, options: result.output };
-    return { commands: result.commands, previous, input: result.output };
+    const meta = emptyContextMeta;
+    return { commands: result.commands, meta, input: result.output };
 }
 
-Deno.test("eval and alias", async () => {
+const url = (content: string) => ({
+    format: "URL",
+    content: content
+});
+
+Deno.test("eval", async () => {
     const pipeline = "eval 8 * 8";
     const result = await run(context(), pipeline);
     assertEquals(result.output.content, "64");
 });
 
-Deno.test("Pipeline using eval and alias", async () => {
+Deno.test("alias and eval", async () => {
+    const pipeline = "alias greet eval 'Hi' | greet";
+    const result = await run(context(), pipeline);
+    // console.log({result});
+    assertEquals(result.output.content, '"Hi"');
+});
+
+Deno.test("piping eval to eval", async () => {
+    const pipeline = "eval 6 | eval ${input} * 7";
+    const result = await run(context(), pipeline);
+    assertEquals(result.output.content, "42");
+});
+
+Deno.test("Pipeline using alias with multiple stages", async () => {
     const pipeline = "alias x2 eval ${input} * 2 | eval 2 | x2 | x2 | x2 | x2 | x2 | x2 | x2 ";
     const result = await run(context(), pipeline);
     assertEquals(result.output.content, "256");
@@ -81,9 +114,7 @@ Deno.test("Pipeline with alias that has a pipe", async () => {
 });
 
 
-// Frankenstein word distribution
-// curl https://www.gutenberg.org/cache/epub/84/pg84.txt | tr -s '[:punct:][:blank:]' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -c | sort
-Deno.test("Longer pipeline using nested aliases", async () => {
+Deno.test("The most frequently ocurring word in Frankenstein.", async () => {
     const tools = await unix(context());
     const books = await aliases_from_lines(after(tools), [
         "frankenstein curl https://www.gutenberg.org/cache/epub/84/pg84.txt"
@@ -104,10 +135,18 @@ Deno.test("Longer pipeline using nested aliases", async () => {
     assertEquals(output.trim(), "526 the");
 });
 
-// Deno.test("Summarize content from a url.", () => {
-//   const command = "fetch | content | summarize";
-//   fail("Not implemented");
-// });
+Deno.test("Summarize content from a url.", async () => {
+    const markdown = await define(url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
+    const ctx = context_with(markdown);
+    // const summarize = await alias(context_with(markdown), {name: "summarize", expansion: "run cat"});
+    const summarize = await alias(ctx, {name: "summarize", expansion: "gpt Summarize the following text.\n\n"});
+    const page = "https://www.nytimes.com/2024/04/12/podcasts/transcript-ezra-klein-interviews-dario-amodei.html";
+
+    const result = await run(after(summarize),
+        `markdown ${page} | summarize`
+    );
+    console.log({o:result.output.content.output});
+});
 
 // intersection \ 
 //     <(curl http...address.txt | \ 

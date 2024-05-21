@@ -11,7 +11,7 @@ const meta: CommandMeta = {
     source: import.meta.url,
 }
 
-const new_alias = (alias: string, expansion: string): CommandDefinition => ({
+export const define = (alias: string, expansion: string): CommandDefinition => ({
     meta: {
         name: alias,
         doc: `Alias for ${expansion}`,
@@ -20,7 +20,7 @@ const new_alias = (alias: string, expansion: string): CommandDefinition => ({
     func: async (context: CommandContext, options: CommandData) => {
         const { content } = options;
         isString(content);
-        // console.log({alias,expansion,content});
+        // console.log({alias, expansion, content});
         return await run(context, `${expansion} ${content}`);
     }
 });
@@ -36,7 +36,7 @@ const func = (context: CommandContext, options: CommandData): Promise<CommandRes
     const alias = head(content);
     const expansion = tail(content);
     check_alias(alias, expansion);
-    const command = new_alias(alias, expansion);
+    const command = define(alias, expansion);
     return Promise.resolve({
         commands: combine(context.commands,command),
         output: context.input

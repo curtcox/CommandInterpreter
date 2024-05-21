@@ -12,10 +12,10 @@ const meta = {
     source: import.meta.url,
 };
 
-async function define_from_module(module:any): Promise<CommandDefinition> {
+function define_from_module(module:any): Promise<CommandDefinition> {
     if (!module) throw new Error("no module found");
     if (module.command) return module.command;
-    if (module.meta && module.func) return { meta: module.meta, func: module.func };
+    if (module.meta && module.func) return Promise.resolve({ meta: module.meta, func: module.func });
     console.log({module});
     throw new Error(`No command found in module ${module}`);
 }
@@ -25,23 +25,17 @@ async function define_from_url(url: string): Promise<CommandDefinition> {
     return define_from_module(module);
 }
 
-async function define_from_javascript(text: string): Promise<CommandDefinition> {
-    const blob = new Blob([text], { type: javascript });
+async function define_from_script(type: string, script: string): Promise<CommandDefinition> {
+    const blob = new Blob([script], { type });
     const url = URL.createObjectURL(blob);
-    return define_from_url(url);
+    return await define_from_url(url);
 }
 
-async function define_from_typescript(text: string): Promise<CommandDefinition> {
-    const blob = new Blob([text], { type: typescript });
-    const url = URL.createObjectURL(blob);
-    return define_from_url(url);
-}
-
-async function define(data: CommandData): Promise<CommandDefinition> {
+export async function define(data: CommandData): Promise<CommandDefinition> {
     const format = data.format;
-    if (format === url)        return define_from_url(data.content);
-    if (format === javascript) return define_from_javascript(data.content);
-    if (format === typescript) return define_from_typescript(data.content);
+    if (format === url)        return await define_from_url(data.content);
+    if (format === javascript) return await define_from_script(javascript,data.content);
+    if (format === typescript) return await define_from_script(typescript,data.content);
     throw new Error(`Unsupported format ${format}`);
 }
 

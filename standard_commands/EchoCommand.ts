@@ -1,8 +1,24 @@
-import { simple, SimpleCommand } from "../command/ToolsForCommandWriters.ts";
+import { CommandDefinition, CommandMeta, CommandData } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
+import { string_for } from "../command/ToolsForCommandWriters.ts";
 
-export const echo_cmd: SimpleCommand = {
-  name: "echo",
-  doc: "show the info given to the command",
+const meta: CommandMeta = {
+  name: 'echo',
+  doc: "Show the info given to the command",
   source: import.meta.url,
-  func: (options, context) => simple({ options, context }),
+}
+
+const func = (context: CommandContext, options: CommandData): Promise<CommandResult> => {
+  const output = {
+    format: "string",
+    content: string_for({ options, context })
+  };
+  return Promise.resolve({
+      commands: context.commands,
+      output
+  });
+}
+
+export const echo_cmd : CommandDefinition = {
+  meta, func
 };

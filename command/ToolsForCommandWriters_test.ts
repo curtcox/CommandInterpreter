@@ -3,12 +3,13 @@ import { def_from_simple, SimpleCommand, use, invoke_with_input } from "./ToolsF
 import { CommandContext } from "./CommandDefinition.ts";
 import { CommandDefinition } from "./CommandDefinition.ts";
 import { nop_cmd } from "../core_commands/NopCommand.ts";
+import { emptyContextMeta } from "./Empty.ts";
 
 const commands: Record<string, CommandDefinition> = {};
 
 const context: CommandContext = {
   commands: commands,
-  previous: nop_cmd,
+  meta: emptyContextMeta,
   input: {
     format: "text",
     content: "World"

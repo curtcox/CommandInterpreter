@@ -28,12 +28,13 @@ function convert_to_target_input(content: any, target_source: string): string {
   return content;
 }
 
-const convert = async (context: CommandContext, conversion: Conversion): Promise<CommandData> => {
-  const output = conversion.data.output;
+const convert = async (context: CommandContext, conversion: DataConversion): Promise<CommandData> => {
+  const output = conversion.result.output;
   const format = output.format;
   const unconverted = output.content;
   const target_source = isString(await fetch_source(conversion.target.command.meta.source));
   const content = convert_to_target_input(unconverted, target_source);
+  // console.log({convert, format, unconverted, target_source, content});
   return { format, content };
 }
 
@@ -58,13 +59,13 @@ export const io_cmd : CommandDefinition = {
   meta, func
 };
 
-export interface Conversion {
-  data: CommandResult, 
+export interface DataConversion {
+  result: CommandResult, 
   source: CommandInvocation,
-  target:CommandInvocation,
+  target: CommandInvocation,
 }
 
-export const convert_data = (context:CommandContext, conversion: Conversion): Promise<CommandResult> => {
+export const convert_data = (context:CommandContext, conversion: DataConversion): Promise<CommandResult> => {
   const options = { format: "", content: "" };
   return invoke_with_input(check(context), IO, options, {format: "Conversion", content: check(conversion)});
 };
