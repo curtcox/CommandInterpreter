@@ -8,8 +8,8 @@ function as_fetch_options(data: CommandData): FetchOptions {
 
 const func = async (context: CommandContext, data: CommandData): Promise<CommandResult> => {
     const options = as_fetch_options(data);
-    const result = await fetch(options.url, options.optons);
-    const json = await result.json();
+    const response: Response = await fetch(options.url, options.optons);
+    const json = await response.json();
     return Promise.resolve({
       commands: context.commands,
       output: {format: "application/json", content: json}

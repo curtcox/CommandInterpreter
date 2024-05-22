@@ -1,9 +1,9 @@
 import { assertEquals, fail } from "https://deno.land/std/assert/mod.ts";
-import { def_from_simple, SimpleCommand, use, invoke_with_input } from "./ToolsForCommandWriters.ts";
+import { def_from_simple, SimpleCommand, invoke_with_input, combine } from "./ToolsForCommandWriters.ts";
 import { CommandContext } from "./CommandDefinition.ts";
 import { CommandDefinition } from "./CommandDefinition.ts";
 import { nop_cmd } from "../core_commands/NopCommand.ts";
-import { emptyContextMeta } from "./Empty.ts";
+import { emptyContextMeta, emptyData } from "./Empty.ts";
 
 const commands: Record<string, CommandDefinition> = {};
 
@@ -34,11 +34,11 @@ Deno.test("def from simple produces expected command", () => {
 
 Deno.test("calling def from simple produces the expected result", async () => {
   const command = def_from_simple(dasher);
-  const result = await command.func(context, {format:"text", content:"Hello"});
+  const result = await command.func(context, {format:"string", content:"Hello"});
   assertEquals(result, {
     commands: commands,
     output: {
-      format: "text",
+      format: "string",
       content: "Hello-World"
     }
   });
@@ -62,30 +62,32 @@ Deno.test("def from text produces expected command", () => {
 
 Deno.test("calling def from text produces expected value", async () => {
   const command = def_from_simple(coloner);
-  const result = await command.func(context, {format:"text", content:"Hello"});
+  const result = await command.func(context, {format:"string", content:"Hello"});
   assertEquals(result, {
     commands: commands,
     output: {
-      format: "text",
+      format: "string",
       content: "Hello:World"
     }
   });
 });
 
 Deno.test("Invoke command returns input from nop command", async () => {
-  const ignored = {format: "", content: ""};
-  const ctx = { commands: use(nop_cmd,commands), previous: nop_cmd, input: ignored };
-  const input = {format: "text", content: "value"};
-  const data = {format: "text", content: ""};
+  const ignored = emptyData;
+  const meta = emptyContextMeta;
+  const ctx = { meta, commands: combine(nop_cmd,commands), input: ignored };
+  const input = {format: "string", content: "value"};
+  const data = {format: "string", content: ""};
   const result = await invoke_with_input(ctx, "nop", data, input);
   assertEquals(result.output, input);
 });
 
 Deno.test("Invoke command throws a helpful exception when command not found.", async () => {
-  const ignored = {format: "", content: ""};
-  const ctx = { commands: use(nop_cmd,commands), previous: nop_cmd, input: ignored };
-  const input = {format: "text", content: "value"};
-  const data = {format: "text", content: ""};
+  const ignored = emptyData;
+  const meta = emptyContextMeta;
+  const ctx = { meta, commands: combine(nop_cmd,commands), input: ignored };
+  const input = {format: "string", content: "value"};
+  const data = {format: "string", content: ""};
   try {
     await invoke_with_input(ctx, "nope", data, input);
     fail("Expected an exception.");
