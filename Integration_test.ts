@@ -11,6 +11,7 @@ import { alias } from "./standard_commands/AliasCommand.ts";
 import { emptyContextMeta } from "./command/Empty.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
 import { Result } from "./commands/RunCommand.ts";
+import { WIP, broken_on_CI } from "./TestConfig.ts";
 
 const memory_store = memory();
 const native_store = memory_store;
@@ -113,8 +114,10 @@ Deno.test("Pipeline with alias that has a pipe", async () => {
     assertEquals(output.trim(), "2 the");
 });
 
-
-Deno.test("The most frequently ocurring word in Frankenstein.", async () => {
+Deno.test({
+    name: "The most frequently ocurring word in Frankenstein.",
+    ignore: broken_on_CI,
+    async fn() {
     const tools = await unix(context());
     const books = await aliases_from_lines(after(tools), [
         "frankenstein curl https://www.gutenberg.org/cache/epub/84/pg84.txt"
@@ -133,11 +136,11 @@ Deno.test("The most frequently ocurring word in Frankenstein.", async () => {
     const result = commandResult.output.content as Result;
     const output = result.output;
     assertEquals(output.trim(), "526 the");
-});
+}});
 
 Deno.test({
     name: "Summarize content from a url.", 
-    ignore: true, // This line makes the test ignored
+    ignore: WIP,
     async fn() {
       const markdown = await define(url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
       const ctx = context_with(markdown);

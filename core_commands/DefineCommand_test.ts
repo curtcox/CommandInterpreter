@@ -4,6 +4,7 @@ import { define_cmd } from "./DefineCommand.ts";
 import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";
 import { emptyContextMeta } from "../command/Empty.ts";
 import { nonEmpty } from "../Check.ts";
+import { broken_on_CI } from "../TestConfig.ts";
 
 const empty_commands: Record<string, CommandDefinition> = {};
 const empty_data: CommandData = {
@@ -75,7 +76,10 @@ Deno.test("define function from full JavaScript definition", async () => {
     assertEquals(result2.output, data2);
 });
 
-Deno.test("define function from full TypeScript definition", async () => {
+Deno.test({
+  name: "define function from full TypeScript definition",
+  ignore: broken_on_CI, 
+  async fn() {
   const defined = await define_cmd.func(empty_context, typescript(
     `import { CommandDefinition, CommandContext, CommandData } from "https://raw.githubusercontent.com/curtcox/CommandInterpreter/main/CommandDefinition.ts";
 
@@ -109,9 +113,12 @@ Deno.test("define function from full TypeScript definition", async () => {
   const data2 = {format: "URL", content: {p1:"Hello", p2:"There"}};
   const result2 = await nop.func(input(data2), empty_data);
   assertEquals(result2.output, data2);
-});
+}});
 
-Deno.test("define function from full TypeScript URL", async () => {
+Deno.test({
+  name: "define function from full TypeScript URL",
+  ignore: broken_on_CI,
+  async fn() {
   const defined = await define_cmd.func(empty_context, url("https://esm.town/v/curtcox/EmailCommand"));
   const out = defined.output.content as CommandDefinition;
   assertEquals(out.meta.name, "email");
@@ -129,7 +136,7 @@ Deno.test("define function from full TypeScript URL", async () => {
   } catch (error) {
     assertEquals(error.message, "Val Town Email Error: Unauthorized");
   }
-});
+}});
 
 Deno.test("execute function definedfrom full TypeScript URL", async () => {
   const defined = await define_cmd.func(empty_context, url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
