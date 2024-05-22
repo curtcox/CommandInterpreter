@@ -8,6 +8,10 @@ A simple command interpreter.
 - Making commands should be easy
 - It should run everywhere
 
+## Build Status
+![Deno Status]
+(https://github.com/curtcox/CommandInterpreter/actions/workflows/deno.yml/badge.svg)
+
 ## Run the CLI
 ```bash
 deno run --allow-all main.ts --commands="11 + 11"
