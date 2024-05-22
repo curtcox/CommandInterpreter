@@ -9,8 +9,7 @@ A simple command interpreter.
 - It should run everywhere
 
 ## Build Status
-![Deno Status]
-(https://github.com/curtcox/CommandInterpreter/actions/workflows/deno.yml/badge.svg)
+![Deno Status](https://github.com/curtcox/CommandInterpreter/actions/workflows/deno.yml/badge.svg)
 
 ## Run the CLI
 ```bash
