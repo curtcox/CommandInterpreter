@@ -81,16 +81,28 @@ export interface PreciseTime {
   micros: number;
 }
 
+// Rename to span?
 export interface Duration {
   start: PreciseTime;
   end: PreciseTime;
 }
 
-/**
- * A record of a command that has been run.
- */
+// A record of a command that has been run.
 export interface CommandRecord extends CommandInvocation {
   context: CommandContext; // The context in which the command was run.
   result: CommandResult; // The result of running the command.
   duration: Duration; // The duration of the command.
+}
+
+// Something that went wrong executing a command.
+class CommandError extends Error {
+  public context: CommandContext;
+  public invocation: CommandInvocation;
+
+  constructor(message: string, context: CommandContext, invocation: CommandInvocation) {
+    super(message);
+    this.name = "CommandError";
+    this.context = context;
+    this.invocation = invocation;
+  }
 }

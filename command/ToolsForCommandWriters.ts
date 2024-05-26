@@ -1,4 +1,7 @@
-import { CommandContext, CommandDefinition, CommandData } from "./CommandDefinition.ts";
+import { CommandContext } from "./CommandDefinition.ts";
+import { CommandDefinition } from "./CommandDefinition.ts";
+import { CommandData } from "./CommandDefinition.ts";
+import { CommandResult } from "./CommandDefinition.ts";
 import { replace_all } from "../Strings.ts";
 import { isString, check } from "../Check.ts";
 
@@ -56,7 +59,7 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
 }
 
 // Invoke the named command using the supplied context.
-export const invoke = async (context: CommandContext, name: string, options: CommandData) => {
+export const invoke = async (context: CommandContext, name: string, options: CommandData): Promise<CommandResult> => {
   // console.log({invoke, name, options});
   const command = context.commands[name];
   if (!command) {
@@ -66,7 +69,7 @@ export const invoke = async (context: CommandContext, name: string, options: Com
 }
 
 // Invoke the named command using the supplied input rather than the context input.
-export const invoke_with_input = async (context: CommandContext, name: string, options: CommandData, input: CommandData) => {
+export const invoke_with_input = async (context: CommandContext, name: string, options: CommandData, input: CommandData): Promise<CommandResult> => {
     const meta = context.meta;
     const commands = context.commands;
     const with_input: CommandContext = { commands, meta, input };

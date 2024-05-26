@@ -33,7 +33,7 @@ interface NumberedCommandResult {
 const func = async (context: CommandContext, options: CommandData): Promise<CommandResult> => {
     // console.log({func, options});
     const start = now_now();
-    const {id, result} = await process_entire_pipeline(context, options);
+    const {id, result} = await process_entire_pipeline(context, options); // <<<<<<-------------------------
     const end = now_now();
     const duration = { start, end };
     const command = do_cmd;
@@ -79,7 +79,8 @@ interface TimedInvocation {
 async function execute_step(context: CommandContext, step: CommandInvocation): Promise<TimedInvocation> {
     // console.log({execute_step, step});
     const start = now_now();
-    const result = await step.command.func(context, step.options);
+    //??? Log all info from each level of the stack
+    const result = await step.command.func(context, step.options); // <<<<<<-------------------------
     const end = now_now();
     const duration = { start, end };
     return Promise.resolve({ duration, result, step });
@@ -118,7 +119,7 @@ const process_entire_pipeline = async (context: CommandContext, options: Command
     for (const step of steps) {
         const currentStep = parse_command_step(context, id, step);
         context = await context_for_step(id, context, previousStep, result, currentStep);
-        const execution = await execute_step(context, currentStep);
+        const execution = await execute_step(context, currentStep); // <<<<<<-------------------------
         await record_step(context, record(context, execution));
         id = id + 1;
         const meta = {id, start: now_now(), source: currentStep, prior: context};

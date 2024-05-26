@@ -203,5 +203,5 @@ Deno.test("2nd pipeline step gets commands from 1st", async () => {
 });
 
 Deno.test("IO will convert a string to a URL", async () => {
-  await assertPipelineResult("alias boo version | boo", "0.0.7");
+  await assertPipelineResult("define https://esm.town/v/curtcox/MarkdownCommand?v=4", "defined");
 });
