@@ -1,8 +1,18 @@
-import { CommandResult, CommandRecord, DO, CommandContext } from "./CommandDefinition.ts";
+import { CommandResult } from "./CommandDefinition.ts";
+import { CommandRecord } from "./CommandDefinition.ts";
+import { CommandError } from "./CommandDefinition.ts";
+import { DO } from "./CommandDefinition.ts";
+import { CommandContext } from "./CommandDefinition.ts";
 import { invoke } from "./ToolsForCommandWriters.ts";
 
 export async function rerun(record: CommandRecord): Promise<CommandResult> {
-    const result = await invoke(record.context, DO, record.options);
+    const result = await invoke(record.context, record.command.meta.name, record.options);
+    return Promise.resolve(result);
+}
+
+export async function retry(error: CommandError): Promise<CommandResult> {
+    const invocation = error.invocation;
+    const result = await invoke(error.context, invocation.command.meta.name, invocation.options);
     return Promise.resolve(result);
 }
 

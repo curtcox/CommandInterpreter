@@ -11,19 +11,25 @@ import { CommandRecord } from "../command/CommandDefinition.ts";
 import { CommandDefinition, DO } from "../command/CommandDefinition.ts";
 import { memory as memoryStore, Native as nativeStore } from "../core_commands/StoreCommand.ts";
 import { memory as memoryEnv } from "../core_commands/EnvCommand.ts";
-import { CommandContext, CommandData } from "../command/CommandDefinition.ts";
+import { CommandContext } from "../command/CommandDefinition.ts";
+import { CommandData } from "../command/CommandDefinition.ts";
+import { CommandError } from "../command/CommandDefinition.ts";
 import { emptyContextMeta, emptyData } from "../command/Empty.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { env_cmd } from "../core_commands/EnvCommand.ts";
 import { alias_cmd } from "../standard_commands/AliasCommand.ts";
-import { rerun, resume } from "./ToolsForCommandExecution.ts";
+import { rerun, retry, resume } from "./ToolsForCommandExecution.ts";
+import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";
+import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
+
+const eval_command = def_from_simple(eval_cmd);
 
 const commands = (store: nativeStore):Record<string, CommandDefinition> => ({
     "nop": nop_cmd,
     "version": def_from_simple(version_cmd),
     "echo": echo_cmd,
     "env": def_from_simple(env_cmd(memoryEnv())),
-    "eval": def_from_simple(eval_cmd),
+    "eval": eval_command,
     "do": do_cmd,
     "log": log_cmd,
     "io": io_cmd,
@@ -84,12 +90,41 @@ Deno.test("eval can be continued from a pipeline record", async () => {
     assertEquals(result.output.content, "16");
 });
 
-// Deno.test("version can be continued from a command record", async () => {
-// });
+Deno.test("version can be continued from a command record", async () => {
+    const record = await run_pipeline("version",1);
+    const result = await resume(record, 'eval "Mr. ${input}"');
+    assertEquals(result.output.content, 'Mr. 0.0.7');
+});
 
-// Deno.test("nop can be continued from a command record", async () => {
-// });
+Deno.test("nop can be continued from a command record", async () => {
+    const record = await run_pipeline("version | nop", 2);
+    const result = await resume(record, 'eval ">>> ${input} <<<"');
+    assertEquals(result.output.content, '>>> 0.0.7 <<<');
+});
 
-
-// Deno.test("eval error can be recreated from a CommandError", async () => {
-// });
+Deno.test("eval error can be recreated from a CommandError", async () => {
+    try {
+        await run("eval 0.0.7");
+        fail();
+    } catch (e1) {
+        // console.log({e1});
+        assertInstanceOf(e1, CommandError);
+        const ce1 = e1 as CommandError;
+        const invocation = ce1.invocation;
+        assertEquals(invocation.id,0);
+        assertEquals(invocation.command,do_cmd);
+        assertEquals(invocation.options,{format:"string", content:"eval 0.0.7"});
+        assertEquals(ce1.name,"CommandError");
+        assertEquals(ce1.message,"Unexpected number");
+        try {
+            await retry(ce1);
+            fail();
+        } catch (e2) {
+            const ce2 = e2 as CommandError;
+            assertEquals(ce1.name,ce2.name);
+            assertEquals(ce1.message,ce1.message);
+            assertEquals(ce1.context,ce2.context);
+            assertEquals(ce1.invocation,ce2.invocation);
+        }
+    }
+});

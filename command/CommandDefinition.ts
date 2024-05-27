@@ -95,7 +95,7 @@ export interface CommandRecord extends CommandInvocation {
 }
 
 // Something that went wrong executing a command.
-class CommandError extends Error {
+export class CommandError extends Error {
   public context: CommandContext;
   public invocation: CommandInvocation;
 

@@ -2,8 +2,10 @@ import { CommandContext } from "./CommandDefinition.ts";
 import { CommandDefinition } from "./CommandDefinition.ts";
 import { CommandData } from "./CommandDefinition.ts";
 import { CommandResult } from "./CommandDefinition.ts";
+import { CommandError } from "./CommandDefinition.ts";
 import { replace_all } from "../Strings.ts";
 import { isString, check } from "../Check.ts";
+import { CommandInvocation } from "./CommandDefinition.ts";
 
 // A simplified version of CommandDefinition.
 // Assume no command modification.
@@ -26,6 +28,7 @@ export function command_with_replacements(context: CommandContext, original: str
 }
 
 export function string_for(x: unknown) {
+   if (typeof x === 'string') return x;
    return JSON.stringify(x);
 }
 
@@ -62,10 +65,19 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
 export const invoke = async (context: CommandContext, name: string, options: CommandData): Promise<CommandResult> => {
   // console.log({invoke, name, options});
   const command = context.commands[name];
+  const id = context.meta.id;
+  const invocation: CommandInvocation = {id, command, options}
   if (!command) {
-    throw new Error(`Command not found: ${name} in ${Object.keys(context.commands)}`);
+    const message = `Command not found: ${name} in ${Object.keys(context.commands)}`;
+    throw new CommandError(message,context,invocation);
   }
-  return await command.func(context, options);
+  try {
+    return await command.func(context, options);
+  } catch (e) {
+    const commandError = new CommandError(e.message,context,invocation);
+    commandError.cause = e;
+    throw commandError;
+  }
 }
 
 // Invoke the named command using the supplied input rather than the context input.
