@@ -1,5 +1,5 @@
-import { CommandContext, CommandData, CommandInvocation, ContextMeta, CommandDefinition, PreciseTime } from "./CommandDefinition.ts";
-
+import { CommandContext, CommandData, CommandInvocation, ContextMeta, CommandDefinition } from "./CommandDefinition.ts";
+import { PreciseTime } from "../Time.ts";
 export const emptyData: CommandData = { format: "", content: "" };
 export const timeZero: PreciseTime = { millis: 0, micros: 0 };
 export const emptyCommandMeta = { name: "", doc: "", source: "" };

@@ -1,4 +1,5 @@
 import { CommandResult } from "./CommandDefinition.ts";
+import { CommandCompletionRecord } from "./CommandDefinition.ts";
 import { CommandRecord } from "./CommandDefinition.ts";
 import { CommandError } from "./CommandDefinition.ts";
 import { DO } from "./CommandDefinition.ts";
@@ -11,12 +12,12 @@ export async function rerun(record: CommandRecord): Promise<CommandResult> {
 }
 
 export async function retry(error: CommandError): Promise<CommandResult> {
-    const invocation = error.invocation;
+    const invocation = {command: error.command, options: error.options};
     const result = await invoke(error.context, invocation.command.meta.name, invocation.options);
     return Promise.resolve(result);
 }
 
-export async function resume(record: CommandRecord, pipeline: string): Promise<CommandResult> {
+export async function resume(record: CommandCompletionRecord, pipeline: string): Promise<CommandResult> {
     const { meta } = record.context;
     const commands = record.result.commands;
     const input = record.result.output;

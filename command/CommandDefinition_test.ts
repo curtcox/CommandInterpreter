@@ -8,6 +8,7 @@ import { store_cmd } from "../core_commands/StoreCommand.ts";
 import { io_cmd } from "../core_commands/IoCommand.ts";
 import { eval_cmd } from "../standard_commands/EvalCommand.ts";
 import { CommandRecord } from "../command/CommandDefinition.ts";
+import { CommandCompletionRecord } from "../command/CommandDefinition.ts";
 import { CommandDefinition, DO } from "../command/CommandDefinition.ts";
 import { memory as memoryStore, Native as nativeStore } from "../core_commands/StoreCommand.ts";
 import { memory as memoryEnv } from "../core_commands/EnvCommand.ts";
@@ -43,17 +44,17 @@ const context = (store: nativeStore): CommandContext => ({
     input: emptyData,
 });
   
-async function run(pipeline: string): Promise<CommandRecord> {
+async function run(pipeline: string): Promise<CommandCompletionRecord> {
     return await run_pipeline(pipeline, 1);
 }
 
-async function run_pipeline(pipeline: string, index: number): Promise<CommandRecord> {
+async function run_pipeline(pipeline: string, index: number): Promise<CommandCompletionRecord> {
     const store = memoryStore();
     const ctx = context(store);
     const result = await invoke(ctx, DO, {format: "string", content:pipeline});
     const logged = await store.get(`log/${index}`) as CommandData;
-    assertEquals(logged.format, "CommandRecord");
-    const record = logged.content as CommandRecord;
+    assertEquals(logged.format, "CommandCompletionRecord");
+    const record = logged.content as CommandCompletionRecord;
     assertEquals(record.result.output.content, result.output.content);
     return Promise.resolve(record);
 }
@@ -110,10 +111,9 @@ Deno.test("eval error can be recreated from a CommandError", async () => {
         // console.log({e1});
         assertInstanceOf(e1, CommandError);
         const ce1 = e1 as CommandError;
-        const invocation = ce1.invocation;
-        assertEquals(invocation.id,0);
-        assertEquals(invocation.command,do_cmd);
-        assertEquals(invocation.options,{format:"string", content:"eval 0.0.7"});
+        assertEquals(ce1.id,0);
+        assertEquals(ce1.command,do_cmd);
+        assertEquals(ce1.options,{format:"string", content:"eval 0.0.7"});
         assertEquals(ce1.name,"CommandError");
         assertEquals(ce1.message,"Unexpected number");
         try {
@@ -124,7 +124,8 @@ Deno.test("eval error can be recreated from a CommandError", async () => {
             assertEquals(ce1.name,ce2.name);
             assertEquals(ce1.message,ce1.message);
             assertEquals(ce1.context,ce2.context);
-            assertEquals(ce1.invocation,ce2.invocation);
+            assertEquals(ce1.command,ce2.command);
+            assertEquals(ce1.options,ce2.options);
         }
     }
 });

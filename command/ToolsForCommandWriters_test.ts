@@ -4,6 +4,9 @@ import { CommandContext } from "./CommandDefinition.ts";
 import { CommandDefinition } from "./CommandDefinition.ts";
 import { nop_cmd } from "../core_commands/NopCommand.ts";
 import { emptyContextMeta, emptyData } from "./Empty.ts";
+import { log_cmd } from "../core_commands/LogCommand.ts";
+import { store_cmd } from "../core_commands/StoreCommand.ts";
+import { memory as memoryStore } from "../core_commands/StoreCommand.ts";
 
 const commands: Record<string, CommandDefinition> = {};
 
@@ -82,7 +85,7 @@ Deno.test("Invoke command returns input from nop command", async () => {
   assertEquals(result.output, input);
 });
 
-Deno.test("Invoke command throws a helpful exception when command not found.", async () => {
+Deno.test("Invoke command throws a helpful exception when log is misconfigured.", async () => {
   const ignored = emptyData;
   const meta = emptyContextMeta;
   const ctx = { meta, commands: combine(nop_cmd,commands), input: ignored };
@@ -92,6 +95,21 @@ Deno.test("Invoke command throws a helpful exception when command not found.", a
     await invoke_with_input(ctx, "nope", data, input);
     fail("Expected an exception.");
   } catch (e) {
-    assertEquals(e.message, "Command not found: nope in nop");
+    assertEquals(e.message, "Command not found: log in nop");
+  }
+});
+
+Deno.test("Invoke command throws a helpful exception when command not found.", async () => {
+  const ignored = emptyData;
+  const meta = emptyContextMeta;
+  const memory = memoryStore(); 
+  const ctx = { meta, commands: combine(nop_cmd,log_cmd, store_cmd(memory)), input: ignored };
+  const input = {format: "string", content: "value"};
+  const data = {format: "string", content: ""};
+  try {
+    await invoke_with_input(ctx, "nope", data, input);
+    fail("Expected an exception.");
+  } catch (e) {
+    assertEquals(e.message, "Command not found: nope in nop,log,store");
   }
 });

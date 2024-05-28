@@ -1,3 +1,6 @@
+import { PreciseTime } from "../Time.ts";
+import { Duration } from "../Time.ts";
+
 /**
  * Commands can be found by other commands in the context.
  * The names below are use for core interpreter functionality.
@@ -75,34 +78,33 @@ export interface CommandDefinition {
   func: (context: CommandContext, options: CommandData) => Promise<CommandResult>;
 }
 
-// The exact time as far as we can determine it.
-export interface PreciseTime {
-  millis: number;
-  micros: number;
-}
-
-// Rename to span?
-export interface Duration {
-  start: PreciseTime;
-  end: PreciseTime;
-}
 
 // A record of a command that has been run.
 export interface CommandRecord extends CommandInvocation {
   context: CommandContext; // The context in which the command was run.
-  result: CommandResult; // The result of running the command.
   duration: Duration; // The duration of the command.
 }
 
-// Something that went wrong executing a command.
-export class CommandError extends Error {
-  public context: CommandContext;
-  public invocation: CommandInvocation;
+// A record of a command that has been run to completion.
+export interface CommandCompletionRecord extends CommandRecord {
+  result: CommandResult; // The result of running the command.
+}
 
-  constructor(message: string, context: CommandContext, invocation: CommandInvocation) {
+// Something that went wrong executing a command.
+export class CommandError extends Error implements CommandRecord {
+  public context: CommandContext;
+  public id: number; // A unique sequence number for the command.
+  public command: CommandDefinition;
+  public options: CommandData;
+  public duration: Duration; // The duration of the command.
+
+  constructor(context: CommandContext, invocation: CommandInvocation, duration: Duration, message: string) {
     super(message);
+    this.id = invocation.id;
     this.name = "CommandError";
     this.context = context;
-    this.invocation = invocation;
+    this.command = invocation.command;
+    this.options = invocation.options;
+    this.duration = duration;
   }
 }

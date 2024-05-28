@@ -11,7 +11,7 @@ Deno.test("evaluate valid numeric expression", async () => {
 
 Deno.test("evaluate valid string expression", async () => {
   const expression = "'Hello, ' + 'world!'";
-  const expectedResult = '"Hello, world!"';
+  const expectedResult = 'Hello, world!';
   const result = await eval_cmd.func(emptyContext, expression);
   assertEquals(result, expectedResult);
 });

@@ -1,11 +1,12 @@
-import { Duration } from "../command/CommandDefinition.ts";
+import { Duration } from "../Time.ts";
 import { CommandDefinition } from "../command/CommandDefinition.ts";
 import { CommandMeta } from "../command/CommandDefinition.ts";
 import { CommandRecord } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
 import { CommandInvocation } from "../command/CommandDefinition.ts";
-import { PreciseTime } from "../command/CommandDefinition.ts";
-import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
+import { CommandContext } from "../command/CommandDefinition.ts";
+import { CommandResult } from "../command/CommandDefinition.ts";
+import { CommandCompletionRecord } from "../command/CommandDefinition.ts";
 import { HELP, DO } from "../command/CommandDefinition.ts";
 import { head, tail } from "../Strings.ts";
 import { invoke } from "../command/ToolsForCommandWriters.ts";
@@ -14,15 +15,12 @@ import { isString } from "../Check.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { convert_data, DataConversion } from "./IoCommand.ts";
 import { are_equal } from "../Objects.ts";
+import { now_now } from "../Time.ts";
 
 const meta: CommandMeta = {
     name: DO,
     doc: "Execute a sequence of commands.",
     source: import.meta.url,
-}
-
-function now_now(): PreciseTime {
-    return { millis: Date.now(), micros: performance.now() };
 }
 
 interface NumberedCommandResult {
@@ -133,7 +131,7 @@ const process_entire_pipeline = async (context: CommandContext, options: Command
     return Promise.resolve({id, result:output});
 };
 
-function record(context: CommandContext, invocation: TimedInvocation) : CommandRecord {
+function record(context: CommandContext, invocation: TimedInvocation) : CommandCompletionRecord {
     const result = invocation.result;
     const step = invocation.step;
     const command = step.command;
@@ -143,7 +141,7 @@ function record(context: CommandContext, invocation: TimedInvocation) : CommandR
     return { id, command, options, context, result, duration };
 }
 
-const record_step = (context: CommandContext, record: CommandRecord) => {
+const record_step = (context: CommandContext, record: CommandCompletionRecord) => {
     // console.log({record_step, record});
     log(context, record);
 };

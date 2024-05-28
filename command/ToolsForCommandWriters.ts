@@ -6,6 +6,8 @@ import { CommandError } from "./CommandDefinition.ts";
 import { replace_all } from "../Strings.ts";
 import { isString, check } from "../Check.ts";
 import { CommandInvocation } from "./CommandDefinition.ts";
+import { now_now } from "../Time.ts";
+import { error } from "../core_commands/LogCommand.ts";
 
 // A simplified version of CommandDefinition.
 // Assume no command modification.
@@ -64,18 +66,24 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
 // Invoke the named command using the supplied context.
 export const invoke = async (context: CommandContext, name: string, options: CommandData): Promise<CommandResult> => {
   // console.log({invoke, name, options});
+  const start = now_now();
   const command = context.commands[name];
   const id = context.meta.id;
   const invocation: CommandInvocation = {id, command, options}
   if (!command) {
     const message = `Command not found: ${name} in ${Object.keys(context.commands)}`;
-    throw new CommandError(message,context,invocation);
+    const duration = { start, end: now_now() };
+    const commandError = new CommandError(context,invocation,duration,message);
+    await error(context, commandError);
+    throw commandError;
   }
   try {
     return await command.func(context, options);
   } catch (e) {
-    const commandError = new CommandError(e.message,context,invocation);
+    const duration = { start, end: now_now() };
+    const commandError = new CommandError(context,invocation,duration,e.message);
     commandError.cause = e;
+    await error(context, commandError);
     throw commandError;
   }
 }

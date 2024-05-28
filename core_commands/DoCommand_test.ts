@@ -6,7 +6,7 @@ import { do_cmd } from "./DoCommand.ts";
 import { log_cmd } from "./LogCommand.ts";
 import { store_cmd } from "./StoreCommand.ts";
 import { io_cmd } from "./IoCommand.ts";
-import { CommandRecord, CommandResult } from "../command/CommandDefinition.ts";
+import { CommandCompletionRecord, CommandResult } from "../command/CommandDefinition.ts";
 import { CommandDefinition } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
 import { memory as memoryStore } from "./StoreCommand.ts";
@@ -95,8 +95,8 @@ Deno.test("The store starts with no log records", async () => {
 
 Deno.test("Execution records can be read from the log", async () => {
   const { output } = await run("version | store get log/0");
-  assertEquals(output.format, "CommandRecord");
-  const record = output.content as CommandRecord;
+  assertEquals(output.format, "CommandCompletionRecord");
+  const record = output.content as CommandCompletionRecord;
   assertEquals(record.id, 0);
   assertEquals(record.options, {format: "string", content: ""});
   const meta = record.command.meta;
@@ -109,7 +109,7 @@ Deno.test("Execution records can be read from the log", async () => {
 Deno.test("Execution records in the log contain expected command info", async () => {
   // content.command, content.context.commands, and result.commands should all agree
   const { output } = await run("version | store get log/0");
-  const record = output.content as CommandRecord;
+  const record = output.content as CommandCompletionRecord;
   assertEquals(record.context.commands, record.result.commands);
 });
 
@@ -171,13 +171,12 @@ Deno.test("Two step pipeline only has 3 log entries (1 for the pipeline itself)"
   assertEquals(store.get("log/3"), undefined);
 });
 
-function command_record(store: Native, id: number) : CommandRecord {
+function command_record(store: Native, id: number) : CommandCompletionRecord {
   const data = store.get(`log/${id}`) as CommandData;
-  assertEquals(data.format, "CommandRecord");
-  const record = data.content as CommandRecord;
+  assertEquals(data.format, "CommandCompletionRecord");
+  const record = data.content as CommandCompletionRecord;
   return check(record);
 }
-
 
 Deno.test("1st pipeline step gets input from context", async () => {
   const store = memoryStore();

@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition, CommandRecord, ContextMeta } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition, CommandCompletionRecord, ContextMeta } from "../command/CommandDefinition.ts";
 import { store_cmd, memory } from "./StoreCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { log_cmd, log } from "./LogCommand.ts";
@@ -18,7 +18,7 @@ const contextWithStore = (store: CommandDefinition) : CommandContext => ({
 
 Deno.test("Command record logged via invoke with input can be read from the store", async () => {
   const store = store_cmd(memory());
-  const record: CommandRecord = {
+  const record: CommandCompletionRecord = {
     id: 42,
     command: nop_cmd,
     options: {format:"", content:"Hey!!! It's a NOP!!!"},
@@ -27,7 +27,7 @@ Deno.test("Command record logged via invoke with input can be read from the stor
     duration: {start: { millis: 10, micros: 11}, end: {millis: 20, micros: 21}},
   };
   const value: CommandData = {
-    format: "CommandRecord",
+    format: "CommandCompletionRecord",
     content: record,
   };
   const context = contextWithStore(store);
@@ -40,7 +40,7 @@ Deno.test("Command record logged via invoke with input can be read from the stor
 
 Deno.test("Command record logged via log function can be read from the store", async () => {
   const store = store_cmd(memory());
-  const record: CommandRecord = {
+  const record: CommandCompletionRecord = {
     id: 12,
     command: nop_cmd,
     options: {format:"??", content:"noppy nop nop"},
@@ -49,7 +49,7 @@ Deno.test("Command record logged via log function can be read from the store", a
     duration: {start: { millis: 1, micros: 1}, end: {millis: 2, micros: 2}},
   };
   const value: CommandData = {
-    format: "CommandRecord",
+    format: "CommandCompletionRecord",
     content: record,
   };
   const context = contextWithStore(store);
