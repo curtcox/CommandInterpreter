@@ -90,7 +90,7 @@ export interface CommandCompletionRecord extends CommandRecord {
   result: CommandResult; // The result of running the command.
 }
 
-// Something that went wrong executing a command.
+// A record of a command that failed.
 export class CommandError extends Error implements CommandRecord {
   public context: CommandContext;
   public id: number; // A unique sequence number for the command.

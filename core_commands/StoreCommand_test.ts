@@ -1,14 +1,16 @@
 import { assertEquals, assert } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition, CommandCompletionRecord } from "../command/CommandDefinition.ts";
-import { memory, store_cmd, get, set } from "./StoreCommand.ts";
+import { CommandContext, ContextMeta, CommandData, CommandDefinition, CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
+import { memory, filesystem, store_cmd, get, set, json_io, Codec } from "./StoreCommand.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { STORE } from "../command/CommandDefinition.ts";
-import { emptyContextMeta, emptyData } from "../command/Empty.ts";
+import { emptyContext, emptyContextMeta, emptyData } from "../command/Empty.ts";
 import { are_equal } from "../Objects.ts";
 import { Duration } from "../Time.ts";
 import { PreciseTime } from "../Time.ts";
 import { CommandResult } from "../command/CommandDefinition.ts";
 import { nop_cmd } from "./NopCommand.ts";
+import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
+import { emptyCommand } from "../command/Empty.ts";
 
 const empty = emptyData;
 
@@ -159,8 +161,170 @@ Deno.test("error can be loaded and saved from memory store", async () => {
   const error = new Error("This is an error.");
   const from_store = await save_and_load(context, {format: "Error", content: error});
   const loaded = from_store.content as Error;
+  assertInstanceOf(loaded, Error);
   assertEquals(loaded.name, error.name);
   assertEquals(loaded.message, error.message);
   assertEquals(loaded.stack, error.stack);
   assert(are_equal(loaded, error));
+});
+
+Deno.test("command error can be loaded and saved from memory store", async () => {
+  const store = store_cmd(memory());
+  const context = contextWithStore(store);
+
+  const e = new Error("This is an error.");
+  const invocation = {id: 1, command: nop_cmd, options: empty};
+  const duration = {start: now_now(), end: now_now()};
+  const error = new CommandError(context, invocation, duration, e.message);
+  const from_store = await save_and_load(context, {format: "CommandError", content: error});
+  const loaded = from_store.content as Error;
+  assertInstanceOf(loaded, CommandError);
+  assertEquals(loaded.name, error.name);
+  assertEquals(loaded.message, error.message);
+  assertEquals(loaded.stack, error.stack);
+  assertEquals(loaded.cause, error.cause);
+  assertEquals(loaded.context, error.context);
+  assertEquals(loaded.id, error.id);
+  assertEquals(loaded.command, error.command);
+  assertEquals(loaded.options, error.options);
+  assertEquals(loaded.duration, error.duration);
+
+  assert(are_equal(loaded, error));
+});
+
+Deno.test("command error can be loaded and saved from file store", async () => {
+  const store = store_cmd(filesystem("store",json_io(),"json"));
+  const context = contextWithStoreAndLog(store);
+
+  const e = new Error("This is an error.");
+  const invocation = {id: 1, command: nop_cmd, options: empty};
+  const duration = {start: now_now(), end: now_now()};
+  const error = new CommandError(context, invocation, duration, e.message);
+  const from_store = await save_and_load(context, {format: "CommandError", content: error});
+  const loaded = from_store.content as Error;
+  assertInstanceOf(loaded, CommandError);
+  assertEquals(loaded.name, error.name);
+  assertEquals(loaded.message, error.message);
+  assertEquals(loaded.stack, error.stack);
+  assertEquals(loaded.cause, error.cause);
+  assertEquals(loaded.context, error.context);
+  assertEquals(loaded.id, error.id);
+  assertEquals(loaded.command, error.command);
+  assertEquals(loaded.options, error.options);
+  assertEquals(loaded.duration, error.duration);
+
+  assert(are_equal(loaded, error));
+});
+
+async function write_and_read(value: CommandData, io: Codec) : Promise<CommandData> {
+  const data = await io.read(await io.write(value));
+  assertEquals(data.format, value.format);
+  return data;
+}
+
+Deno.test("command error can be loaded and saved via json", async () => {
+  const io = json_io();
+
+  const context = emptyContext
+  const e = new Error("This is an error.");
+  const invocation = {id: 1, command: nop_cmd, options: empty};
+  const duration = {start: now_now(), end: now_now()};
+  const error = new CommandError(context, invocation, duration, e.message);
+
+  const from_store = await write_and_read({format:"CommandError", content:error},io);
+
+  const loaded = from_store.content as Error;
+  assertInstanceOf(loaded, CommandError);
+  assertEquals(loaded.name, error.name);
+  assertEquals(loaded.message, error.message);
+  assertEquals(loaded.stack, error.stack);
+  assertEquals(loaded.cause, error.cause);
+  assertEquals(loaded.context, error.context);
+  assertEquals(loaded.id, error.id);
+  assertEquals(loaded.command, error.command);
+  assertEquals(loaded.options, error.options);
+  assertEquals(loaded.duration, error.duration);
+
+  assert(are_equal(loaded, error));
+});
+
+Deno.test("empty context can be loaded and saved via json", async () => {
+  const io = json_io();
+
+  const context = emptyContext
+
+  const from_store = await write_and_read({format:"CommandContext", content:context},io);
+
+  const loaded = from_store.content as CommandContext;
+
+  assertEquals(loaded.commands, context.commands);
+  assertEquals(loaded.input, context.input);
+  assertEquals(loaded.meta, context.meta);
+  assert(are_equal(loaded, context));
+});
+
+Deno.test("empty context meta can be loaded and saved via json", async () => {
+  const io = json_io();
+
+  const meta = emptyContextMeta
+
+  const from_store = await write_and_read({format:"ContextMeta",content:meta},io);
+
+  const loaded = from_store.content as ContextMeta;
+
+  assertEquals(loaded.id, meta.id);
+  assertEquals(loaded.start, meta.start);
+  assertEquals(loaded.source, meta.source);
+  assert(are_equal(loaded, meta));
+});
+
+Deno.test("empty command can be loaded and saved via json", async () => {
+  const io = json_io();
+
+  const command = emptyCommand
+
+  const from_store = await write_and_read({format:"CommandDefinition",content:command},io);
+
+  const loaded = from_store.content as CommandDefinition;
+
+  assertEquals(loaded.meta, command.meta);
+  assertEquals(loaded.func, command.func);
+  assert(are_equal(loaded, command));
+});
+
+function add(a: number, b: number): number {
+  return a + b;
+}
+
+Deno.test("function can be loaded and saved via json", async () => {
+  const io = json_io();
+
+  const fn_str = add.toString();
+
+  const from_store = await write_and_read({format:"function", content:fn_str},io);
+
+  const loaded = from_store;
+
+  assert(are_equal(loaded, fn_str));
+
+  const fn = new Function(`return (${fn_str})`)();
+  assert(are_equal(fn, add));
+});
+
+
+Deno.test("Error written by JSON includes expected contents.", async () => {
+  const io = json_io();
+
+  const context = emptyContext
+  const e = new Error("This is an error.");
+  const invocation = {id: 1, command: nop_cmd, options: empty};
+  const duration = {start: now_now(), end: now_now()};
+  const error = new CommandError(context, invocation, duration, e.message);
+  error.cause = e;
+
+  const stored = await io.write({format:"error", content:error});
+
+  assert(stored.includes("cause"));
+  assert(stored.includes("stack"));
+  assert(stored.includes("StoreCommand_test.ts"));
 });

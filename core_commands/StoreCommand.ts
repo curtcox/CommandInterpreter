@@ -1,5 +1,5 @@
 import { check, isString, nonEmpty } from "../Check.ts";
-import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition, CommandError, CommandMeta } from "../command/CommandDefinition.ts";
 import { words } from "../Strings.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
@@ -17,7 +17,7 @@ function store(native: Native, context: CommandContext, code: string): unknown {
   }
   const arg = parts[0];
   const key = parts[1];
-  // console.log({code, arg, key});
+  // console.log({store, code, arg, key});
   if (arg === "get") {
     return native.get(key);
   }
@@ -48,34 +48,55 @@ export const store_cmd = (native:Native): CommandDefinition => ({
 });
 
 export interface Native {
-  get: (key:string)                => unknown;
-  set: (key:string, value:unknown) => void;
+  get: (key:string)                    => CommandData;
+  set: (key:string, value:CommandData) => void;
 }
 
 /**
  * Translates between strings and objects.
  */
-export interface IO {
-  read: (value:string) => unknown;
-  write: (value:unknown) => string;
+export interface Codec {
+  read: (value:string) => CommandData;
+  write: (value:CommandData) => string;
 }
 
 export function memory(): Native {
-  const memory: Record<string, unknown> = {};
+  const memory: Record<string, CommandData> = {};
   return {
-    get: (key: string)                 => { return memory[key]; },
-    set: (key: string, value: unknown) => { memory[key] = value; },
+    get: (key: string)                     => { return memory[key]; },
+    set: (key: string, value: CommandData) => { memory[key] = value; },
   };
 }
 
-export function json_io(): IO {
+export function json_io(): Codec {
   return {
-    read: (value: string) => JSON.parse(value),
-    write: (value: unknown) => JSON.stringify(value),
+    read: (value: string): CommandData => {
+      const parsed = JSON.parse(value);
+      if (parsed.format === "CommandError") {
+        const { name, context, id, command, options, duration, message, stack, cause } = parsed;
+        if (name === undefined) {
+          return parsed;
+        }
+        const invocation = {id, command, options};
+        const newed = new CommandError(context, invocation, duration, message);
+        newed.stack = stack;
+        newed.cause = cause;
+        return {format:"CommandError", content:newed};
+      }
+      return parsed;
+    },
+    write: (value: CommandData) => {
+      const { format, content } = value;
+      if (format === "CommandError") {
+        const { name, context, id, command, options, duration, message, stack, cause } = content as CommandError;
+        return JSON.stringify({ format, name, context, id, command, options, duration, message, stack, cause });
+      }
+      return JSON.stringify(value);
+    }
   };
 }
 
-export function filesystem(base: string, io: IO, extension: string): Native {
+export function filesystem(base: string, io: Codec, extension: string): Native {
   isString(base);
   check(io);
   isString(extension);
@@ -89,7 +110,7 @@ export function filesystem(base: string, io: IO, extension: string): Native {
     get: (key: string) => {
       return io.read(Deno.readTextFileSync(path(key)));
     },
-    set: (key: string, value: unknown) => {
+    set: (key: string, value: CommandData) => {
       Deno.mkdir(dirname(path(key)), { recursive: true});
       Deno.writeTextFileSync(path(key), io.write(value));
     },

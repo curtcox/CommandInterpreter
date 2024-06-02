@@ -1,4 +1,5 @@
 import { commands } from "./commands/Commands.ts";
+import { CommandRecord } from "./command/CommandDefinition.ts";
 import { CommandContext, CommandResult } from "./command/CommandDefinition.ts";
 import { def_from_simple, combine } from "./command/ToolsForCommandWriters.ts";
 import { run } from "./core_commands/DoCommand.ts";
@@ -29,5 +30,10 @@ const context = (format: string, content: string) : CommandContext => ({
 const evaluate = (format: string, content: string, expression: string): Promise<CommandResult> => {
   return run(context(format,content), expression);
 };
+
+export interface CommandEvalationRecord {
+  commandRecord: CommandRecord;
+  store: URL;
+}
 
 export default evaluate;

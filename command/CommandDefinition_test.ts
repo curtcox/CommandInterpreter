@@ -7,7 +7,6 @@ import { log_cmd } from "../core_commands/LogCommand.ts";
 import { store_cmd } from "../core_commands/StoreCommand.ts";
 import { io_cmd } from "../core_commands/IoCommand.ts";
 import { eval_cmd } from "../standard_commands/EvalCommand.ts";
-import { CommandRecord } from "../command/CommandDefinition.ts";
 import { CommandCompletionRecord } from "../command/CommandDefinition.ts";
 import { CommandDefinition, DO } from "../command/CommandDefinition.ts";
 import { memory as memoryStore, Native as nativeStore } from "../core_commands/StoreCommand.ts";
@@ -15,13 +14,14 @@ import { memory as memoryEnv } from "../core_commands/EnvCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
 import { CommandError } from "../command/CommandDefinition.ts";
-import { emptyContextMeta, emptyData } from "../command/Empty.ts";
+import { emptyContext, emptyContextMeta, emptyData, emptyDuration, timeZero } from "../command/Empty.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { env_cmd } from "../core_commands/EnvCommand.ts";
 import { alias_cmd } from "../standard_commands/AliasCommand.ts";
 import { rerun, retry, resume } from "./ToolsForCommandExecution.ts";
 import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";
 import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
+import { emptyInvocation } from "./Empty.ts";
 
 const eval_command = def_from_simple(eval_cmd);
 
@@ -128,4 +128,18 @@ Deno.test("eval error can be recreated from a CommandError", async () => {
             assertEquals(ce1.options,ce2.options);
         }
     }
+});
+
+Deno.test("Command error can accept attributes from error", () => {
+    const message = "Test error";
+    const error = new Error(message);
+    const context = emptyContext;
+    const duration = emptyDuration;
+    const invocation = emptyInvocation;
+    const ce = new CommandError(context, invocation, duration, message);
+    ce.cause = error;
+    ce.stack = error.stack;
+    assertEquals(ce.message, message);
+    assertEquals(ce.cause, error);
+    assertEquals(ce.stack, error.stack);
 });

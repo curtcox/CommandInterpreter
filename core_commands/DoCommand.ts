@@ -1,7 +1,6 @@
 import { Duration } from "../Time.ts";
 import { CommandDefinition } from "../command/CommandDefinition.ts";
 import { CommandMeta } from "../command/CommandDefinition.ts";
-import { CommandRecord } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
 import { CommandInvocation } from "../command/CommandDefinition.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
