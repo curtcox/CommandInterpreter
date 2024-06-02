@@ -68,18 +68,28 @@ export function memory(): Native {
   };
 }
 
+function read_CommandError(parsed: any): CommandData {
+  const { name, context, id, command, options, duration, message, stack, cause } = parsed;
+  if (name === undefined) {
+    return parsed;
+  }
+  const invocation = {id, command, options};
+  const newed = new CommandError(context, invocation, duration, message);
+  newed.stack = stack;
+  newed.cause = cause;
+  return {format:"CommandError", content:newed};
+}
+
+function write_CommandError(value: CommandError): string {
+  const format = "CommandError";
+  const { name, context, id, command, options, duration, message, stack, cause } = value;
+  return JSON.stringify({ format, name, context, id, command, options, duration, message, stack, cause });
+}
+
 function read_CommandData(value: string): CommandData {
   const parsed = JSON.parse(value);
   if (parsed.format === "CommandError") {
-    const { name, context, id, command, options, duration, message, stack, cause } = parsed;
-    if (name === undefined) {
-      return parsed;
-    }
-    const invocation = {id, command, options};
-    const newed = new CommandError(context, invocation, duration, message);
-    newed.stack = stack;
-    newed.cause = cause;
-    return {format:"CommandError", content:newed};
+    return read_CommandError(parsed);
   }
   return parsed;
 }
@@ -87,8 +97,7 @@ function read_CommandData(value: string): CommandData {
 function write_CommandData(value: CommandData): string {
   const { format, content } = value;
   if (format === "CommandError") {
-    const { name, context, id, command, options, duration, message, stack, cause } = content as CommandError;
-    return JSON.stringify({ format, name, context, id, command, options, duration, message, stack, cause });
+    return write_CommandError(content as CommandError);
   }
   return JSON.stringify(value);
 }
