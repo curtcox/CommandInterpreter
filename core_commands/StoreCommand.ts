@@ -68,31 +68,35 @@ export function memory(): Native {
   };
 }
 
+function read_CommandData(value: string): CommandData {
+  const parsed = JSON.parse(value);
+  if (parsed.format === "CommandError") {
+    const { name, context, id, command, options, duration, message, stack, cause } = parsed;
+    if (name === undefined) {
+      return parsed;
+    }
+    const invocation = {id, command, options};
+    const newed = new CommandError(context, invocation, duration, message);
+    newed.stack = stack;
+    newed.cause = cause;
+    return {format:"CommandError", content:newed};
+  }
+  return parsed;
+}
+
+function write_CommandData(value: CommandData): string {
+  const { format, content } = value;
+  if (format === "CommandError") {
+    const { name, context, id, command, options, duration, message, stack, cause } = content as CommandError;
+    return JSON.stringify({ format, name, context, id, command, options, duration, message, stack, cause });
+  }
+  return JSON.stringify(value);
+}
+
 export function json_io(): Codec {
   return {
-    read: (value: string): CommandData => {
-      const parsed = JSON.parse(value);
-      if (parsed.format === "CommandError") {
-        const { name, context, id, command, options, duration, message, stack, cause } = parsed;
-        if (name === undefined) {
-          return parsed;
-        }
-        const invocation = {id, command, options};
-        const newed = new CommandError(context, invocation, duration, message);
-        newed.stack = stack;
-        newed.cause = cause;
-        return {format:"CommandError", content:newed};
-      }
-      return parsed;
-    },
-    write: (value: CommandData) => {
-      const { format, content } = value;
-      if (format === "CommandError") {
-        const { name, context, id, command, options, duration, message, stack, cause } = content as CommandError;
-        return JSON.stringify({ format, name, context, id, command, options, duration, message, stack, cause });
-      }
-      return JSON.stringify(value);
-    }
+    read: (value: string): CommandData => read_CommandData(value),
+    write: (value: CommandData) => write_CommandData(value),
   };
 }
 
