@@ -33,7 +33,7 @@ Deno.test("Get value is undefined when not set", async () => {
   assertEquals(result.output, undefined);
 });
 
-Deno.test("Get command throws an exception when missing log command", async () => {
+Deno.test("Get command throws an exception when missing log command -- this should log a config issue.", async () => {
   const store = store_cmd(memory());
   const context = contextWithStore(store);
   try {
@@ -68,7 +68,6 @@ Deno.test("Get function throws an exception when no key specified", async () => 
     bogus(result);
   } catch (e) {
     const ctx = e.context;
-    console.log({oi:'here', ctx});
     assertEquals(ctx.input.content.cause, "Invalid store command: get");
   }
 });
@@ -150,6 +149,7 @@ async function save_and_load(context: CommandContext, value: CommandData) : Prom
   const key = "x";
   set(context, key, value);
   const data = await get(context, key);
+  console.log({data});
   assertEquals(data.format, value.format);
   return data;
 }
@@ -311,7 +311,6 @@ Deno.test("function can be loaded and saved via json", async () => {
   assert(are_equal(fn, add));
 });
 
-
 Deno.test("Error written by JSON includes expected contents.", async () => {
   const io = json_io();
 
@@ -327,4 +326,20 @@ Deno.test("Error written by JSON includes expected contents.", async () => {
   assert(stored.includes("cause"));
   assert(stored.includes("stack"));
   assert(stored.includes("StoreCommand_test.ts"));
+});
+
+Deno.test("empty command data can be loaded and saved via json", async () => {
+  const io = json_io();
+  const data = emptyData;
+  const from_store = await write_and_read(empty,io);
+  const loaded = from_store;
+  assert(are_equal(loaded, data));
+});
+
+Deno.test("string command data can be loaded and saved via json", async () => {
+  const io = json_io();
+  const data = {format: "string", content: "Hello, world!"};
+  const from_store = await write_and_read(data,io);
+  const loaded = from_store;
+  assert(are_equal(loaded, data));
 });

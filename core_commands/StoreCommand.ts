@@ -68,45 +68,48 @@ export function memory(): Native {
   };
 }
 
-function read_CommandError(parsed: any): CommandData {
-  const { name, context, id, command, options, duration, message, stack, cause } = parsed;
-  if (name === undefined) {
-    return parsed;
-  }
-  const invocation = {id, command, options};
-  const newed = new CommandError(context, invocation, duration, message);
-  newed.stack = stack;
-  newed.cause = cause;
-  return {format:"CommandError", content:newed};
-}
-
-function write_CommandError(value: CommandError): string {
-  const format = "CommandError";
-  const { name, context, id, command, options, duration, message, stack, cause } = value;
-  return JSON.stringify({ format, name, context, id, command, options, duration, message, stack, cause });
-}
-
-function read_CommandData(value: string): CommandData {
-  const parsed = JSON.parse(value);
-  if (parsed.format === "CommandError") {
-    return read_CommandError(parsed);
-  }
-  return parsed;
-}
-
-function write_CommandData(value: CommandData): string {
-  const { format, content } = value;
-  if (format === "CommandError") {
-    return write_CommandError(content as CommandError);
-  }
-  return JSON.stringify(value);
-}
-
 export function json_io(): Codec {
   return {
-    read: (value: string): CommandData => read_CommandData(value),
-    write: (value: CommandData) => write_CommandData(value),
+    read: (value: string): CommandData => deserialize(value),
+    write: (value: CommandData) => serialize(value),
   };
+}
+
+function serialize(obj: any): string {
+  return JSON.stringify(obj, (key, value) => replacer(key, value));
+}
+
+function deserialize(obj: string): any {
+  return JSON.parse(obj, (key, value) => reviver(key, value));
+}
+
+function replacer(_key: string, value: any): any {
+  if (typeof value === 'function') {
+    return value.toString();
+  }
+  if (value instanceof CommandError) {
+    return {
+      __type: 'CommandError',
+      message: value.message,
+      stack: value.stack,
+      ...Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'message' && key !== 'stack')),
+    };
+  }
+  return value;
+}
+
+function reviver(_key: string, value: any): any {
+  if (typeof value === 'string' && value.startsWith('function')) {
+    return eval(`(${value})`);
+  }
+  if (value && value.__type === 'CommandError') {
+    const { id, context, command, options, duration, message } = value;
+    const invocation = {id, command, options};
+    const error = new CommandError(context, invocation, duration, message);
+    Object.assign(error, value);
+    return error;
+  }
+  return value;
 }
 
 export function filesystem(base: string, io: Codec, extension: string): Native {
