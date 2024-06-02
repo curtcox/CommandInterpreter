@@ -1,5 +1,5 @@
 import { Hono, Context } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
-import { CommandData, CommandRecord } from './command/CommandDefinition.ts';
+import { CommandData, CommandRecord, CommandError, CommandCompletionRecord } from './command/CommandDefinition.ts';
 import { a, tr, th, td, bordered } from './viewer/Html.ts';
 
 const app = new Hono()
@@ -16,8 +16,19 @@ function table(files: FileInfo[]): string {
     const record = file.record;
     const command = record.command.meta.name;
     const options = record.options.content;
-    const output = record.result.output;
-    rows += tr(td(a(`/log/${id}`,id)),td(a(`/log/${id}/command`,command)),td(options),td(output.content),td(output.format));
+    let content = '';
+    let format = '';
+    if (record instanceof CommandError) {
+      const error = record as CommandError;
+      content = `${error.message}`;
+      format = 'Error';
+    } else {
+      const completion = record as CommandCompletionRecord;
+      const output = completion.result.output;
+      content = `${output.content}`;
+      format = output.format;
+    }
+    rows += tr(td(a(`/log/${id}`,id)),td(a(`/log/${id}/command`,command)),td(`${options}`),td(content),td(format));
   });
   const header = tr(th('ID'),th('Command'),th('Options'),th('Output'),th('Format'));
   return bordered(header, rows);
