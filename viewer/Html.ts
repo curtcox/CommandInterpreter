@@ -15,3 +15,6 @@ export function details(summary: string,details: string) { return `<details><sum
 export function html(...items: string[]) { return `<!DOCTYPE html><html>${items.join('')}</html>`; }
 export function head(...items: string[]) { return `<head>${items.join('')}</head>`; }
 export function body(...items: string[]) { return `<body">${items.join('')}</body>`; }
+export function form(...items: string[]) { return `<form">${items.join('')}</form>`; }
+export function textarea(name: string) { return `<textarea id="${name}" name="${name}"></textarea>`; }
+export function button(name: string) { return `<input type=button value="${name}" name="${name}">`; }
