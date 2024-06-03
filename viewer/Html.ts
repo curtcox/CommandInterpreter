@@ -16,5 +16,5 @@ export function html(...items: string[]) { return `<!DOCTYPE html><html>${items.
 export function head(...items: string[]) { return `<head>${items.join('')}</head>`; }
 export function body(...items: string[]) { return `<body">${items.join('')}</body>`; }
 export function form(...items: string[]) { return `<form">${items.join('')}</form>`; }
-export function textarea(name: string) { return `<textarea id="${name}" name="${name}"></textarea>`; }
+export function textarea(name: string,text:string) { return `<textarea id="${name}" name="${name}">${text}</textarea>`; }
 export function button(name: string) { return `<input type=button value="${name}" name="${name}">`; }
