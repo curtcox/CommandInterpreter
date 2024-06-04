@@ -4,7 +4,7 @@ import { CommandData } from "./CommandDefinition.ts";
 import { CommandResult } from "./CommandDefinition.ts";
 import { CommandError } from "./CommandDefinition.ts";
 import { replace_all } from "../Strings.ts";
-import { isString, check } from "../Check.ts";
+import { isString, isResult, check } from "../Check.ts";
 import { CommandInvocation } from "./CommandDefinition.ts";
 import { now_now } from "../Time.ts";
 import { error } from "../core_commands/LogCommand.ts";
@@ -93,7 +93,8 @@ export const invoke_with_input = async (context: CommandContext, name: string, o
     const meta = context.meta;
     const commands = context.commands;
     const with_input: CommandContext = { commands, meta, input };
-    return await invoke(with_input, name, options);
+    const result = await invoke(with_input, name, options);
+    return isResult(result);
 }
 
 export type CommandCollection = CommandDefinition | CommandDefinition[] | Record<string, CommandDefinition>;

@@ -10,6 +10,8 @@ export const DO = "do";
 export const IO = "io";
 export const LOG = "log";
 export const STORE = "store";
+export const OBJ = "obj";
+export const REF = "ref";
 export const ENV = "env";
 
 // Input to, output from, or configuration for a command.
