@@ -4,7 +4,7 @@ import { CommandData } from "./CommandDefinition.ts";
 import { CommandResult } from "./CommandDefinition.ts";
 import { CommandError } from "./CommandDefinition.ts";
 import { replace_all } from "../Strings.ts";
-import { isString, isResult, check } from "../Check.ts";
+import { isString, check } from "../Check.ts";
 import { CommandInvocation } from "./CommandDefinition.ts";
 import { now_now } from "../Time.ts";
 import { error } from "../core_commands/LogCommand.ts";

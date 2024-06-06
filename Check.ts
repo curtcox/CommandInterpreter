@@ -1,4 +1,3 @@
-import { is } from 'https://deno.land/x/equal@v1.0.2/constants.ts';
 import { CommandData, CommandResult } from './command/CommandDefinition.ts';
 
 /**
