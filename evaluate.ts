@@ -4,7 +4,7 @@ import { CommandContext, CommandResult } from "./command/CommandDefinition.ts";
 import { def_from_simple, combine } from "./command/ToolsForCommandWriters.ts";
 import { run } from "./core_commands/DoCommand.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
-import { store_cmd, memory, filesystem, json_io } from "./core_commands/StoreCommand.ts";
+import { store_cmd, memory, filesystem } from "./core_commands/StoreCommand.ts";
 import { emptyContextMeta } from "./command/Empty.ts";
 
 const env:Map<string,string> = new Map();
@@ -15,7 +15,7 @@ const native_env = {
 }
 
 const _memory_store = memory();
-const file_store = filesystem("store",json_io(),"json");
+const file_store = filesystem("store","json");
 const native_store = file_store;
 
 const context = (format: string, content: string) : CommandContext => ({

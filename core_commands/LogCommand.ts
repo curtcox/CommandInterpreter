@@ -7,6 +7,7 @@ import { CommandContext } from "../command/CommandDefinition.ts";
 import { LOG } from "../command/CommandDefinition.ts";
 import { set } from "./StoreCommand.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
+import { serialize } from "./ObjCommand.ts";
 
 const meta: CommandMeta = {
     name: LOG,
@@ -34,9 +35,9 @@ const result = (record: CommandRecord): CommandResult => {
     }
 }
 
-const save_record = (context: CommandContext, record: CommandRecord): void => {
+const save_record = async (context: CommandContext, record: CommandRecord) => {
     check(record);
-    set(context,`log/${record.id}`, { format: format(record), content: record });
+    set(context,`log/${record.id}`, await serialize({ format: format(record), content: record }));
 }
 
 function record_from_context(context: CommandContext): CommandRecord {

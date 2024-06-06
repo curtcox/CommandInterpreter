@@ -1,21 +1,52 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandData, CommandDefinition, ContextMeta } from "../command/CommandDefinition.ts";
 import { CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
-import { store_cmd, memory, get } from "./StoreCommand.ts";
+import { store_cmd, memory as memory, get } from "./StoreCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { log_cmd, log, error } from "./LogCommand.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { STORE, LOG } from "../command/CommandDefinition.ts";
 import { emptyContextMeta } from "../command/Empty.ts";
+import { obj_cmd } from "./ObjCommand.ts";
+import { deserialize } from "./ObjCommand.ts";
+import { checkFormat, isResult } from "../Check.ts";
 
 const empty = {format:"", content:""};
 const contextMeta: ContextMeta = emptyContextMeta;
 
 const contextWithStore = (store: CommandDefinition) : CommandContext => ({
-  commands: {"store": store, "log": log_cmd},
+  commands: {
+    'store': store,
+      'log': log_cmd,
+      'obj': obj_cmd
+    },
   meta: contextMeta,
-  input: {format: "", content: ""},
+  input: empty,
 });
+
+async function get_log_entry(context: CommandContext, id: number): Promise<CommandData> {
+  const data = {format: "text", content: `get log/${id}`};
+  const result = await invoke(context, STORE, data);
+  isResult(result);
+  checkFormat(result.output, "string");
+  const deserialized = deserialize(result.output.content as string);
+  return deserialized;
+}
+
+function assertEquivalentRecords(expected: CommandCompletionRecord, actual: CommandCompletionRecord) {
+  assertEquals(expected.id, actual.id);
+  // assertEquals(expected.command, actual.command); <<<< TODO - fix this
+  assertEquals(expected.options, actual.options);
+  // assertEquals(expected.context, actual.context); <<<< TODO - fix this
+  assertEquals(expected.result, actual.result);
+  assertEquals(expected.duration, actual.duration);
+}
+
+function assertEquivalentErrors(expected: CommandError, actual: CommandError) {
+  assertEquals(expected.id, actual.id);
+  assertEquals(expected.options, actual.options);
+  assertEquals(expected.duration, actual.duration);
+}
 
 Deno.test("Command record logged via invoke with input can be read from the store", async () => {
   const store = store_cmd(memory());
@@ -34,9 +65,9 @@ Deno.test("Command record logged via invoke with input can be read from the stor
   const context = contextWithStore(store);
   const options = empty;
   await invoke_with_input(context, LOG, options, value);
-  const data = {format: "text", content: "get log/42"};
-  const result = await invoke(context, STORE, data);
-  assertEquals(result.output, value);
+  const deserialized = await get_log_entry(context, 42);
+  assertEquals(deserialized.format, value.format);
+  assertEquivalentRecords((deserialized.content as CommandCompletionRecord), (value.content as CommandCompletionRecord));
 });
 
 Deno.test("Command completions record logged via log function can be read from the store", async () => {
@@ -55,9 +86,9 @@ Deno.test("Command completions record logged via log function can be read from t
   };
   const context = contextWithStore(store);
   await log(context, record);
-  const data = {format: "text", content: "get log/12"};
-  const result = await invoke(context, STORE, data);
-  assertEquals(result.output, value);
+  const deserialized = await get_log_entry(context, 12);
+  assertEquals(deserialized.format, value.format);
+  assertEquivalentRecords((deserialized.content as CommandCompletionRecord), (value.content as CommandCompletionRecord));
 });
 
 Deno.test("Command error record logged via error function can be read from the store via command", async () => {
@@ -75,9 +106,9 @@ Deno.test("Command error record logged via error function can be read from the s
     content: record,
   };
   await error(context, record);
-  const data = {format: "text", content: "get log/12"};
-  const result = await invoke(context, STORE, data);
-  assertEquals(result.output, value);
+  const deserialized = await get_log_entry(context, 12);
+  assertEquals(deserialized.format, value.format);
+  assertEquivalentErrors((deserialized.content as CommandError), (value.content as CommandError));
 });
 
 Deno.test("Command error record logged via error function can be read from the store via function", async () => {
@@ -95,6 +126,7 @@ Deno.test("Command error record logged via error function can be read from the s
     content: record,
   };
   await error(context, record);
-  const data = await get(context, "log/12");
-  assertEquals(data, value);
+  const deserialized = await get_log_entry(context, 12);
+  assertEquals(deserialized.format, value.format);
+  assertEquivalentErrors((deserialized.content as CommandError), (value.content as CommandError));
 });

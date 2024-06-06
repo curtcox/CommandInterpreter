@@ -63,6 +63,22 @@ export function memory(): Native {
   };
 }
 
+export function debug(): Native {
+  const memory: Record<string, string> = {};
+  return {
+    get: (key: string)                => {
+       console.log(`store get: ${key}`);
+       console.log(new Error().stack);
+       return memory[key];
+    },
+    set: (key: string, value: string) => {
+      console.log(`store set: ${key} = ${value}`); 
+      console.log(new Error().stack);
+      memory[key] = value;
+     },
+  };
+}
+
 export function filesystem(base: string, extension: string): Native {
   isString(base);
   isString(extension);
@@ -84,15 +100,15 @@ export function filesystem(base: string, extension: string): Native {
 }
 
 // Convenience function for setting a store value.
-export const set = (context: CommandContext, name: string, data: CommandData): void => {
+export const set = (context: CommandContext, name: string, content: string): void => {
   isString(name);
-  check(data);
-  invoke_with_input(context, STORE, { format: "string", content: `set ${name}`}, data);
+  isString(content);
+  invoke_with_input(context, STORE, { format: "string", content: `set ${name}`}, {format: "string", content});
 };
 
 // Convenience function for getting a store value.
-export const get = async (context: CommandContext, name: string): Promise<CommandData> => {
+export const get = async (context: CommandContext, name: string): Promise<string> => {
   isString(name);
   const result = await invoke(context, STORE, { format: "string", content: `get ${name}`});
-  return result.output;
+  return await result.output.content as string;
 };
