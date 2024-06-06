@@ -25,11 +25,6 @@ function obj(context: CommandContext, code: string): CommandData {
   throw `Invalid obj command: ${arg}`;
 }
 
-function result_from_obj(context: CommandContext, code: string): CommandData {
-  const value = obj(context, code);
-  return value as CommandData;
-}
-
 const meta: CommandMeta = {
   name: OBJ,
   doc: "Converts between strings and objects.",
@@ -40,7 +35,7 @@ export const obj_cmd:CommandDefinition = {
   meta,
   func: (context: CommandContext, options: CommandData) => Promise.resolve({
     commands: context.commands,
-    output: result_from_obj(context,isString(options.content))
+    output: obj(context,isString(options.content))
   })
 };
 
