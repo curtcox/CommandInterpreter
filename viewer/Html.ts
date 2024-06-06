@@ -14,7 +14,7 @@ export function pre(value: string) { return `<pre>${value}</pre>`; }
 export function details(summary: string,details: string) { return `<details><summary>${summary}</summary>${details}</details>`; }
 export function html(...items: string[]) { return `<!DOCTYPE html><html>${items.join('')}</html>`; }
 export function head(...items: string[]) { return `<head>${items.join('')}</head>`; }
-export function body(...items: string[]) { return `<body">${items.join('')}</body>`; }
-export function form(...items: string[]) { return `<form">${items.join('')}</form>`; }
+export function body(...items: string[]) { return `<body>${items.join('')}</body>`; }
+export function form(...items: string[]) { return `<form>${items.join('')}</form>`; }
 export function textarea(name: string,text:string) { return `<textarea id="${name}" name="${name}">${text}</textarea>`; }
-export function button(name: string) { return `<input type=button value="${name}" name="${name}">`; }
+export function button(name: string) { return `<input type="submit" value="${name}" name="${name}" formaction="${name}">`; }
