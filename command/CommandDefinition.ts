@@ -11,6 +11,7 @@ export const IO = "io";
 export const LOG = "log";
 export const STORE = "store";
 export const OBJ = "obj";
+export const HASH = "hash";
 export const REF = "ref";
 export const ENV = "env";
 
