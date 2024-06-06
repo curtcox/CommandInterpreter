@@ -93,8 +93,7 @@ export const invoke_with_input = async (context: CommandContext, name: string, o
     const meta = context.meta;
     const commands = context.commands;
     const with_input: CommandContext = { commands, meta, input };
-    const result = await invoke(with_input, name, options);
-    return isResult(result);
+    return await invoke(with_input, name, options);
 }
 
 export type CommandCollection = CommandDefinition | CommandDefinition[] | Record<string, CommandDefinition>;

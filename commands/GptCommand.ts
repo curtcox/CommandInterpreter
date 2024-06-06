@@ -1,6 +1,7 @@
 import { CommandContext, CommandDefinition, CommandData } from "../command/CommandDefinition.ts";
 import { get } from "../core_commands/EnvCommand.ts";
 import { isString } from "../Check.ts";
+import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 
 export interface Message {
   role: string;
@@ -91,3 +92,8 @@ const func = async (context: CommandContext, options: CommandData) => {
 export const gpt_cmd: CommandDefinition = {
   meta, func
 };
+
+export async function gpt(context: CommandContext, prompt: string, content: string): Promise<CommandData> {
+  const result = await invoke_with_input(context, 'gpt', {format:'string', content: prompt}, {format:'string', content});
+  return result.output
+}

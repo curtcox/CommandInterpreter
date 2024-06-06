@@ -2,7 +2,7 @@ import { isString, nonEmpty } from "../Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandResult } from "../command/CommandDefinition.ts";
 import { command_with_replacements } from "../command/ToolsForCommandWriters.ts";
 
-async function run(command: string, stdin: string) : Promise<Result> {
+export async function run(command: string, stdin: string) : Promise<Result> {
     isString(command);
     isString(stdin);
     console.log(`Running command: ${command}`);
