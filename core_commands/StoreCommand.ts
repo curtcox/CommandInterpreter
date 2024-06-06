@@ -5,11 +5,12 @@ import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts"
 import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std@0.224.0/path/mod.ts";
 import { STORE } from "../command/CommandDefinition.ts";
+import { checkFormat } from "../Check.ts";
 
 /**
  * Think filesystem. 
  */
-function store(native: Native, context: CommandContext, code: string): unknown {
+function store(native: Native, context: CommandContext, code: string): string {
   const trimmed = nonEmpty(code).trim();
   const parts = words(trimmed);
   if (parts.length < 2 || parts.length > 3) {
@@ -22,7 +23,9 @@ function store(native: Native, context: CommandContext, code: string): unknown {
     return native.get(key);
   }
   if (arg === "set") {
-    native.set(key,context.input);
+    const input = context.input;
+    const data = checkFormat(input, "string");
+    native.set(key,isString(data.content));
     return "";
   }
   throw `Invalid store command: ${arg}`;
@@ -30,7 +33,7 @@ function store(native: Native, context: CommandContext, code: string): unknown {
 
 function result_from_store(native: Native, context: CommandContext, code: string): CommandData {
   const value = store(native, context, code);
-  return value as CommandData;
+  return { format: "string", content: value };
 }
 
 const meta: CommandMeta = {
@@ -48,73 +51,20 @@ export const store_cmd = (native:Native): CommandDefinition => ({
 });
 
 export interface Native {
-  get: (key:string)                    => CommandData;
-  set: (key:string, value:CommandData) => void;
-}
-
-/**
- * Translates between strings and objects.
- */
-export interface Codec {
-  read: (value:string) => CommandData;
-  write: (value:CommandData) => string;
+  get: (key:string)               => string;
+  set: (key:string, value:string) => void;
 }
 
 export function memory(): Native {
-  const memory: Record<string, CommandData> = {};
+  const memory: Record<string, string> = {};
   return {
-    get: (key: string)                     => { return memory[key]; },
-    set: (key: string, value: CommandData) => { memory[key] = value; },
+    get: (key: string)                => { return memory[key]; },
+    set: (key: string, value: string) => { memory[key] = value; },
   };
 }
 
-export function json_io(): Codec {
-  return {
-    read: (value: string): CommandData => deserialize(value),
-    write: (value: CommandData) => serialize(value),
-  };
-}
-
-function serialize(obj: any): string {
-  return JSON.stringify(obj, (key, value) => replacer(key, value));
-}
-
-function deserialize(obj: string): any {
-  return JSON.parse(obj, (key, value) => reviver(key, value));
-}
-
-function replacer(_key: string, value: any): any {
-  if (typeof value === 'function') {
-    return value.toString();
-  }
-  if (value instanceof CommandError) {
-    return {
-      __type: 'CommandError',
-      message: value.message,
-      stack: value.stack,
-      ...Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'message' && key !== 'stack')),
-    };
-  }
-  return value;
-}
-
-function reviver(_key: string, value: any): any {
-  if (typeof value === 'string' && value.startsWith('function')) {
-    return eval(`(${value})`);
-  }
-  if (value && value.__type === 'CommandError') {
-    const { id, context, command, options, duration, message } = value;
-    const invocation = {id, command, options};
-    const error = new CommandError(context, invocation, duration, message);
-    Object.assign(error, value);
-    return error;
-  }
-  return value;
-}
-
-export function filesystem(base: string, io: Codec, extension: string): Native {
+export function filesystem(base: string, extension: string): Native {
   isString(base);
-  check(io);
   isString(extension);
   ensureDirSync(base);
 
@@ -124,11 +74,11 @@ export function filesystem(base: string, io: Codec, extension: string): Native {
 
   return {
     get: (key: string) => {
-      return io.read(Deno.readTextFileSync(path(key)));
+      return Deno.readTextFileSync(path(key));
     },
-    set: (key: string, value: CommandData) => {
+    set: (key: string, value: string) => {
       Deno.mkdir(dirname(path(key)), { recursive: true});
-      Deno.writeTextFileSync(path(key), io.write(value));
+      Deno.writeTextFileSync(path(key), value);
     },
   };
 }
