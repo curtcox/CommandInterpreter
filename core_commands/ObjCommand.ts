@@ -44,11 +44,11 @@ export const obj_cmd:CommandDefinition = {
   })
 };
 
-function serialize(obj: any): string {
+export function serialize(obj: any): string {
   return JSON.stringify(obj, (key, value) => replacer(key, value));
 }
 
-function deserialize(obj: string): any {
+export function deserialize(obj: string): any {
   return JSON.parse(isString(obj), (key, value) => reviver(key, value));
 }
 
