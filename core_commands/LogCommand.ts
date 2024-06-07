@@ -28,12 +28,10 @@ const output = (record: CommandRecord): CommandData => {
     return completion.result.output;
 }
 
-const result = (record: CommandRecord): CommandResult => {
-    return {
-        commands: record.context.commands,
-        output: output(record)
-    }
-}
+const result = (record: CommandRecord): CommandResult => ({
+    commands: record.context.commands,
+    output: output(record)
+})
 
 const save_record = async (context: CommandContext, record: CommandRecord) => {
     check(record);

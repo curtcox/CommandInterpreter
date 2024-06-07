@@ -25,7 +25,7 @@ async function hashIs(input: string, expected: string) {
 }
  
 
-Deno.test("Hash values are unique", async () => {
+Deno.test("Hash values are unique", () => {
   hashIs("0", "MbygIJTreBJqUXsgaojHPPqexvcExwMNGCEsrOgg8CXwC/DqaNvz86VDbKY7U797+ArY1d59g1nQt/7Z28OrmQ==");
   hashIs("1", "Tf9Oo0DwqCPxXT9PAati6uDl2lecy4Ufjbnf6ExYsrN7iZA6dA4e4XLaeTpuedVg5ff5vQWKEqKAQz7W+kZRCg==");
   hashIs("2", "QLJEESZB3XjdT5O2yRkN1G4AmRlNWkQle3761u+f9Gg9oe2gJERIyzQ6poj10+/XMU2v5YCsC8vxFa7Kno3BFA==");

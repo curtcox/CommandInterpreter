@@ -1,5 +1,5 @@
-import { check, isString, nonEmpty } from "../Check.ts";
-import { CommandContext, CommandData, CommandDefinition, CommandError, CommandMeta } from "../command/CommandDefinition.ts";
+import { isString, nonEmpty } from "../Check.ts";
+import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
 import { words } from "../Strings.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
