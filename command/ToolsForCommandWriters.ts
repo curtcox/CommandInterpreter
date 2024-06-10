@@ -3,7 +3,7 @@ import { CommandDefinition } from "./CommandDefinition.ts";
 import { CommandData } from "./CommandDefinition.ts";
 import { CommandResult } from "./CommandDefinition.ts";
 import { CommandError } from "./CommandDefinition.ts";
-import { replace_all } from "../Strings.ts";
+import { use_replacements } from "../Strings.ts";
 import { isString, check } from "../Check.ts";
 import { CommandInvocation } from "./CommandDefinition.ts";
 import { now_now } from "../Time.ts";
@@ -26,7 +26,7 @@ export function command_with_replacements(context: CommandContext, original: str
         "${input}": input,
         "${format}": format,
     };
-    return replace_all(text, replacements);
+    return use_replacements(text, replacements);
 }
 
 export function string_for(x: unknown) {

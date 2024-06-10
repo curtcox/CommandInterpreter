@@ -1,12 +1,17 @@
 import { isString, nonEmpty } from "./Check.ts";
 
-export function replace_all(template: string, replacements: Record<string, string>) : string {
+export function use_replacement(template: string, replacement: Record<string, string>) : string {
+  const {key, value} = replacement;
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(escapedKey, "g");
+  return template.replace(regex, value);
+}
+
+export function use_replacements(template: string, replacements: Record<string, string>) : string {
   let result = template;
 
   for (const [key, value] of Object.entries(replacements)) {
-    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(escapedKey, "g");
-    result = result.replace(regex, value);
+    result = use_replacement(result, {key, value});
   }
 
   return result;

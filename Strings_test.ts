@@ -1,7 +1,7 @@
 import { assertEquals } from "https://deno.land/std/assert/mod.ts";
 import { before } from "./Strings.ts";
 import { after } from "./Strings.ts";
-import { replace_all } from "./Strings.ts";
+import { use_replacements } from "./Strings.ts";
 import { head } from "./Strings.ts";
 import { tail } from "./Strings.ts";
 import { words } from "./Strings.ts";
@@ -29,8 +29,8 @@ Deno.test("After returns the part of a string after a divider", () => {
 });
 
 Deno.test("Replace all replaces every instance of the keys in the template with values", () => {
-    assertEquals(replace_all("the same",{}) , "the same");
-    assertEquals(replace_all("a rose by any other name",{"rose":"gun"}) , "a gun by any other name");
+    assertEquals(use_replacements("the same",{}) , "the same");
+    assertEquals(use_replacements("a rose by any other name",{"rose":"gun"}) , "a gun by any other name");
 });
 
 Deno.test("Words splits the given string into words using whitespace", () => {
