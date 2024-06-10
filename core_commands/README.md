@@ -9,6 +9,6 @@ available (env & store) use a Native interface to supply them.
 
 ```mermaid
 do -> {help log io context}
-log -> store
+log -> {store obj hash ref}
 context -> {define nop}
 ```

@@ -1,10 +1,7 @@
 import { jsonToRef, refToJson, Ref } from "./RefCommand.ts";
-import { hash } from "./HashCommand.ts";
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 
 function assertValid(original: string, result: Ref) {
-    // assertEquals(result.result, original);
-    // console.log({result, original});
     const normal = JSON.stringify(JSON.parse(original));
     assertEquals(refToJson(result), normal);
 }

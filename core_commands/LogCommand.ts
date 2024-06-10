@@ -5,9 +5,10 @@ import { CommandResult } from "../command/CommandDefinition.ts";
 import { CommandCompletionRecord } from "../command/CommandDefinition.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { LOG } from "../command/CommandDefinition.ts";
-import { set } from "./StoreCommand.ts";
+import { Native } from "./StoreCommand.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { serialize } from "./ObjCommand.ts";
+import { jsonToRef } from "./RefCommand.ts";
 
 const meta: CommandMeta = {
     name: LOG,
@@ -33,9 +34,16 @@ const result = (record: CommandRecord): CommandResult => ({
     output: output(record)
 })
 
-const save_record = async (context: CommandContext, record: CommandRecord) => {
+const filename_safe = (input: string): string => input.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+const save_record = async (native: Native, record: CommandRecord) => {
     check(record);
-    set(context,`log/${record.id}`, await serialize({ format: format(record), content: record }));
+    const serialized = await serialize({ format: format(record), content: record });
+    const ref = await jsonToRef(serialized);
+    native.set(`log/${record.id}`, ref.result);
+    for (const [hash, subtree] of ref.replacements.entries()) {
+        await native.set(`hash/${filename_safe(hash)}`, subtree);
+    }
 }
 
 function record_from_context(context: CommandContext): CommandRecord {
@@ -43,15 +51,13 @@ function record_from_context(context: CommandContext): CommandRecord {
     return check(record);
 }
 
-const func = (context: CommandContext, _options: CommandData): Promise<CommandResult> => {
-    const record = record_from_context(context);
-    save_record(context,record);
-    return Promise.resolve(result(record));
-}
-
-export const log_cmd : CommandDefinition = {
-    meta, func
-}
+export const log_cmd = (native:Native) : CommandDefinition => ({
+    meta, func: (context: CommandContext, _options: CommandData) => {
+        const record = record_from_context(context);
+        save_record(native,record);
+        return Promise.resolve(result(record));
+    }
+});
 
 let already_logging = false;
 async function log_record(context: CommandContext, format: string, input: CommandRecord) {

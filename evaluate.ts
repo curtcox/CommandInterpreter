@@ -6,6 +6,7 @@ import { run } from "./core_commands/DoCommand.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
 import { store_cmd, memory, filesystem } from "./core_commands/StoreCommand.ts";
 import { emptyContextMeta } from "./command/Empty.ts";
+import { log_cmd } from "./core_commands/LogCommand.ts";
 
 const env:Map<string,string> = new Map();
 
@@ -22,6 +23,7 @@ const context = (format: string, content: string) : CommandContext => ({
     commands: combine([
       def_from_simple(env_cmd(native_env)),
       store_cmd(native_store),
+      log_cmd(native_store)
     ], commands),
     meta: emptyContextMeta,
     input: { format: format, content: content }

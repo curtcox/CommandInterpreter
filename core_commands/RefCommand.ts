@@ -29,8 +29,8 @@ export async function jsonToRef(json: string): Promise<Ref> {
     for (const key in o) {
         const value = o[key];
         if (big_enough_to_hash(value)) {
-            const ref = jsonToRef(stringify(value));
-            o[key] = (await ref).result;
+            const ref = await jsonToRef(stringify(value));
+            o[key] = await ref.result;
             for (const [hash, subtree] of (await ref).replacements.entries()) {
                 replacements.set(hash, subtree);
             }

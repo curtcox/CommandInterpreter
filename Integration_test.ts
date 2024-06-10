@@ -12,6 +12,7 @@ import { emptyContextMeta } from "./command/Empty.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
 import { Result } from "./commands/RunCommand.ts";
 import { WIP, broken_on_CI } from "./TestConfig.ts";
+import { log_cmd } from "./core_commands/LogCommand.ts";
 
 const memory_store = memory();
 const native_store = memory_store;
@@ -24,7 +25,9 @@ const native_env = {
 }
 
 const context = (): CommandContext => ({
-    commands: combine(commands, [store_cmd(native_store), def_from_simple(env_cmd(native_env))]),
+    commands: combine(
+        commands, [store_cmd(native_store), def_from_simple(env_cmd(native_env)), log_cmd(native_store) ]
+    ),
     meta: emptyContextMeta,
     input: empty
 });
@@ -54,7 +57,8 @@ Deno.test("eval", async () => {
 Deno.test("alias and eval", async () => {
     const pipeline = "alias greet eval 'Hi' | greet";
     const result = await run(context(), pipeline);
-    assertEquals(result.output.content, 'Hi');
+    const content = await result.output.content;
+    assertEquals(content, 'Hi');
 });
 
 Deno.test("piping eval to eval", async () => {
