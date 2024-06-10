@@ -1,4 +1,5 @@
 import { assertEquals, assert, assertStringIncludes } from "https://deno.land/std@0.223.0/assert/mod.ts";
+import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
 import { CommandContext, ContextMeta, CommandData, CommandDefinition, CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { OBJ } from "../command/CommandDefinition.ts";
@@ -8,7 +9,6 @@ import { Duration } from "../Time.ts";
 import { PreciseTime } from "../Time.ts";
 import { CommandResult } from "../command/CommandDefinition.ts";
 import { nop_cmd } from "./NopCommand.ts";
-import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
 import { emptyCommand } from "../command/Empty.ts";
 import { obj_cmd, object, string } from "./ObjCommand.ts";
 import { nonEmpty } from "../Check.ts";
