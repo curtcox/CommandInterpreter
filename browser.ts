@@ -3,6 +3,7 @@ import { CommandData, CommandRecord, CommandError, CommandCompletionRecord } fro
 import { a, tr, th, td, bordered } from './viewer/Html.ts';
 
 const app = new Hono()
+const debug = true
 
 interface FileInfo {
   id: string;
@@ -73,14 +74,24 @@ function trap(c: Context, f: (c: Context) => unknown) : unknown {
 }
 
 const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, () => {
-  const result = f(c);
-  return Promise.resolve(result).then((response) => {
-    if (typeof response === 'string') {
-      return c.html(response);
-    } else {
-      return c.json(response);
-    }
-  });
+    console.log('Handling request');
+    const result = f(c);
+    console.log('Result:', result);
+    return Promise.resolve(result).then((response) => {
+      console.log('Response:', response);
+      if (typeof response === 'string') {
+        return c.html(response);
+      } else {
+        return c.json(response);
+      }
+    }).catch((err) => {
+      console.error('Error:', err);
+      if (debug) {
+        return c.text(err.stack, 500)
+      } else {
+        return c.text('Internal Server Error', 500)
+      }
+    });
 });
 
 const get = <T>(path:string, f: (c: Context) => Promise<T> ) => app.get(path, handle(f));
