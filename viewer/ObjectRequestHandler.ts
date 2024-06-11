@@ -1,4 +1,4 @@
-import { a, table, td, tr } from "./Html.ts";
+import { a, table, td, tr, h2, splat } from "./Html.ts";
 import { asParts, follow } from "./Object.ts";
 
 function objectable(obj: unknown): string {
@@ -23,14 +23,29 @@ function trimmed(input: string): string {
   }
 }
 
+function name(chain: string[], missing: string): string {
+  const last = chain.length > 0 ? chain.at(-1) : missing;
+  return last || missing;
+}
+
 function summary(chain: string[], at: unknown) : string {
-  const name = chain.length > 0 ? chain.at(-1) : "Roots";
   const type = typeof at;
   const str = trimmed(Deno.inspect(at));
-  return `${name} ${type} ${str} `;
+  return splat(h2(name(chain,'') + ':' + type),str);
+}
+
+function breadcrumbs(chain: string[]): string {
+  let out = '';
+  let path = '../';
+  for (let index = chain.length - 1; index >= 0; index--) {
+    const name = chain[index];
+    out = a(path + name,name) + ' / ' + out;
+    path = path + '../';
+  }
+  return out;
 }
 
 export function body(chain: string[], roots: unknown) {
   const at = follow(roots, chain);
-  return summary(chain, at) + objectable(at);
+  return splat(breadcrumbs(chain),summary(chain, at),objectable(at));
 }
