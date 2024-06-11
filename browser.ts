@@ -1,8 +1,9 @@
-import { Hono, Context } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
+import { Hono, Context, HonoRequest } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
 import { CommandData, CommandRecord, CommandError, CommandCompletionRecord } from './command/CommandDefinition.ts';
 import { a, tr, th, td, bordered } from './viewer/Html.ts';
 import { lookupJson } from './core_commands/RefCommand.ts';
 import { filename_safe } from "./core_commands/StoreCommand.ts";
+import { body } from './viewer/ObjectRequestHandler.ts';
 
 const app = new Hono()
 const debug = true
@@ -31,7 +32,7 @@ function table(files: FileInfo[]): string {
       content = `${output.content}`;
       format = output.format;
     }
-    rows += tr(td(a(`/log/${id}`,id)),td(a(`/log/${id}/command`,command)),td(`${options}`),td(content),td(format));
+    rows += tr(td(a(`/log/${id}/`,id)),td(a(`/log/${id}/command/`,command)),td(`${options}`),td(content),td(format));
   });
   const header = tr(th('ID'),th('Command'),th('Options'),th('Output'),th('Format'));
   return bordered(header, rows);
@@ -40,9 +41,9 @@ function table(files: FileInfo[]): string {
 const logDir = './store/log';
 const hashDir = './store/hash';
 
-async function log_file_contents(name: string): Promise<CommandRecord> {
+function log_file_contents(name: string): CommandRecord {
   const filePath = `${logDir}/${name}`;
-  const text = await Deno.readTextFile(filePath);
+  const text = Deno.readTextFileSync(filePath);
   const lookup = (key:string) => Deno.readTextFileSync(`${hashDir}/${filename_safe(key)}.json`);
   const json = lookupJson(text, lookup);
   const data = JSON.parse(json) as CommandData;
@@ -53,11 +54,11 @@ function sort(files: FileInfo[]): FileInfo[] {
   return files.sort((a, b) => parseInt(a.id) - parseInt(b.id) );
 }
 
-async function logs(): Promise<FileInfo[]> {
+function logs(): FileInfo[] {
   const files = [];
-  for await (const entry of Deno.readDir(logDir)) {
+  for (const entry of Deno.readDirSync(logDir)) {
     if (entry.isFile) {
-      const record = await log_file_contents(entry.name);
+      const record = log_file_contents(entry.name);
       const id = entry.name.replace('.json', '');
       files.push({ id, record });
     }
@@ -65,9 +66,7 @@ async function logs(): Promise<FileInfo[]> {
   return sort(files);
 }
 
-async function log_for_id(id: string): Promise<CommandRecord> {
-  return await log_file_contents(`${id}.json`);
-}
+const log_for_id = (id: string): CommandRecord => log_file_contents(`${id}.json`);
 
 function trap(c: Context, f: (c: Context) => unknown) : unknown {
   try {
@@ -98,10 +97,21 @@ const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, ()
     });
 });
 
+function pathSegments(request: HonoRequest) : string[] {
+  const url = new URL(request.url);
+  const pathSegments = url.pathname.split("/");
+  return pathSegments.filter(segment => segment.length > 0);
+}
+
 const get = <T>(path:string, f: (c: Context) => Promise<T> ) => app.get(path, handle(f));
 
-get('/',                async ()  => table(await logs()));
-get('/log/:id',         async (c) => await log_for_id(c.req.param('id')));
-get('/log/:id/command', async (c) => (await log_for_id(c.req.param('id'))).command);
+get('/',          async ()  => table(logs()));
+get('/log/:id/*', async (c) => {
+  const request = c.req;
+  const id = request.param('id');
+  const record = log_for_id(id);
+  const chain = pathSegments(request).slice(2);
+  return body(chain, record);
+});
 
 Deno.serve(app.fetch)
