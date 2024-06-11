@@ -39,7 +39,8 @@ function breadcrumbs(chain: string[]): string {
   let path = '../';
   for (let index = chain.length - 1; index >= 0; index--) {
     const name = chain[index];
-    out = a(path + name,name) + ' / ' + out;
+    const link = path + name + '/';
+    out = a(link,name) + ' / ' + out;
     path = path + '../';
   }
   return out;
