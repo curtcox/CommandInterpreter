@@ -80,10 +80,9 @@ function trap(c: Context, f: (c: Context) => unknown) : unknown {
 
 const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, () => {
     console.log('Handling request');
+    // console.log({c});
     const result = f(c);
-    console.log('Result:', result);
     return Promise.resolve(result).then((response) => {
-      console.log('Response:', response);
       if (typeof response === 'string') {
         return c.html(response);
       } else {

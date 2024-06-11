@@ -1,51 +1,49 @@
-import { a, table, td, tr } from "https://esm.town/v/curtcox/Html";
-import { asParts, follow } from "https://esm.town/v/curtcox/Object";
+import { Hono, Context, HonoRequest } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
+import { body } from './ObjectRequestHandler.ts';
 
-function objectable(obj: unknown): string {
-  let rows = "";
-  const parts = asParts(obj);
-  for (const key in parts) {
-    const part = parts[key];
-    const name = part.key;
-    rows = rows + tr(td(a(name + "/", name)), td(part.type), td(part.value), td(part.parts));
-  }
-  return table(rows);
-}
+const app = new Hono()
+const debug = true
 
-function trimmed(input: string): string {
-  const max = 512;
-  if (input.length <= max) {
-    return input;
-  } else {
-    const truncated = input.slice(0, max);
-    const remaining = input.length - max;
-    return `${truncated}... ${remaining} remaining not shown`;
+
+function trap(c: Context, f: (c: Context) => unknown) : unknown {
+  try {
+    return f(c);
+  } catch (error) {
+    console.error('Error:', error);
+    return c.text('Error: ' + error.message);
   }
 }
 
-function summary(chain: string[], at: unknown) : string {
-  const name = chain.length > 0 ? chain.at(-1) : "Roots";
-  const type = typeof at;
-  const str = trimmed(Deno.inspect(at));
-  return `${name} ${type} ${str} `;
-}
+const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, () => {
+    console.log('Handling request');
+    // console.log({c});
+    const result = f(c);
+    return Promise.resolve(result).then((response) => {
+      console.log({response});
+      if (typeof response === 'string') {
+        return c.html(response);
+      } else {
+        return c.json(response);
+      }
+    }).catch((err) => {
+      console.error('Error:', err);
+      if (debug) {
+        return c.text(err.stack, 500)
+      } else {
+        return c.text('Internal Server Error', 500)
+      }
+    });
+});
 
-function body(request: Request) {
-  const roots = { Deno, request, globalThis };
-  const chain = pathSegments(request);
-  const at = follow(roots, chain);
-  return summary(chain, at) + objectable(at);
-}
-
-function pathSegments(request: Request) : string[] {
+function pathSegments(request: HonoRequest) : string[] {
   const url = new URL(request.url);
   const pathSegments = url.pathname.split("/");
   return pathSegments.filter(segment => segment.length > 0);
 }
 
-export const htmlExample = (req: Request) =>
-  new Response(body(req), {
-    headers: {
-      "Content-Type": "text/html",
-    },
-  });
+const get = <T>(path:string, f: (c: Context) => Promise<T> ) => app.get(path, handle(f));
+
+// get('/',                async (c: Context)  => body(pathSegments(c.req)));
+get('*',async (c: Context)  => body(pathSegments(c.req)));
+
+Deno.serve(app.fetch)
