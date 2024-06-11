@@ -1,6 +1,4 @@
 import { hash } from "./HashCommand.ts";
-import { use_replacement } from "../Strings.ts";
-
 
 export interface Ref {
     result: string;
@@ -16,6 +14,7 @@ function size(value: unknown): number {
     return JSON.stringify(value).length;
 }
 
+const is_hash                = (value: string):  boolean => size(value) == cutoff;
 const big_enough_to_hash     = (value: unknown): boolean => size(value) > cutoff;
 const small_enough_to_return = (value: unknown): boolean => size(value) <= cutoff;
 const stringify              = (value: unknown): string => JSON.stringify(value);
@@ -42,26 +41,24 @@ export async function jsonToRef(json: string): Promise<Ref> {
     return { result, replacements };
 }
 
-export function refToJson(ref: Ref): string {
-    const replacements = ref.replacements;
+export interface HashLookup {
+    (key: string): string;
+}
 
-    function resolveHashes(str: string): string {
-        let resolved = str;
-        for (const [hash, subtree] of replacements.entries()) {
-            resolved = use_replacement(resolved, {key: `"${hash}"`, value: subtree});
-            resolved = use_replacement(resolved, {key: hash, value: subtree});
-        }
-        return resolved;
+export function lookupJson(json: string, get: HashLookup): string {
+    if (is_hash(json)) {
+        json = get(json);
     }
+    const o = JSON.parse(json);
+    for (const key in o) {
+        const value = o[key];
+        if (typeof value === "string" && value.length === 88) {
+            o[key] = JSON.parse(lookupJson(get(value), get));
+        }
+    }
+    return stringify(o);
+}
 
-    let json = ref.result;
-
-    // Continuously replace hashes with subtrees until no hashes are left
-    let previous;
-    do {
-        previous = json;
-        json = resolveHashes(json);
-    } while (json !== previous);
-
-    return json;
+export function refToJson(ref: Ref): string {
+    return lookupJson(ref.result, (key: string) => ref.replacements.get(key) || "");
 }

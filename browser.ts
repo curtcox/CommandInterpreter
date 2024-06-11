@@ -1,6 +1,8 @@
 import { Hono, Context } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
 import { CommandData, CommandRecord, CommandError, CommandCompletionRecord } from './command/CommandDefinition.ts';
 import { a, tr, th, td, bordered } from './viewer/Html.ts';
+import { lookupJson } from './core_commands/RefCommand.ts';
+import { filename_safe } from "./core_commands/StoreCommand.ts";
 
 const app = new Hono()
 const debug = true
@@ -36,11 +38,14 @@ function table(files: FileInfo[]): string {
 }
 
 const logDir = './store/log';
+const hashDir = './store/hash';
 
 async function log_file_contents(name: string): Promise<CommandRecord> {
   const filePath = `${logDir}/${name}`;
-  const file = await Deno.readTextFile(filePath);
-  const data = JSON.parse(file) as CommandData;
+  const text = await Deno.readTextFile(filePath);
+  const lookup = (key:string) => Deno.readTextFileSync(`${hashDir}/${filename_safe(key)}.json`);
+  const json = lookupJson(text, lookup);
+  const data = JSON.parse(json) as CommandData;
   return data.content as CommandRecord;
 }
 

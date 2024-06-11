@@ -9,6 +9,7 @@ import { Native } from "./StoreCommand.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { serialize } from "./ObjCommand.ts";
 import { jsonToRef } from "./RefCommand.ts";
+import { filename_safe } from "./StoreCommand.ts";
 
 const meta: CommandMeta = {
     name: LOG,
@@ -34,7 +35,6 @@ const result = (record: CommandRecord): CommandResult => ({
     output: output(record)
 })
 
-const filename_safe = (input: string): string => input.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
 const save_record = async (native: Native, record: CommandRecord) => {
     check(record);
