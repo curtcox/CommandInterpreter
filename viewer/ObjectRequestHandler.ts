@@ -30,8 +30,7 @@ function summary(chain: string[], at: unknown) : string {
   return `${name} ${type} ${str} `;
 }
 
-export function body(chain: string[]) {
-  const roots = { Deno, chain, globalThis };
+export function body(chain: string[], roots: unknown) {
   const at = follow(roots, chain);
   return summary(chain, at) + objectable(at);
 }

@@ -19,7 +19,6 @@ const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, ()
     // console.log({c});
     const result = f(c);
     return Promise.resolve(result).then((response) => {
-      console.log({response});
       if (typeof response === 'string') {
         return c.html(response);
       } else {
@@ -43,7 +42,6 @@ function pathSegments(request: HonoRequest) : string[] {
 
 const get = <T>(path:string, f: (c: Context) => Promise<T> ) => app.get(path, handle(f));
 
-// get('/',                async (c: Context)  => body(pathSegments(c.req)));
-get('*',async (c: Context)  => body(pathSegments(c.req)));
+get('*',async (c: Context)  => body(pathSegments(c.req),{Deno, globalThis}));
 
 Deno.serve(app.fetch)
