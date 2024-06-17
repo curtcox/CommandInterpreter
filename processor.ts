@@ -1,9 +1,10 @@
-import { Hono, Context } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
+import { Hono } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
+import { Context as HonoContext } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
 import { button, body, form, textarea, p, a } from './viewer/Html.ts';
 
 const app = new Hono()
 
-function trap(c: Context, f: (c: Context) => unknown) : unknown {
+function trap(c: HonoContext, f: (c: HonoContext) => unknown) : unknown {
   try {
     return f(c);
   } catch (error) {
@@ -12,7 +13,7 @@ function trap(c: Context, f: (c: Context) => unknown) : unknown {
   }
 }
 
-const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, () => {
+const handle = <T>(f: (c: HonoContext) => Promise<T> ) => (c: HonoContext) => trap(c, () => {
   const result = f(c);
   return Promise.resolve(result).then((response) => {
     if (typeof response === 'string') {
@@ -23,16 +24,16 @@ const handle = <T>(f: (c: Context) => Promise<T> ) => (c: Context) => trap(c, ()
   });
 });
 
-const get = <T>(path:string, f: (c: Context) => Promise<T> ) => app.get(path, handle(f));
+const get = <T>(path:string, f: (c: HonoContext) => Promise<T> ) => app.get(path, handle(f));
 
-function command(c: Context) : string {
+function command(c: HonoContext) : string {
   return c.req.query('q') || '';
 }
 
-get('/', async (c: Context) => body(
+get('/', async (c: HonoContext) => body(
   p(a("https://github.com/curtcox/CommandInterpreter/","Command Interpreter")),
   form(textarea('command',command(c)),
   p(""),
   a("","context")," ", button("run")," ",button("explain"))));
 
-Deno.serve(app.fetch)
+Deno.serve(app.fetch);
