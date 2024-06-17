@@ -3,6 +3,7 @@ import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../
 import { words } from "../Strings.ts";
 import { HASH } from "../command/CommandDefinition.ts";
 import { checkFormat } from "../Check.ts";
+import { Hash } from "../Ref.ts";
 
 /**
  * For creating a hash of a string.
@@ -17,13 +18,13 @@ function hash_from_context(context: CommandContext, code: string): CommandData {
   return { format: "string", content: hash(isString(context.input.content)) };
 }
 
-export async function hash(value: string): Promise<string> {
+export async function hash(value: string): Promise<Hash> {
   const encoder = new TextEncoder();
   const data = encoder.encode(value);
   const hash = await crypto.subtle.digest("SHA-512", data);
   const hashArray = Array.from(new Uint8Array(hash));
   const base64Hash = btoa(String.fromCharCode.apply(null, hashArray));
-  return base64Hash;
+  return new Hash(base64Hash);
 }
 
 const meta: CommandMeta = {

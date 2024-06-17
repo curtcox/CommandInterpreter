@@ -1,9 +1,6 @@
+import { Ref } from "../Ref.ts";
+import { Hash, HashLookup } from "../Ref.ts";
 import { hash } from "./HashCommand.ts";
-
-export interface Ref {
-    result: string;
-    replacements: Map<string, string>; // Map<hash, subtree>
-}
 
 const cutoff = 88;
 
@@ -20,7 +17,7 @@ const small_enough_to_return = (value: unknown): boolean => size(value) <= cutof
 const stringify              = (value: unknown): string => JSON.stringify(value);
 
 export async function jsonToRef(json: string): Promise<Ref> {
-    const replacements: Map<string, string> = new Map();
+    const replacements: Map<Hash, string> = new Map();
     if (small_enough_to_return(json)) {
         return {result: json, replacements};
     }
@@ -36,29 +33,26 @@ export async function jsonToRef(json: string): Promise<Ref> {
         }
     }
     const out = stringify(o);
-    const result = await hash(out);
-    replacements.set(result, out);
+    const hashed = await hash(out);
+    replacements.set(hashed, out);
+    const result = hashed.value;
     return { result, replacements };
-}
-
-export interface HashLookup {
-    (key: string): string;
 }
 
 export function lookupJson(json: string, get: HashLookup): string {
     if (is_hash(json)) {
-        json = get(json);
+        json = get(new Hash(json));
     }
     const o = JSON.parse(json);
     for (const key in o) {
         const value = o[key];
         if (typeof value === "string" && value.length === 88) {
-            o[key] = JSON.parse(lookupJson(get(value), get));
+            o[key] = JSON.parse(lookupJson(get(new Hash(value)), get));
         }
     }
     return stringify(o);
 }
 
 export function refToJson(ref: Ref): string {
-    return lookupJson(ref.result, (key: string) => ref.replacements.get(key) || "");
+    return lookupJson(ref.result, (key: Hash) => ref.replacements.get(key) || "");
 }

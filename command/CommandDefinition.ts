@@ -41,7 +41,7 @@ export interface ContextMeta {
  */
 export interface CommandContext {
   meta: ContextMeta; // Metadata about the context.
-  commands: Record<string, CommandDefinition>; // The commands that are available.
+  commands: Map<string, CommandDefinition>; // The commands that are available.
   input: CommandData; // Data that is passed to the command.
 }
 
@@ -50,7 +50,7 @@ export interface CommandContext {
  * It is more than just the output because commands can change what commands are available.
  */
 export interface CommandResult {
-  commands: Record<string, CommandDefinition>;
+  commands: Map<string, CommandDefinition>;
   output: CommandData;
 }
 
@@ -81,11 +81,11 @@ export interface CommandDefinition {
   func: (context: CommandContext, options: CommandData) => Promise<CommandResult>;
 }
 
-
 // A record of a command that has been run.
 export interface CommandRecord extends CommandInvocation {
   context: CommandContext; // The context in which the command was run.
   duration: Duration; // The duration of the command.
+  store: string | Map<string,object>; // The contents of the store after the command was run.
 }
 
 // A record of a command that has been run to completion.
@@ -100,6 +100,7 @@ export class CommandError extends Error implements CommandRecord {
   public command: CommandDefinition;
   public options: CommandData;
   public duration: Duration; // The duration of the command.
+  public store: Map<string,object>; // The contents of the store after the command was run.
 
   constructor(context: CommandContext, invocation: CommandInvocation, duration: Duration, message: string) {
     super(message);
@@ -109,5 +110,6 @@ export class CommandError extends Error implements CommandRecord {
     this.command = invocation.command;
     this.options = invocation.options;
     this.duration = duration;
+    this.store = new Map<string,object>();
   }
 }
