@@ -27,6 +27,8 @@ interface NumberedCommandResult {
     result: CommandResult;
 }
 
+const placeholder = { format: "", content: "" };
+
 const func = async (context: CommandContext, options: CommandData): Promise<CommandResult> => {
     // console.log({func, options});
     const start = now_now();
@@ -34,7 +36,8 @@ const func = async (context: CommandContext, options: CommandData): Promise<Comm
     const end = now_now();
     const duration = { start, end };
     const command = do_cmd;
-    const record = {id, command, options, context, result, duration };
+    const store = placeholder;
+    const record = {id, command, options, context, result, duration, store };
     record_step(context, record);
     return result;
 }
@@ -137,7 +140,8 @@ function record(context: CommandContext, invocation: TimedInvocation) : CommandC
     const options = step.options;
     const duration = invocation.duration;
     const id = invocation.step.id;
-    return { id, command, options, context, result, duration };
+    const store = placeholder;
+    return { id, command, options, context, result, duration, store };
 }
 
 const record_step = (context: CommandContext, record: CommandCompletionRecord) => {
