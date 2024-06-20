@@ -10,4 +10,4 @@ const text_commands = [
   help_cmd,
 ].map((cmd) => def_from_simple(cmd));
 
-export const commands: Record<string, CommandDefinition> = combine(text_commands, define_cmd, do_cmd, nop_cmd, io_cmd);
+export const commands: Map<string, CommandDefinition> = combine(text_commands, define_cmd, do_cmd, nop_cmd, io_cmd);

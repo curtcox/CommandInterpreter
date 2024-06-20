@@ -34,7 +34,7 @@ const meta = {
 };
 
 const func = async (context: CommandContext, options: CommandData): Promise<CommandResult> => {
-    console.log({options});
+    // console.log({options});
     const stdin = isString(context.input.content || "");
     const command_string = nonEmpty(options.content);
     const command = command_with_replacements(context, command_string);

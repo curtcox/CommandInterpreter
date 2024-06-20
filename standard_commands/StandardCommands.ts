@@ -13,4 +13,4 @@ const text_commands = [
   which_cmd,
 ].map((cmd) => def_from_simple(cmd));
 
-export const commands: Record<string, CommandDefinition> = combine(text_commands, alias_cmd, aliases_cmd, echo_cmd);
+export const commands: Map<string, CommandDefinition> = combine(text_commands, alias_cmd, aliases_cmd, echo_cmd);

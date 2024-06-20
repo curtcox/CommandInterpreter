@@ -9,10 +9,9 @@ const meta: CommandMeta = {
 }
 
 const func = (context: CommandContext, options: CommandData): Promise<CommandResult> => {
-  const output = {
-    format: "string",
-    content: string_for({ options, context })
-  };
+  const format = "string";
+  const content = string_for({ options, context });
+  const output = { format, content };
   return Promise.resolve({
       commands: context.commands,
       output

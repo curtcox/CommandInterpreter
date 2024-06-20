@@ -4,6 +4,7 @@ import { words } from "../Strings.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { OBJ } from "../command/CommandDefinition.ts";
 import { checkFormat } from "../Check.ts";
+import { dump } from '../Strings.ts';
 
 /**
  * For converting between strings and objects. 
@@ -48,9 +49,8 @@ export function deserialize(obj: string): any {
 }
 
 function replacer(_key: string, value: any): any {
-  if (typeof value === 'function') {
-    return value.toString();
-  }
+  if (value instanceof Map)        return { __type: 'Map',      value: Array.from(value.entries()) };
+  if (typeof value === 'function') return { __type: 'Function', value: value.toString() };
   if (value instanceof CommandError) {
     return {
       __type: 'CommandError',
@@ -63,8 +63,9 @@ function replacer(_key: string, value: any): any {
 }
 
 function reviver(key: string, value: any): any {
-  if (typeof value === 'string' && value.startsWith('function') && value.trim()!=='function') {
-    return eval(`(${nonEmpty(value)})`);
+   if (typeof value === 'object' && value !== null) {
+     if (value.__type === 'Map')      return new Map(value.value);
+     if (value.__type === 'Function') return eval(`(${nonEmpty(value.value)})`);
   }
   if (value && value.__type === 'CommandError') {
     const { id, context, command, options, duration, message } = value;

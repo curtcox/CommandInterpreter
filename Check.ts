@@ -1,3 +1,4 @@
+import { dump } from './Strings.ts';
 import { CommandData, CommandResult } from './command/CommandDefinition.ts';
 
 /**
@@ -21,6 +22,7 @@ export function isString(obj: unknown): string {
   if (typeof obj === 'string') {
     return obj;
   }
+  dump(obj);
   throw new Error(`Expected string, but got ${typeof obj} : ${obj}`);
 }
 

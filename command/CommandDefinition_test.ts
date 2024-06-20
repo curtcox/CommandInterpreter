@@ -14,7 +14,7 @@ import { memory as memoryEnv } from "../core_commands/EnvCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
 import { CommandError } from "../command/CommandDefinition.ts";
-import { emptyContext, emptyContextMeta, emptyData, emptyDuration, timeZero } from "../command/Empty.ts";
+import { emptyContext, emptyContextMeta, emptyData, emptyDuration } from "../command/Empty.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { env_cmd } from "../core_commands/EnvCommand.ts";
 import { alias_cmd } from "../standard_commands/AliasCommand.ts";
@@ -22,17 +22,19 @@ import { rerun, retry, resume } from "./ToolsForCommandExecution.ts";
 import { fail } from "https://deno.land/std@0.223.0/assert/fail.ts";
 import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
 import { emptyInvocation } from "./Empty.ts";
+import { lookupJson } from '../core_commands/RefCommand.ts';
+import { Hash } from "../Ref.ts";
 
 const eval_command = def_from_simple(eval_cmd);
 
-const commands = (store: nativeStore):Record<string, CommandDefinition> => ({
+const commands = (store: nativeStore):Map<string, CommandDefinition> => ({
     "nop": nop_cmd,
     "version": def_from_simple(version_cmd),
     "echo": echo_cmd,
     "env": def_from_simple(env_cmd(memoryEnv())),
     "eval": eval_command,
     "do": do_cmd,
-    "log": log_cmd,
+    "log": log_cmd(store),
     "io": io_cmd,
     "alias": alias_cmd,
     "store": store_cmd(store),
@@ -52,9 +54,15 @@ async function run_pipeline(pipeline: string, index: number): Promise<CommandCom
     const store = memoryStore();
     const ctx = context(store);
     const result = await invoke(ctx, DO, {format: "string", content:pipeline});
-    const logged = await store.get(`log/${index}`) as CommandData;
-    assertEquals(logged.format, "CommandCompletionRecord");
-    const record = logged.content as CommandCompletionRecord;
+    const logged = await store.get(`log/${index}`);
+    if (logged === undefined) {
+        fail(`No log entry for index ${index}`);
+    }
+    const lookup = (key:Hash) => store.get(`hash/${key}`) || "";
+    const json = lookupJson(logged, lookup);
+    const data = JSON.parse(json) as CommandData;
+    assertEquals(data.format, "CommandCompletionRecord");
+    const record = data.content as CommandCompletionRecord;
     assertEquals(record.result.output.content, result.output.content);
     return Promise.resolve(record);
 }

@@ -10,6 +10,7 @@ import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { serialize } from "./ObjCommand.ts";
 import { jsonToRef } from "./RefCommand.ts";
 import { filename_safe } from "./StoreCommand.ts";
+import { Hash } from "../Ref.ts";
 
 const meta: CommandMeta = {
     name: LOG,
@@ -35,15 +36,17 @@ const result = (record: CommandRecord): CommandResult => ({
     output: output(record)
 })
 
-
-const save_record = async (native: Native, record: CommandRecord) => {
+const save_record = async (native: Native, record: CommandRecord): Promise<Hash> => {
     check(record);
+    const snapshot = await native.snapshot();
+    record.store = await snapshot.value;
     const serialized = await serialize({ format: format(record), content: record });
     const ref = await jsonToRef(serialized);
     native.set(`log/${record.id}`, ref.result);
     for (const [hash, subtree] of ref.replacements.entries()) {
-        await native.set(`hash/${filename_safe(hash)}`, subtree);
+        native.set(`hash/${filename_safe(hash.value)}`, subtree);
     }
+    return snapshot;
 }
 
 function record_from_context(context: CommandContext): CommandRecord {
@@ -52,34 +55,35 @@ function record_from_context(context: CommandContext): CommandRecord {
 }
 
 export const log_cmd = (native:Native) : CommandDefinition => ({
-    meta, func: (context: CommandContext, _options: CommandData) => {
+    meta, func: async (context: CommandContext, _options: CommandData) => {
         const record = record_from_context(context);
-        save_record(native,record);
+        const hash = await save_record(native,record);
+        record.store = hash.value;
         return Promise.resolve(result(record));
     }
 });
 
 let already_logging = false;
-async function log_record(context: CommandContext, format: string, input: CommandRecord) {
+async function log_record(context: CommandContext, format: string, input: CommandRecord): Promise<CommandResult> {
     if (already_logging) {
-        console.error(
-            `Attempting to log while already logging.
-            This likely represents a log configuration error.`
-        );
+        const message = `Attempting to log while already logging.
+        This likely represents a log configuration error.`
+        console.error(message);
         console.error({context, format, input});
         already_logging = false;
-        return;
+        return { commands: context.commands, output: { format: "string", content: message}};
     }
     already_logging = true;
     const options = { format: "string", content: format };
-    await invoke_with_input(context,LOG,options,{ format, content: input });
+    const logged = await invoke_with_input(context,LOG,options,{ format, content: input });
     already_logging = false;
+    return logged;
 }
 
-export const log = async (context: CommandContext, record: CommandCompletionRecord) => {
-    await log_record(context,"CommandCompletionRecord",record);
+export const log = async (context: CommandContext, record: CommandCompletionRecord): Promise<CommandResult> => {
+    return await log_record(context,"CommandCompletionRecord",record);
 }
 
-export const error = async (context: CommandContext, record: CommandError) => {
-    await log_record(context,"CommandError",record);
+export const error = async (context: CommandContext, record: CommandError): Promise<CommandResult> => {
+    return await log_record(context,"CommandError",record);
 }

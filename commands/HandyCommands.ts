@@ -14,4 +14,4 @@ const handy_commands = [
   unix_cmd
 ];
 
-export const commands: Record<string, CommandDefinition> = combine(handy_commands);
+export const commands: Map<string, CommandDefinition> = combine(handy_commands);

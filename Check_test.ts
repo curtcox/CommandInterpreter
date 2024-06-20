@@ -48,7 +48,7 @@ Deno.test("None of these are command results", () => {
 
 Deno.test("All of these are command results", () => {
     const f = isResult;
-    const commands = {};
+    const commands = new Map();
     const output = emptyData;
     const result: CommandResult = {commands,output};
     pass(f, result);

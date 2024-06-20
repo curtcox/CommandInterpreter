@@ -27,7 +27,7 @@ interface NumberedCommandResult {
     result: CommandResult;
 }
 
-const placeholder = { format: "", content: "" };
+const placeholder = "placeholder";
 
 const func = async (context: CommandContext, options: CommandData): Promise<CommandResult> => {
     // console.log({func, options});
@@ -62,7 +62,7 @@ function parse_command_step(context: CommandContext, id: number, step_text: stri
 }
 
 function command_to_run(context: CommandContext, name: string): CommandDefinition {
-    const command = context.commands[name] || context.commands[HELP];
+    const command = context.commands.get(name) || context.commands.get(HELP);
     // console.log({command_to_run, name, command});
     if (!command) {
         throw new Error(`Command not found: ${name}`);
@@ -77,7 +77,7 @@ interface TimedInvocation {
 }
 
 async function execute_step(context: CommandContext, step: CommandInvocation): Promise<TimedInvocation> {
-    // console.log({execute_step, step});
+    // console.log({execute_step, id:step.id, name:step.command.meta.name, commands:context.commands});
     const start = now_now();
     const result = await step.command.func(context, step.options);
     const end = now_now();
@@ -105,7 +105,7 @@ async function context_for_step(id: number, previousContext: CommandContext, pre
     return {meta, commands, input};
 }
 
-const null_result: CommandResult = { commands: {}, output: { format: "", content: "" } };
+const null_result: CommandResult = { commands: new Map(), output: { format: "", content: "" } };
 
 const process_entire_pipeline = async (context: CommandContext, options: CommandData): Promise<NumberedCommandResult> => {
     const steps = split_into_commands(options);
@@ -119,8 +119,7 @@ const process_entire_pipeline = async (context: CommandContext, options: Command
         const currentStep = parse_command_step(context, id, step);
         context = await context_for_step(id, context, previousStep, result, currentStep);
         const execution = await execute_step(context, currentStep);
-        await record_step(context, record(context, execution));
-        id = id + 1;
+        id = await record_step(context, record(context, execution));
         const meta = {id, start: now_now(), source: currentStep, prior: context};
         context = { meta, commands: execution.result.commands, input: result.output };
         result = execution.result;
@@ -144,9 +143,9 @@ function record(context: CommandContext, invocation: TimedInvocation) : CommandC
     return { id, command, options, context, result, duration, store };
 }
 
-const record_step = (context: CommandContext, record: CommandCompletionRecord) => {
-    // console.log({record_step, record});
-    log(context, record);
+const record_step = async (context: CommandContext, record: CommandCompletionRecord): Promise<number> => {
+    const logged = await log(context, record);
+    return record.id + 1;
 };
 
 export const do_cmd : CommandDefinition = {

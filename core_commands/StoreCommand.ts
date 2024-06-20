@@ -6,11 +6,13 @@ import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std@0.224.0/path/mod.ts";
 import { STORE } from "../command/CommandDefinition.ts";
 import { checkFormat } from "../Check.ts";
+import { Hash } from "../Ref.ts";
+import { hash } from "./HashCommand.ts";
 
 /**
  * Think filesystem. 
  */
-function store(native: Native, context: CommandContext, code: string): string {
+function store(native: Native, context: CommandContext, code: string): string | undefined {
   const trimmed = nonEmpty(code).trim();
   const parts = words(trimmed);
   if (parts.length < 2 || parts.length > 3) {
@@ -25,8 +27,7 @@ function store(native: Native, context: CommandContext, code: string): string {
   if (arg === "set") {
     const input = context.input;
     const data = checkFormat(input, "string");
-    native.set(key,isString(data.content));
-    return "";
+    return native.set(key,isString(data.content));
   }
   throw `Invalid store command: ${arg}`;
 }
@@ -51,31 +52,68 @@ export const store_cmd = (native:Native): CommandDefinition => ({
 });
 
 export interface Native {
-  get: (key:string)               => string;
-  set: (key:string, value:string) => void;
+  get: (key:string)               => string | undefined;
+  set: (key:string, value:string) => string;
+  snapshot: ()                    => Promise<Hash>;
+}
+
+interface Snapshot {
+  hash: Hash;
+  json: string;
+}
+
+async function snapsot_of(hashes: Map<string, Hash>): Promise<Snapshot> {
+  const json = JSON.stringify(Object.fromEntries(hashes.entries()));
+  const hashed = await hash(json);
+  return { hash: hashed, json };
 }
 
 export function memory(): Native {
-  const memory: Record<string, string> = {};
+  const memory: Map<string, string> = new Map();
+  const hashes = new Map<string, Hash>();
+  const save = (key: string, value: string) => {
+    memory.set(key,value);
+    hashes.set(key, new Hash(value));
+    return value;
+  }
   return {
-    get: (key: string)                => { return memory[key]; },
-    set: (key: string, value: string) => { memory[key] = value; },
+    get: (key: string)                => { return memory.get(key); },
+    set: (key: string, value: string) => { return save(key,value); },
+    snapshot: async ()                => {
+      const snap = await snapsot_of(hashes);
+      save(snap.hash.value, snap.json);
+      return snap.hash;
+    }
   };
 }
 
 export function debug(): Native {
-  const memory: Record<string, string> = {};
+  const memory: Map<string, string> = new Map();
+  const hashes = new Map<string, Hash>();
+  const save = (key: string, value: string) => {
+    // console.log(`debug store set: ${key} = ${value}`);
+    // console.log(new Error().stack);
+    memory.set(key,value);
+    hashes.set(key, new Hash(value));
+    return value;
+  }
   return {
     get: (key: string)                => {
-       console.log(`store get: ${key}`);
-       console.log(new Error().stack);
-       return memory[key];
+      //  console.log(`debug store get: ${key}`);
+      //  console.log(new Error().stack);
+       const value = memory.get(key);
+       if (value === undefined) {
+          console.log(`debug store get: ${key} not in ${memory}`);
+          console.log({memory});
+       }
+       return value;
     },
-    set: (key: string, value: string) => {
-      console.log(`store set: ${key} = ${value}`); 
-      console.log(new Error().stack);
-      memory[key] = value;
-     },
+    set: (key: string, value: string) => { return save(key,value); },
+    snapshot: async ()                => {
+      const snap = await snapsot_of(hashes);
+      save(snap.hash.value, snap.json);
+      return snap.hash;
+    }
   };
 }
 
@@ -83,19 +121,29 @@ export function filesystem(base: string, extension: string): Native {
   isString(base);
   isString(extension);
   ensureDirSync(base);
+  const hashes = new Map<string, Hash>();
 
   function path(key: string): string {
     return join(base, `${key}.${extension}`);
+  }
+  const save = (key: string, value: string) => {
+    Deno.mkdir(dirname(path(key)), { recursive: true});
+    Deno.writeTextFileSync(path(key), value);
+    hashes.set(key, new Hash(value));
+    return value;
   }
 
   return {
     get: (key: string) => {
       return Deno.readTextFileSync(path(key));
     },
-    set: (key: string, value: string) => {
-      Deno.mkdir(dirname(path(key)), { recursive: true});
-      Deno.writeTextFileSync(path(key), value);
-    },
+    set: (key: string, value: string) => { return save(key,value); },
+    snapshot: async ()                      => {
+      const snap = await snapsot_of(hashes);
+      const name = await filename_safe(snap.hash.value);
+      save(`hash/${name}`, snap.json);
+      return snap.hash;
+    }
   };
 }
 

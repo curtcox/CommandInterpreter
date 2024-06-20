@@ -10,19 +10,20 @@ import { PreciseTime } from "../Time.ts";
 import { CommandResult } from "../command/CommandDefinition.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { emptyCommand } from "../command/Empty.ts";
-import { obj_cmd, object, string } from "./ObjCommand.ts";
+import { obj_cmd, object, string, serialize, deserialize } from "./ObjCommand.ts";
 import { nonEmpty } from "../Check.ts";
+import { dump } from "../Strings.ts";
 
 const empty = emptyData;
 
 const contextWithObj = () : CommandContext => ({
-  commands: {"obj": obj_cmd},
+  commands: new Map([["obj",obj_cmd]]),
   meta: emptyContextMeta,
   input: empty,
 });
 
 const contextWithObjAndLog = () : CommandContext => ({
-  commands: {"obj": obj_cmd, "log": nop_cmd},
+  commands: new Map([["obj",obj_cmd],["log", nop_cmd]]),
   meta: emptyContextMeta,
   input: empty,
 });
@@ -96,14 +97,14 @@ Deno.test("Empty command record can be written and read", async () => {
   const command = nop_cmd;
   const options = empty;
   const result: CommandResult = {
-    commands: {},
+    commands: new Map(),
     output: empty,
   }
   const duration: Duration = {
      start: now_now(), end: now_now()
   }
   const record: CommandCompletionRecord = {
-    id, command, options, context, result, duration
+    id, command, options, context, result, duration, store: ''
   }
   const from_store = await save_and_load(context, {format: "CommandCompletionRecord", content: record});
   const loaded = from_store.content as CommandCompletionRecord;
@@ -235,6 +236,54 @@ Deno.test("empty command can be loaded and saved via json", async () => {
   // assert(are_equal(loaded, command)); <<<< TODO - fix this
 });
 
+Deno.test("map can be loaded and saved via json", async () => {
+  const map = new Map([['a','b'],['c','d']]);
+
+  const from_store = await write_and_read({format:"commands",content:map});
+
+  const loaded = from_store.content as Map<string,string>;
+
+  assertEquals(loaded.size, map.size);
+  assertEquals(loaded, map);
+});
+
+Deno.test("commands can be loaded and saved via json", async () => {
+  const commands = new Map([["nop",nop_cmd],["empty",emptyCommand]]);
+
+  const from_store = await write_and_read({format:"commands",content:commands});
+
+  const loaded = from_store.content as Map<string, CommandDefinition>;
+
+  assertEquals(loaded.size, commands.size);
+  assertEquals(loaded.get('nop')?.meta, commands.get('nop')?.meta);
+  assertEquals(loaded.get('empty')?.meta, commands.get('empty')?.meta);
+});
+
+Deno.test("loaded command can be executed", async () => {
+  const commands = new Map([["nop",nop_cmd]]);
+
+  const from_store = await write_and_read({format:"commands",content:commands});
+
+  const loaded = from_store.content as Map<string, CommandDefinition>;
+  const context = contextWithObj();
+  const result = await loaded.get('nop')?.func(context,empty) as CommandResult;
+  assertEquals(result.commands, context.commands);
+  assertEquals(result.output, empty);
+});
+
+Deno.test("loaded commands are equal to saved commands", async () => {
+  const commands = new Map([["nop",nop_cmd],["empty",emptyCommand]]);
+
+  const from_store = await write_and_read({format:"commands",content:commands});
+
+  const loaded = from_store.content as Map<string, CommandDefinition>;
+
+  assertEquals(loaded.size, commands.size);
+  // dump(loaded.get('nop'));
+  // dump(commands.get('nop'));
+  // assertEquals(loaded, commands); <<<< TODO - fix this
+});
+
 function add(a: number, b: number): number {
   return a + b;
 }
@@ -280,4 +329,53 @@ Deno.test("string command data can be loaded and saved via json", async () => {
   const from_store = await write_and_read(data);
   const loaded = from_store;
   assert(are_equal(loaded, data));
+});
+
+Deno.test("serialize string returns that string", () => {
+  assertEquals(serialize("string"), '"string"');
+  assertEquals(serialize("Hello"), '"Hello"');
+  assertEquals(serialize("Hello World"), '"Hello World"');
+  assertEquals(serialize("{}"), '"{}"');
+});
+
+Deno.test("serialize map contains keys and values", () => {
+  assertEquals(serialize(new Map()), '{"__type":"Map","value":[]}');
+  assertEquals(serialize(new Map([['key','value']])), '{"__type":"Map","value":[["key","value"]]}');
+  assertEquals(serialize(new Map([['k1','v1'],['k2','v2']])), '{"__type":"Map","value":[["k1","v1"],["k2","v2"]]}');
+});
+
+Deno.test("serialize context contains commands", () => {
+  const context = {
+    meta: emptyContextMeta,
+    commands: new Map([['echo','def of comm']]),
+    input: emptyData
+  };
+
+  const actual = serialize(context);
+  assertStringIncludes(actual, "meta");
+  assertStringIncludes(actual, "commands");
+  assertStringIncludes(actual, "input");
+  assertStringIncludes(actual, "echo");
+  assertStringIncludes(actual, "def of comm");
+});
+
+function assertTransfer(value: any) {
+  const json = serialize(value);
+  const loaded = deserialize(json);
+  assertEquals(loaded, value);
+}
+
+Deno.test("XXX Can transfer values", () => {
+  assertTransfer("string");
+  assertTransfer("Hello");
+  assertTransfer("Hello World");
+  assertTransfer("{}");
+  assertTransfer(7);
+  assertTransfer(42);
+  assertTransfer(new Map());
+  assertTransfer(new Map([['key','value']]));
+  assertTransfer(new Map([['k1','v1'],['k2','v2']]));
+  assertTransfer({});
+  assertTransfer({'key':'value'});
+  assertTransfer({'k1':'v1','k2':'v2'});
 });

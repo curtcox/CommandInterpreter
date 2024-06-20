@@ -41,7 +41,7 @@ export interface ContextMeta {
  */
 export interface CommandContext {
   meta: ContextMeta; // Metadata about the context.
-  commands: Map<string, CommandDefinition>; // The commands that are available.
+  commands: Map<string, CommandDefinition>; // The commands that are available. Should this be a record?
   input: CommandData; // Data that is passed to the command.
 }
 

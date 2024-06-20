@@ -39,20 +39,30 @@ export async function jsonToRef(json: string): Promise<Ref> {
     return { result, replacements };
 }
 
-export function lookupJson(json: string, get: HashLookup): string {
+export function lookupJson(json: string | undefined, get: HashLookup): string | undefined {
+    // console.log({lookupJson, json});
+    if (!json) {
+        return undefined;
+    }
     if (is_hash(json)) {
         json = get(new Hash(json));
+        if (!json) {
+            return undefined;
+        }
     }
     const o = JSON.parse(json);
     for (const key in o) {
         const value = o[key];
         if (typeof value === "string" && value.length === 88) {
-            o[key] = JSON.parse(lookupJson(get(new Hash(value)), get));
+            const jsonValue = lookupJson(get(new Hash(value)), get);
+            if (jsonValue) {
+                o[key] = JSON.parse(jsonValue);
+            }
         }
     }
     return stringify(o);
 }
 
-export function refToJson(ref: Ref): string {
+export function refToJson(ref: Ref): string | undefined {
     return lookupJson(ref.result, (key: Hash) => ref.replacements.get(key) || "");
 }

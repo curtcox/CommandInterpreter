@@ -27,10 +27,10 @@ const func = async (context: CommandContext, _options: CommandData): Promise<Com
 }
 
 const define = async (context: CommandContext, aliases: Alias[]): Promise<CommandResult> => {
-    const added = [];
+    const added:CommandDefinition[] = [];
     for (const a of aliases) {
         const result = await alias(context,a);
-        const command = check(result.commands[a.name]);
+        const command: CommandDefinition = check(result.commands.get(a.name)) as CommandDefinition;
         added.push(command);
     }
     return Promise.resolve({

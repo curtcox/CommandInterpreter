@@ -5,31 +5,41 @@ import { nop_cmd } from "./NopCommand.ts";
 import { do_cmd } from "./DoCommand.ts";
 import { log_cmd } from "./LogCommand.ts";
 import { store_cmd } from "./StoreCommand.ts";
+import { filename_safe } from "./StoreCommand.ts";
 import { io_cmd } from "./IoCommand.ts";
 import { CommandCompletionRecord, CommandResult } from "../command/CommandDefinition.ts";
 import { CommandDefinition } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
-import { memory as memoryStore } from "./StoreCommand.ts";
+import { debug as debugStore } from "./StoreCommand.ts";
+import { memory as normalStore } from "./StoreCommand.ts";
 import { Native } from "./StoreCommand.ts";
 import { memory as memoryEnv } from "./EnvCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
+import { CommandRecord } from "../command/CommandDefinition.ts";
 import { emptyContextMeta, emptyData } from "../command/Empty.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { env_cmd } from "./EnvCommand.ts";
 import { alias_cmd } from "../standard_commands/AliasCommand.ts";
 import { check } from "../Check.ts";
+import { deserialize } from "./ObjCommand.ts";
+import { Hash } from '../Ref.ts';
+import { lookupJson } from '../core_commands/RefCommand.ts';
+import { dump } from "../Strings.ts";
 
-const commands = (store: Native):Record<string, CommandDefinition> => ({
-  "nop": nop_cmd,
-  "version": def_from_simple(version_cmd),
-  "echo": echo_cmd,
-  "env": def_from_simple(env_cmd(memoryEnv())),
-  "do": do_cmd,
-  "log": log_cmd,
-  "io": io_cmd,
-  "alias": alias_cmd,
-  "store": store_cmd(store),
-});
+const debug = true;
+const memoryStore = debug ? debugStore : normalStore;
+
+const commands = (store: Native):Map<string, CommandDefinition> => new Map([
+  ["nop", nop_cmd],
+  ["version", def_from_simple(version_cmd)],
+  ["echo", echo_cmd],
+  ["env", def_from_simple(env_cmd(memoryEnv()))],
+  ["do", do_cmd],
+  ["log", log_cmd(store)],
+  ["io", io_cmd],
+  ["alias", alias_cmd],
+  ["store", store_cmd(store)],
+ ]);
 
 const context = (store: Native, extra: CommandDefinition[], input: CommandData): CommandContext => ({
   meta: emptyContextMeta,
@@ -47,7 +57,9 @@ async function run(pipeline: string): Promise<CommandResult> {
 
 async function assertPipelineResult(pipeline: string, expected: string) {
   const result = await run(pipeline);
-  assertEquals(result.output.content, expected);
+  const actual = await result.output.content;
+  // console.log({actual, expected});
+  assertEquals(actual, expected);
 }
 
 async function assertResultWith(store: Native, extra: CommandDefinition[], pipeline: string, expected: string) {
@@ -55,19 +67,32 @@ async function assertResultWith(store: Native, extra: CommandDefinition[], pipel
   assertEquals(result.output.content, expected);
 }
 
-Deno.test("do version returns current version.", async () => {
-  await assertPipelineResult("version", "0.0.7");
+async function delay() {
+  // https://github.com/denoland/deno/issues/15425
+  await new Promise(resolve => setTimeout(resolve, 100));
+}
+
+async function isolate(name: string, testFn: () => Promise<void>) {
+  Deno.test(name, async () => {
+    await delay();
+    await testFn();
+    await delay();
+  });
+}
+
+isolate("do version returns current version.", async () => {
+   await assertPipelineResult("version", "0.0.7");
 });
 
-Deno.test("do version piped thu nop is still version", async () => {
+isolate("do version piped thu nop is still version", async () => {
   await assertPipelineResult("version | nop", "0.0.7");
 });
 
-Deno.test("do version piped thu nop twice is still version", async () => {
+isolate("do version piped thu nop twice is still version", async () => {
   await assertPipelineResult("version | nop | nop", "0.0.7");
 });
 
-Deno.test("Help is returned when there is no matching command", async () => {
+isolate("Help is returned when there is no matching command", async () => {
   const help = def_from_simple(
     {
       name: "help",
@@ -79,7 +104,7 @@ Deno.test("Help is returned when there is no matching command", async () => {
   await assertResultWith(memoryStore(),[help], "what", "help text");
 });
 
-Deno.test("Exception is thrown when there is no matching command and no help", async () => {
+isolate("Exception is thrown when there is no matching command and no help", async () => {
   try {
     await run("boo");
     assertEquals(true, false);
@@ -88,15 +113,24 @@ Deno.test("Exception is thrown when there is no matching command and no help", a
   }
 });
 
-Deno.test("The store starts with no log records", async () => {
+isolate("The store starts with no log records", async () => {
   const result = await run("store get log/0");
-  assertEquals(result.output, undefined);
+  assertEquals(result.output, {format:'string', content:undefined});
 });
 
-Deno.test("Execution records can be read from the log", async () => {
-  const { output } = await run("version | store get log/0");
-  assertEquals(output.format, "CommandCompletionRecord");
-  const record = output.content as CommandCompletionRecord;
+function log_file_contents(name: string, store: Native): CommandCompletionRecord {
+  const lookup = (key:Hash) => store.get(`hash/${filename_safe(key.value)}`);
+  const json = lookupJson(name, lookup) as string;
+  const data = JSON.parse(json) as CommandData;
+  return data.content as CommandCompletionRecord;
+}
+
+isolate("Execution records can be read from the log", async () => {
+  const store = memoryStore();
+  const { output } = await run_with(store, [], "version | store get log/0");
+  assertEquals(output.format, "string");
+  const key = output.content as string;
+  const record = log_file_contents(key, store);
   assertEquals(record.id, 0);
   assertEquals(record.options, {format: "string", content: ""});
   const meta = record.command.meta;
@@ -106,55 +140,67 @@ Deno.test("Execution records can be read from the log", async () => {
   assertEquals("0.0.7", record.result.output.content);
 });
 
-Deno.test("Execution records in the log contain expected command info", async () => {
+isolate("Execution records in the log contain expected command info", async () => {
   // content.command, content.context.commands, and result.commands should all agree
-  const { output } = await run("version | store get log/0");
-  const record = output.content as CommandCompletionRecord;
+  const store = memoryStore();
+  const { output } = await run_with(store, [], "version | store get log/0");
+  assertEquals(output.format, "string");
+  const key = output.content as string;
+  const record = log_file_contents(key, store);
   assertEquals(record.context.commands, record.result.commands);
 });
 
-Deno.test("A single command with no args is given the expected options", async () => {
-  const { output, commands } = await run("echo");
+function find(commands: Map<string, CommandDefinition>, name: string): CommandDefinition {
+  const command = commands.get(name);
+  if (!command) {
+    throw new Error(`Command not found: ${name}`);
+  }
+  return command;
+}
+
+isolate("A single command with no args is given the expected options", async () => {
+  const echoed = await run("echo");
+  const { output, commands } = echoed;
   // This uses the fact that echo simply returns the options it was given.
   const { format, content } = output;
   assertEquals(format, "string");
-  const { options, context } = JSON.parse(content as string);
+  const { options, context } = deserialize(content as string);
   assertEquals(options, {"format":"string", "content":""});
-  assertEquals(context.commands["echo"].meta, commands["echo"].meta);
+  assertEquals(context.commands.get("echo").meta, find(commands,"echo").meta);
   assertEquals(context.input, {format: "", content: ""});
   assertEquals(context.meta.id, 0);
 });
 
-Deno.test("A single command with 1 arg is given the expected options", async () => {
+isolate("A single command with 1 arg is given the expected options", async () => {
   const { output, commands } = await run("echo base");
   // This uses the fact that echo simply returns the options it was given.
   const { format, content } = output;
   assertEquals(format, "string");
-  const { options, context } = JSON.parse(content as string);
+  const { options, context } = deserialize(content as string);
   assertEquals(options, {format:"string", content:"base"});
-  assertEquals(context.commands["echo"].meta, commands["echo"].meta);
+  assertEquals(context.commands.get("echo").meta, find(commands,"echo").meta);
   assertEquals(context.input, {format: "", content: ""});
   assertEquals(context.meta.id, 0);
 });
 
-Deno.test("A single command with 3 args is given the expected options", async () => {
+isolate("A single command with 3 args is given the expected options", async () => {
   const { output, commands } = await run("echo whiskey tango foxtrot");
   // This uses the fact that echo simply returns the options it was given.
   const { format, content } = output;
   assertEquals(format, "string");
-  const { options, context } = JSON.parse(content as string);
+  const { options, context } = deserialize(content as string);
   assertEquals(options, {format:"string", content:"whiskey tango foxtrot"});
-  assertEquals(context.commands["echo"].meta, commands["echo"].meta);
+  assertEquals(context.commands.get("echo").meta, find(commands,"echo").meta);
   assertEquals(context.input, {format: "", content: ""});
   assertEquals(context.meta.id, 0);
 });
 
-Deno.test("Multiple commands are given the expected options", async () => {
+isolate("Multiple commands are given the expected options", async () => {
   const { output } = await run("env set whiskey tango| env get whiskey");
   assertEquals(output.content, "tango");
 });
 
-Deno.test("One step pipeline only has 2 log entries (1 for the pipeline itself)", async () => {
+isolate("XXX One step pipeline only has 2 log entries (1 for the pipeline itself)", async () => {
   const store = memoryStore();
   await run_with(store,[],"version");
   command_record(store,0);
@@ -162,7 +208,7 @@ Deno.test("One step pipeline only has 2 log entries (1 for the pipeline itself)"
   assertEquals(store.get("log/2"), undefined);
 });
 
-Deno.test("Two step pipeline only has 3 log entries (1 for the pipeline itself)", async () => {
+isolate("Two step pipeline only has 3 log entries (1 for the pipeline itself)", async () => {
   const store = memoryStore();
   await run_with(store,[],"version | nop");
   command_record(store,0);
@@ -172,13 +218,18 @@ Deno.test("Two step pipeline only has 3 log entries (1 for the pipeline itself)"
 });
 
 function command_record(store: Native, id: number) : CommandCompletionRecord {
-  const data = store.get(`log/${id}`) as CommandData;
-  assertEquals(data.format, "CommandCompletionRecord");
-  const record = data.content as CommandCompletionRecord;
+  const logged = store.get(`log/${id}`);
+  if (!logged) {
+    throw new Error(`No log record found for id ${id}`);
+  }
+  // const data = deserialize(logged);
+  // assertEquals(data.format, "CommandCompletionRecord");
+  // const record = data.content as CommandCompletionRecord;
+  const record = log_file_contents(logged, store);
   return check(record);
 }
 
-Deno.test("1st pipeline step gets input from context", async () => {
+isolate("1st pipeline step gets input from context", async () => {
   const store = memoryStore();
   const pipeline = "nop";
   const input = {format:"secret", content:"from input"};
@@ -188,7 +239,7 @@ Deno.test("1st pipeline step gets input from context", async () => {
   assertEquals(output.content, input.content);
 });
 
-Deno.test("1st pipeline step gets commands from context", async () => {
+isolate("1st pipeline step gets commands from context", async () => {
   try {
     await run("boo");
     assertEquals(true, false);
@@ -197,10 +248,10 @@ Deno.test("1st pipeline step gets commands from context", async () => {
   }
 });
 
-Deno.test("2nd pipeline step gets commands from 1st", async () => {
+isolate("2nd pipeline step gets commands from 1st", async () => {
   await assertPipelineResult("alias boo version | boo", "0.0.7");
 });
 
-Deno.test("IO will convert a string to a URL", async () => {
+isolate("IO will convert a string to a URL", async () => {
   await assertPipelineResult("define https://esm.town/v/curtcox/MarkdownCommand?v=4", "defined");
 });

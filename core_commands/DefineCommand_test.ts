@@ -6,7 +6,7 @@ import { emptyContextMeta } from "../command/Empty.ts";
 import { nonEmpty } from "../Check.ts";
 import { broken_on_CI } from "../TestConfig.ts";
 
-const empty_commands: Record<string, CommandDefinition> = {};
+const empty_commands: Map<string, CommandDefinition> = new Map();
 const empty_data: CommandData = {
   format: "text",
   content: ""
@@ -62,7 +62,7 @@ Deno.test("define function from full JavaScript definition", async () => {
     assertEquals(out.meta.name, "nop");
 
     const commands = defined.commands;
-    const nop = commands["nop"];
+    const nop = commands.get("nop") as CommandDefinition;
     const meta = nop.meta;
     assertEquals(meta.name, "nop");
     assertEquals(meta.doc, "javascript nop");
@@ -101,7 +101,7 @@ Deno.test({
   assertEquals(out.meta.name, "nop");
 
   const commands = defined.commands;
-  const nop = commands["nop"];
+  const nop = commands.get("nop") as CommandDefinition;
   const meta = nop.meta;
   assertEquals(meta.name, "nop");
   assertEquals(meta.doc, "typescript nop");
@@ -124,7 +124,7 @@ Deno.test({
   assertEquals(out.meta.name, "email");
 
   const commands = defined.commands;
-  const email = commands["email"];
+  const email = commands.get("email") as CommandDefinition;
   const meta = email.meta;
   assertEquals(meta.name, "email");
   assertEquals(meta.doc, "send an email");
@@ -144,7 +144,7 @@ Deno.test("execute function definedfrom full TypeScript URL", async () => {
   assertEquals(out.meta.name, "markdown");
 
   const commands = defined.commands;
-  const markdown = commands["markdown"];
+  const markdown = commands.get("markdown") as CommandDefinition;
   const meta = markdown.meta;
   assertEquals(meta.name, "markdown");
   assertEquals(meta.doc, "return the contents of a specified URL as markdown.");

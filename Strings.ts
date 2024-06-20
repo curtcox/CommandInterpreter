@@ -1,16 +1,22 @@
 import { isString, nonEmpty } from "./Check.ts";
 
-export function use_replacement(template: string, replacement: Record<string, string>) : string {
+export interface Replacement {
+  key: string;
+  value: string;
+}
+
+export function use_replacement(template: string, replacement: Replacement) : string {
   const {key, value} = replacement;
   const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const regex = new RegExp(escapedKey, "g");
   return template.replace(regex, value);
 }
 
-export function use_replacements(template: string, replacements: Record<string, string>) : string {
+export function use_replacements(template: string, replacements: Map<string, string>) : string {
   let result = template;
 
-  for (const [key, value] of Object.entries(replacements)) {
+  for (const key of replacements.keys()) {
+    const value = replacements.get(key) || "";
     result = use_replacement(result, {key, value});
   }
 
@@ -44,4 +50,27 @@ export function after(divider: string, text: string): string {
 
 export function words(text: string): string[] {
   return text.trim().split(/\s+/);
+}
+
+export function dump(obj: any) {
+  console.log("------------------------");
+  console.log("Object Value:", obj);
+
+  const typeOfResult = typeof obj;
+  const instanceofResult = obj?.constructor ? obj.constructor.name : "N/A";
+
+  console.log("typeof:", typeOfResult);
+  console.log("instanceof:", instanceofResult);
+
+  if (typeOfResult === "object" && obj !== null) {
+    const keys = Object.keys(obj);
+    console.log("Keys:", keys);
+
+    for (const key of keys) {
+      const value = obj[key];
+      console.log(`  ${key}:`, value);
+    }
+  }
+
+  console.log("------------------------");
 }

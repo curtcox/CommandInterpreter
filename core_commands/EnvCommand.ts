@@ -47,9 +47,9 @@ export interface Native {
 }
 
 export function memory(): Native {
-  const memory: Record<string, string> = {};
+  const memory: Map<string, string> = new Map();
   return {
-    get: (key: string)                => { return memory[key]; },
-    set: (key: string, value: string) => { memory[key] = value; },
+    get: (key: string)                => { return memory.get(key) || ""; },
+    set: (key: string, value: string) => { memory.set(key,value); },
   };
 }

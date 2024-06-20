@@ -13,6 +13,6 @@ export interface Ref {
 }
 
 export interface HashLookup {
-    (key: Hash): string;
+    (key: Hash): string | undefined;
 }
 
