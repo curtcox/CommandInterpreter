@@ -4,6 +4,8 @@ import { Duration } from "../Time.ts";
 /**
  * Commands can be found by other commands in the context.
  * The names below are use for core interpreter functionality.
+ * Since commands are looked up by name, these names they can be
+ * replaced if needed.
  */
 export const HELP = "help";
 export const DO = "do";
