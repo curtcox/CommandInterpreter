@@ -81,7 +81,8 @@ export function memory(): Native {
     set: (key: string, value: string) => { return save(key,value); },
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
-      save(snap.hash.value, snap.json);
+      const name = `hash/${filename_safe(snap.hash.value)}`;
+      save(name, snap.json);
       return snap.hash;
     }
   };
@@ -104,14 +105,18 @@ export function debug(): Native {
        const value = memory.get(key);
        if (value === undefined) {
           console.log(`debug store get: ${key} not in ${memory}`);
-          console.log({memory});
+          console.log(new Error().stack);
+          // console.log({memory});
        }
        return value;
     },
-    set: (key: string, value: string) => { return save(key,value); },
+    set: (key: string, value: string) => {
+       return save(key,value);
+    },
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
-      save(snap.hash.value, snap.json);
+      const name = `hash/${filename_safe(snap.hash.value)}`;
+      save(name, snap.json);
       return snap.hash;
     }
   };
@@ -138,10 +143,10 @@ export function filesystem(base: string, extension: string): Native {
       return Deno.readTextFileSync(path(key));
     },
     set: (key: string, value: string) => { return save(key,value); },
-    snapshot: async ()                      => {
+    snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
-      const name = await filename_safe(snap.hash.value);
-      save(`hash/${name}`, snap.json);
+      const name = `hash/${filename_safe(snap.hash.value)}`;
+      save(name, snap.json);
       return snap.hash;
     }
   };
