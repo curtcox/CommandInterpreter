@@ -14,29 +14,40 @@ const meta: CommandMeta = {
   source: import.meta.url,
 }
 
-// This would be a good place for extensive conversion logic.
-// deno-lint-ignore no-explicit-any
-function convert_to_target_input(content: any, target_source: string): string {
-  if (typeof content === "string") {
-      return content;
-  }
-  if (target_source.includes("SimpleCommand") && 'content' in content) {
-      return content.content;
-  }
-  if ('output' in content) {
-      return content.output;
-  }
-  return content;
+function simple_command(target_source_code: string): boolean {
+  return target_source_code.includes('SimpleCommand');
 }
 
-const convert = async (_context: CommandContext, conversion: DataConversion): Promise<CommandData> => {
+// This would be a good place for extensive conversion logic.
+// Asking an LLM an caching the output is an obvious choice.
+// deno-lint-ignore no-explicit-any
+function convert_to_target_input(format: string, content: any, target: CommandDefinition, target_source_code: string): CommandData {
+  if (target.meta.name === 'nop') {
+    return {format, content};
+  }
+  if (typeof content === 'string' && content.startsWith('http')) {
+    return {format:'URL', content: new URL(content)};
+  }
+  if (typeof content === 'string') {
+      return {format, content};
+  }
+  if (simple_command(target_source_code) && 'content' in content) {
+      return {format: content.format, content: content.content};
+  }
+  if ('output' in content) {
+      return {format, content: content.output};
+  }
+  return {format, content};
+}
+
+const convert = async (conversion: DataConversion): Promise<CommandData> => {
   const output = conversion.result.output;
-  const format = output.format;
-  const unconverted = output.content;
-  const target_source = isString(await fetch_source(conversion.target.command.meta.source));
-  const content = convert_to_target_input(unconverted, target_source);
-  // console.log({convert, format, unconverted, target_source, content});
-  return { format, content };
+  const {format, content } = output;
+  const target = conversion.target.command;
+  const target_source = isString(await fetch_source(target.meta.source));
+  const converted = convert_to_target_input(isString(format), content, target, target_source);
+  // console.log({ convert, format, content, converted, target_source });
+  return converted;
 }
 
 
@@ -51,7 +62,7 @@ async function fetch_source(url: string): Promise<string> {
 const func = async (context: CommandContext, _options: CommandData): Promise<CommandResult> => {
   const conversion = check(context.input.content) as DataConversion;
   const commands = context.commands;
-  const output = await convert(context, conversion);
+  const output = await convert(conversion);
   const result: CommandResult = { commands, output }
   return Promise.resolve(result);
 }
@@ -61,9 +72,9 @@ export const io_cmd : CommandDefinition = {
 };
 
 export interface DataConversion {
-  result: CommandResult, 
-  source: CommandInvocation,
-  target: CommandInvocation,
+  result: CommandResult, // The result of the source command might need to be converted
+  source: CommandInvocation, // Where the data comes from
+  target: CommandInvocation, // Where the data goes to
 }
 
 export const convert_data = (context:CommandContext, conversion: DataConversion): Promise<CommandResult> => {
