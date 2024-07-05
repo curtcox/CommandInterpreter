@@ -39,7 +39,7 @@ export async function define(data: CommandData): Promise<CommandDefinition> {
     if (format === url)        return await define_from_url(content);
     if (format === javascript) return await define_from_script(javascript,content);
     if (format === typescript) return await define_from_script(typescript,content);
-    throw new Error(`Unsupported format ${format}`);
+    throw new Error(`Unsupported format ${format} with content ${content}`);
 }
 
 const func = async (context: CommandContext, data: CommandData) => {
