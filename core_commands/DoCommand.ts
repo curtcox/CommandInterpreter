@@ -38,7 +38,8 @@ const func = async (context: CommandContext, options: CommandData): Promise<Comm
     const command = do_cmd;
     const store = placeholder;
     const record = {id, command, options, context, result, duration, store };
-    record_step(context, record);
+    const number = await record_step(context, record);
+    // console.log({func, number});
     return result;
 }
 

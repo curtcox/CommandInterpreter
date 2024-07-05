@@ -6,6 +6,7 @@ import { do_cmd } from "./DoCommand.ts";
 import { log_cmd } from "./LogCommand.ts";
 import { store_cmd } from "./StoreCommand.ts";
 import { filename_safe } from "./StoreCommand.ts";
+import { define_cmd } from "./DefineCommand.ts";
 import { io_cmd } from "./IoCommand.ts";
 import { CommandCompletionRecord, CommandResult } from "../command/CommandDefinition.ts";
 import { CommandDefinition } from "../command/CommandDefinition.ts";
@@ -26,7 +27,7 @@ import { Hash } from '../Ref.ts';
 import { lookupJson } from '../core_commands/RefCommand.ts';
 import { dump } from "../Strings.ts";
 
-const debug = true;
+const debug = false;
 const memoryStore = debug ? debugStore : normalStore;
 
 const commands = (store: Native):Map<string, CommandDefinition> => new Map([
@@ -38,6 +39,7 @@ const commands = (store: Native):Map<string, CommandDefinition> => new Map([
   ["log", log_cmd(store)],
   ["io", io_cmd],
   ["alias", alias_cmd],
+  ["define", define_cmd],
   ["store", store_cmd(store)],
  ]);
 
@@ -48,7 +50,9 @@ const context = (store: Native, extra: CommandDefinition[], input: CommandData):
 });
 
 async function run_with(store: Native, extra: CommandDefinition[], pipeline: string): Promise<CommandResult> {
-  return await invoke(context(store, extra, emptyData), "do", {format:"text", content:pipeline});
+  const result = await invoke(context(store, extra, emptyData), "do", {format:"text", content:pipeline});
+  console.log({run_with});
+  return result;
 }
 
 async function run(pipeline: string): Promise<CommandResult> {
@@ -200,9 +204,9 @@ isolate("Multiple commands are given the expected options", async () => {
   assertEquals(output.content, "tango");
 });
 
-isolate("XXX One step pipeline only has 2 log entries (1 for the pipeline itself)", async () => {
+isolate("One step pipeline only has 2 log entries (1 for the pipeline itself)", async () => {
   const store = memoryStore();
-  await run_with(store,[],"version");
+  const result = await run_with(store,[],"version");
   command_record(store,0);
   command_record(store,1);
   assertEquals(store.get("log/2"), undefined);
@@ -252,6 +256,6 @@ isolate("2nd pipeline step gets commands from 1st", async () => {
   await assertPipelineResult("alias boo version | boo", "0.0.7");
 });
 
-isolate("IO will convert a string to a URL", async () => {
+isolate("IO will convert a string option to a URL", async () => {
   await assertPipelineResult("define https://esm.town/v/curtcox/MarkdownCommand?v=4", "defined");
 });
