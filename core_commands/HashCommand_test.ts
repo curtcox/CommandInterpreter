@@ -4,27 +4,32 @@ import { hash, hash_cmd } from "./HashCommand.ts";
 import { emptyContextMeta } from "../command/Empty.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { nop_cmd } from "./NopCommand.ts";
+import { Hash } from "../Ref.ts";
 
-Deno.test("Hash returns hash of string when empty", async () => {
+Deno.test("Hash command returns hash of string when empty", async () => {
   const empty = {format: "string", content: ""};
   const context: CommandContext = {
-    commands: {
-      'hash': hash_cmd,
-      'log': nop_cmd
-    },
+    commands: new Map([
+      ['hash', hash_cmd],
+      ['log', nop_cmd]
+    ]),
     meta: emptyContextMeta,
     input: empty,
   };
   const result = await invoke_with_input(context, "hash", empty, empty);
   const actual = await result.output.content;
-  assertEquals(actual, "z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg==");
+  assertEquals(actual, new Hash("z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="));
+});
+
+Deno.test("Hash function returns hash of empty string when empty", async () => {
+  const actual = await hash('');
+  assertEquals(actual, new Hash("z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="));
 });
 
 async function hashIs(input: string, expected: string) {
-  assertEquals(await hash(input), expected, `hash for ${input}`);
+  assertEquals(await hash(input), new Hash(expected), `hash for ${input}`);
 }
  
-
 Deno.test("Hash values are unique", () => {
   hashIs("0", "MbygIJTreBJqUXsgaojHPPqexvcExwMNGCEsrOgg8CXwC/DqaNvz86VDbKY7U797+ArY1d59g1nQt/7Z28OrmQ==");
   hashIs("1", "Tf9Oo0DwqCPxXT9PAati6uDl2lecy4Ufjbnf6ExYsrN7iZA6dA4e4XLaeTpuedVg5ff5vQWKEqKAQz7W+kZRCg==");
