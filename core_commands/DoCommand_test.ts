@@ -59,9 +59,14 @@ async function run(pipeline: string): Promise<CommandResult> {
   return await invoke(context(memoryStore(),[], emptyData), "do", {format:"text", content:pipeline});
 }
 
-async function assertPipelineResult(pipeline: string, expected: string) {
+async function pipelineResult(pipeline: string): Promise<CommandData> {
   const result = await run(pipeline);
-  const actual = await result.output.content;
+  return await result.output;
+}
+
+async function assertPipelineResult(pipeline: string, expected: string) {
+  const result = await pipelineResult(pipeline);
+  const actual = await result.content;
   // console.log({actual, expected});
   assertEquals(actual, expected);
 }
@@ -256,6 +261,10 @@ isolate("2nd pipeline step gets commands from 1st", async () => {
   await assertPipelineResult("alias boo version | boo", "0.0.7");
 });
 
-isolate("IO will convert a string option to a URL", async () => {
-  await assertPipelineResult("define https://esm.town/v/curtcox/MarkdownCommand?v=4", "defined");
+isolate("Can define command from a URL string.", async () => {
+  const actual = await pipelineResult("define https://esm.town/v/curtcox/MarkdownCommand?v=4");
+  const command = actual.content as CommandDefinition;
+  assertEquals(command.meta.name, "markdown");
+  assertEquals(command.meta.source, "https://esm.town/v/curtcox/MarkdownCommand?v=4");
+  assertEquals(command.meta.doc, "return the contents of a specified URL as markdown.");
 });
