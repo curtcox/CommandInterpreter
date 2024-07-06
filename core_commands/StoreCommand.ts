@@ -1,6 +1,6 @@
 import { isString, nonEmpty } from "../Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
-import { words } from "../Strings.ts";
+import { mapToString, words } from "../Strings.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std@0.224.0/path/mod.ts";
@@ -64,15 +64,18 @@ export interface Native {
 
 interface Snapshot {
   hash: Hash;
-  json: string;
+  serialized: string;
 }
 
 async function snapsot_of(hashes: Map<string, Hash>): Promise<Snapshot> {
-  const entries = Object.fromEntries(hashes.entries());
-  // console.log({entries});
-  const json = JSON.stringify(entries);
-  const hashed = await hash(json);
-  return { hash: hashed, json };
+  const strings = new Map<string, string>();
+
+  for (const [key, value] of hashes) {
+    strings.set(key, value.value);
+  }
+  const serialized = mapToString(strings);
+  const hashed = await hash(serialized);
+  return { hash: hashed, serialized };
 }
 
 export function memory(): Native {
@@ -89,7 +92,7 @@ export function memory(): Native {
     snapshot: async ()                           => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      await save(name, snap.json);
+      await save(name, snap.serialized);
       return snap.hash;
     }
   };
@@ -123,7 +126,7 @@ export function debug(): Native {
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      await save(name, snap.json);
+      await save(name, snap.serialized);
       return snap.hash;
     }
   };
@@ -146,14 +149,12 @@ export function filesystem(base: string, extension: string): Native {
   }
 
   return {
-    get: (key: string) => {
-      return Deno.readTextFileSync(path(key));
-    },
-    set: async (key: string, value: string) => { return await save(key,value); },
+         get:       (key: string)     => { return Deno.readTextFileSync(path(key)); },
+         set: async (key: string, value: string) => { return await save(key,value); },
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      await save(name, snap.json);
+      await save(name, snap.serialized);
       return snap.hash;
     }
   };

@@ -74,3 +74,26 @@ export function dump(obj: any) {
 
   console.log("------------------------");
 }
+
+export function mapToString(inputMap: Map<string, string>): string {
+  let result = "";
+
+  inputMap.forEach((value, key) => {
+    result += key + "\n" + value + "\n";
+  });
+
+  return result ? result.slice(0, -1) : result;
+}
+
+export function stringToMap(inputString: string): Map<string, string> {
+  const outputMap = new Map<string, string>();
+
+  if (inputString.trim() !== "") { 
+    const lines = inputString.split("\n");
+    for (let i = 0; i < lines.length; i += 2) {
+      outputMap.set(lines[i], lines[i + 1]);
+    }
+  }
+
+  return outputMap;
+}

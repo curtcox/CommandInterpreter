@@ -5,6 +5,8 @@ import { use_replacements } from "./Strings.ts";
 import { head } from "./Strings.ts";
 import { tail } from "./Strings.ts";
 import { words } from "./Strings.ts";
+import { mapToString } from "./Strings.ts";
+import { stringToMap } from "./Strings.ts";
 
 Deno.test("Head returns the first word in a string", () => {
     assertEquals(head("first"), "first");
@@ -42,4 +44,46 @@ Deno.test("Words splits the given string into words using whitespace", () => {
     assertEquals(words('ignore trailing spaces '), ["ignore", "trailing", "spaces"]);
     assertEquals(words(' ignore  multiple  spaces '), ["ignore", "multiple", "spaces"]);
     assertEquals(words('ignore leading and trailing spaces '), ["ignore", "leading", "and", "trailing", "spaces"]);
+});
+
+Deno.test("empty map round trip", () => {
+    const map = new Map<string, string>();
+    const str = mapToString(map);
+    assertEquals(str, "");
+
+    const recoveredMap = stringToMap(str);
+    assertEquals(recoveredMap, map);
+});
+
+Deno.test("1 pair map round trip", () => {
+    const map = new Map([["City", "State"]]);
+    const str = mapToString(map);
+
+    const recoveredMap = stringToMap(str);
+    assertEquals(recoveredMap, map);
+});
+
+Deno.test("3 pair map round trip", () => {
+    const map = new Map([
+        ["name", "Alice"],
+        ["age", "30"],
+        ["city", "New York"],
+      ]);
+    const str = mapToString(map);
+
+    const recoveredMap = stringToMap(str);
+    assertEquals(recoveredMap, map);
+});
+
+Deno.test("4 pair map round trip", () => {
+    const map = new Map([
+        ["1st", "Who"],
+        ["2nd", "What"],
+        ["3rd", "I don't know"],
+        ["4th", "I don't care"],
+      ]);
+    const str = mapToString(map);
+
+    const recoveredMap = stringToMap(str);
+    assertEquals(recoveredMap, map);
 });
