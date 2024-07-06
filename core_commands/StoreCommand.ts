@@ -12,7 +12,7 @@ import { hash } from "./HashCommand.ts";
 /**
  * Think filesystem. 
  */
-function store(native: Native, context: CommandContext, code: string): string | undefined {
+async function store(native: Native, context: CommandContext, code: string): Promise<string | undefined> {
   const trimmed = nonEmpty(code).trim();
   const parts = words(trimmed);
   if (parts.length < 2 || parts.length > 3) {
@@ -22,18 +22,23 @@ function store(native: Native, context: CommandContext, code: string): string | 
   const key = parts[1];
   // console.log({store, code, arg, key});
   if (arg === "get") {
-    return native.get(key);
+    const value = native.get(key);
+    if (value === undefined) {
+      return undefined;
+    } else {
+      return value;
+    }
   }
   if (arg === "set") {
     const input = context.input;
     const data = checkFormat(input, "string");
-    return native.set(key,isString(data.content));
+    return await native.set(key,isString(data.content));
   }
   throw `Invalid store command: ${arg}`;
 }
 
-function result_from_store(native: Native, context: CommandContext, code: string): CommandData {
-  const value = store(native, context, code);
+async function result_from_store(native: Native, context: CommandContext, code: string): Promise<CommandData> {
+  const value = await store(native, context, code);
   return { format: "string", content: value };
 }
 
@@ -45,15 +50,15 @@ const meta: CommandMeta = {
 
 export const store_cmd = (native:Native): CommandDefinition => ({
   meta,
-  func: (context: CommandContext, options: CommandData) => Promise.resolve({
+  func: async (context: CommandContext, options: CommandData) => ({
     commands: context.commands,
-    output: result_from_store(native,context,isString(options.content))
+    output: await result_from_store(native,context,isString(options.content))
   })
 });
 
 export interface Native {
   get: (key:string)               => string | undefined;
-  set: (key:string, value:string) => string;
+  set: (key:string, value:string) => Promise<string>;
   snapshot: ()                    => Promise<Hash>;
 }
 
@@ -63,7 +68,9 @@ interface Snapshot {
 }
 
 async function snapsot_of(hashes: Map<string, Hash>): Promise<Snapshot> {
-  const json = JSON.stringify(Object.fromEntries(hashes.entries()));
+  const entries = Object.fromEntries(hashes.entries());
+  // console.log({entries});
+  const json = JSON.stringify(entries);
   const hashed = await hash(json);
   return { hash: hashed, json };
 }
@@ -71,18 +78,18 @@ async function snapsot_of(hashes: Map<string, Hash>): Promise<Snapshot> {
 export function memory(): Native {
   const memory: Map<string, string> = new Map();
   const hashes = new Map<string, Hash>();
-  const save = (key: string, value: string) => {
+  const save = async (key: string, value: string) => {
     memory.set(key,value);
-    hashes.set(key, new Hash(value));
+    hashes.set(key, await hash(value));
     return value;
   }
   return {
-    get: (key: string)                => { return memory.get(key); },
-    set: (key: string, value: string) => { return save(key,value); },
-    snapshot: async ()                => {
+         get:       (key: string)                => { return memory.get(key); },
+         set: async (key: string, value: string) => { return await save(key,value); },
+    snapshot: async ()                           => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      save(name, snap.json);
+      await save(name, snap.json);
       return snap.hash;
     }
   };
@@ -91,11 +98,11 @@ export function memory(): Native {
 export function debug(): Native {
   const memory: Map<string, string> = new Map();
   const hashes = new Map<string, Hash>();
-  const save = (key: string, value: string) => {
+  const save = async (key: string, value: string) => {
     // console.log(`debug store set: ${key} = ${value}`);
     // console.log(new Error().stack);
     memory.set(key,value);
-    hashes.set(key, new Hash(value));
+    hashes.set(key, await hash(value));
     return value;
   }
   return {
@@ -110,13 +117,13 @@ export function debug(): Native {
        }
        return value;
     },
-    set: (key: string, value: string) => {
-       return save(key,value);
+    set: async (key: string, value: string) => {
+       return await save(key,value);
     },
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      save(name, snap.json);
+      await save(name, snap.json);
       return snap.hash;
     }
   };
@@ -131,10 +138,10 @@ export function filesystem(base: string, extension: string): Native {
   function path(key: string): string {
     return join(base, `${key}.${extension}`);
   }
-  const save = (key: string, value: string) => {
+  const save = async (key: string, value: string) => {
     Deno.mkdir(dirname(path(key)), { recursive: true});
     Deno.writeTextFileSync(path(key), value);
-    hashes.set(key, new Hash(value));
+    hashes.set(key, await hash(value));
     return value;
   }
 
@@ -142,11 +149,11 @@ export function filesystem(base: string, extension: string): Native {
     get: (key: string) => {
       return Deno.readTextFileSync(path(key));
     },
-    set: (key: string, value: string) => { return save(key,value); },
+    set: async (key: string, value: string) => { return await save(key,value); },
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      save(name, snap.json);
+      await save(name, snap.json);
       return snap.hash;
     }
   };
