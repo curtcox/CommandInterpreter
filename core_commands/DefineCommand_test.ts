@@ -28,17 +28,22 @@ const input = (data: CommandData): CommandContext => ({
 })
 
 const javascript = (content: string) => ({
-  format: "application/javascript",
+  format: 'application/javascript',
   content: content
 });
 
 const typescript = (content: string) => ({
-  format: "application/typescript",
+  format: 'application/typescript',
   content: content
 });
 
 const url = (content: string) => ({
-  format: "URL",
+  format: 'URL',
+  content: content
+});
+
+const string = (content: string) => ({
+  format: 'string',
   content: content
 });
 
@@ -138,8 +143,20 @@ Deno.test({
   }
 }});
 
-Deno.test("execute function definedfrom full TypeScript URL", async () => {
-  const defined = await define_cmd.func(empty_context, url("https://esm.town/v/curtcox/MarkdownCommand?v=4"));
+Deno.test("XXX define function from full TypeScript URL", async () => {
+  const defined = await define_cmd.func(empty_context, url('https://esm.town/v/curtcox/MarkdownCommand?v=4'));
+  const out = defined.output.content as CommandDefinition;
+  assertEquals(out.meta.name, "markdown");
+});
+
+Deno.test("define function from full TypeScript URL string", async () => {
+  const defined = await define_cmd.func(empty_context, string('https://esm.town/v/curtcox/MarkdownCommand?v=4'));
+  const out = defined.output.content as CommandDefinition;
+  assertEquals(out.meta.name, "markdown");
+});
+
+Deno.test("execute function defined from full TypeScript URL", async () => {
+  const defined = await define_cmd.func(empty_context, url('https://esm.town/v/curtcox/MarkdownCommand?v=4'));
   const out = defined.output.content as CommandDefinition;
   assertEquals(out.meta.name, "markdown");
 
