@@ -1,3 +1,6 @@
+/**
+ * A string that holds a hash value.
+ */
 export class Hash {
 
     value: string;
