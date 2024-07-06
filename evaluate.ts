@@ -16,7 +16,7 @@ const native_env = {
 }
 
 const _memory_store = memory();
-const file_store = filesystem("store","json");
+const file_store = filesystem('store','json');
 const native_store = file_store;
 
 const context = (format: string, content: string) : CommandContext => ({
