@@ -6,6 +6,9 @@ export class Hash {
     value: string;
 
     constructor(value: string) {
+        if (value.length !== 88) {
+            throw new Error(`Hash value must be 88 characters long, but got ${value.length}`);
+        }
         this.value = value;
     }
 }
