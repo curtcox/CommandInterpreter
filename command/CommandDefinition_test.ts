@@ -4,12 +4,12 @@ import { version_cmd } from "../standard_commands/VersionCommand.ts";
 import { nop_cmd } from "../core_commands/NopCommand.ts";
 import { do_cmd } from "../core_commands/DoCommand.ts";
 import { log_cmd } from "../core_commands/LogCommand.ts";
-import { store_cmd } from "../core_commands/StoreCommand.ts";
+import { Native, store_cmd, filename_safe } from "../core_commands/StoreCommand.ts";
 import { io_cmd } from "../core_commands/IoCommand.ts";
 import { eval_cmd } from "../standard_commands/EvalCommand.ts";
 import { CommandCompletionRecord } from "../command/CommandDefinition.ts";
 import { CommandDefinition, DO } from "../command/CommandDefinition.ts";
-import { memory as memoryStore, Native as nativeStore } from "../core_commands/StoreCommand.ts";
+import { debug as memoryStore, Native as nativeStore } from "../core_commands/StoreCommand.ts";
 import { memory as memoryEnv } from "../core_commands/EnvCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
@@ -24,21 +24,23 @@ import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_in
 import { emptyInvocation } from "./Empty.ts";
 import { lookupJson } from '../core_commands/RefCommand.ts';
 import { Hash } from "../Ref.ts";
+import { nonEmpty } from "../Check.ts";
+import { deserialize } from "../core_commands/ObjCommand.ts";
 
 const eval_command = def_from_simple(eval_cmd);
 
-const commands = (store: nativeStore):Map<string, CommandDefinition> => ({
-    "nop": nop_cmd,
-    "version": def_from_simple(version_cmd),
-    "echo": echo_cmd,
-    "env": def_from_simple(env_cmd(memoryEnv())),
-    "eval": eval_command,
-    "do": do_cmd,
-    "log": log_cmd(store),
-    "io": io_cmd,
-    "alias": alias_cmd,
-    "store": store_cmd(store),
-});
+const commands = (store: nativeStore):Map<string, CommandDefinition> => new Map([
+    ['nop', nop_cmd],
+    ['version', def_from_simple(version_cmd)],
+    ['echo', echo_cmd],
+    ['env', def_from_simple( env_cmd( memoryEnv())) ],
+    ['eval', eval_command],
+    ['do', do_cmd],
+    ['log', log_cmd(store)],
+    ['io', io_cmd],
+    ['alias', alias_cmd],
+    ['store', store_cmd(store)],
+]);
   
 const context = (store: nativeStore): CommandContext => ({
     meta: emptyContextMeta,
@@ -50,6 +52,11 @@ async function run(pipeline: string): Promise<CommandCompletionRecord> {
     return await run_pipeline(pipeline, 1);
 }
 
+function lookup_hash_in_store(key:Hash, store: Native): string {
+    const name = `hash/${filename_safe(key.value)}`;
+    return store.get(name) || "";
+}
+
 async function run_pipeline(pipeline: string, index: number): Promise<CommandCompletionRecord> {
     const store = memoryStore();
     const ctx = context(store);
@@ -58,13 +65,16 @@ async function run_pipeline(pipeline: string, index: number): Promise<CommandCom
     if (logged === undefined) {
         fail(`No log entry for index ${index}`);
     }
-    const lookup = (key:Hash) => store.get(`hash/${key}`) || "";
-    const json = lookupJson(logged, lookup);
-    const data = JSON.parse(json) as CommandData;
+    // console.log({index, logged});
+    const lookup = (key:Hash) => lookup_hash_in_store(key, store);
+    const json = nonEmpty(lookupJson(logged, lookup));
+    const data = deserialize(json) as CommandData;
     assertEquals(data.format, "CommandCompletionRecord");
     const record = data.content as CommandCompletionRecord;
     assertEquals(record.result.output.content, result.output.content);
-    return Promise.resolve(record);
+    assertEquals(record.result.commands.size, result.commands.size);
+    assertEquals(record.result.commands.keys, result.commands.keys);
+    return record;
 }
   
 Deno.test("version command can be re-run from a command record", async () => {
