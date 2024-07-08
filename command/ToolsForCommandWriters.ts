@@ -69,7 +69,7 @@ export function def_from_simple(command: SimpleCommand): CommandDefinition {
 
 // Invoke the named command using the supplied context.
 export const invoke = async (context: CommandContext, name: string, options: CommandData): Promise<CommandResult> => {
-  // console.log({invoke, name, options});
+  // console.log({invoke, name, options, context, commands: context.commands});
   const start = now_now();
   const commands = context.commands;
   const command = commands.get(name);

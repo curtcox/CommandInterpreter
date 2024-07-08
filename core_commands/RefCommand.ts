@@ -41,6 +41,7 @@ export async function jsonToRef(json: string): Promise<Ref> {
 
 export function lookupJson(json: string | undefined, get: HashLookup): string | undefined {
     // console.log({lookupJson, json});
+    // console.log('json:', json);
     if (!json) {
         return undefined;
     }
@@ -54,7 +55,9 @@ export function lookupJson(json: string | undefined, get: HashLookup): string | 
     for (const key in o) {
         const value = o[key];
         if (typeof value === "string" && value.length === 88) {
-            const jsonValue = lookupJson(get(new Hash(value)), get);
+            const content = get(new Hash(value));
+            // console.log({message:'key found in looking up', key, value, content});
+            const jsonValue = lookupJson(content, get);
             if (jsonValue) {
                 o[key] = JSON.parse(jsonValue);
             }
