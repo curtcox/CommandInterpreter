@@ -64,18 +64,15 @@ export interface Native {
 
 interface Snapshot {
   hash: Hash;
-  serialized: string;
+  json: string;
 }
 
 async function snapsot_of(hashes: Map<string, Hash>): Promise<Snapshot> {
-  const strings = new Map<string, string>();
-
-  for (const [key, value] of hashes) {
-    strings.set(key, value.value);
-  }
-  const serialized = mapToString(strings);
-  const hashed = await hash(serialized);
-  return { hash: hashed, serialized };
+  const entries = Object.fromEntries(hashes.entries());
+  // console.log({entries});
+  const json = JSON.stringify(entries);
+  const hashed = await hash(json);
+  return { hash: hashed, json };
 }
 
 export function memory(): Native {
@@ -92,7 +89,7 @@ export function memory(): Native {
     snapshot: async ()                           => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      await save(name, snap.serialized);
+      await save(name, snap.json);
       return snap.hash;
     }
   };
@@ -116,7 +113,7 @@ export function debug(): Native {
        if (value === undefined) {
           console.log(`debug store get: ${key} not in ${memory}`);
           console.log(new Error().stack);
-          // console.log({memory});
+          console.log({key, memory});
        }
        return value;
     },
@@ -126,7 +123,7 @@ export function debug(): Native {
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      await save(name, snap.serialized);
+      await save(name, snap.json);
       return snap.hash;
     }
   };
@@ -154,7 +151,7 @@ export function filesystem(base: string, extension: string): Native {
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
       const name = `hash/${filename_safe(snap.hash.value)}`;
-      await save(name, snap.serialized);
+      await save(name, snap.json);
       return snap.hash;
     }
   };
