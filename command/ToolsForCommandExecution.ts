@@ -8,13 +8,13 @@ import { invoke } from "./ToolsForCommandWriters.ts";
 
 export async function rerun(record: CommandRecord): Promise<CommandResult> {
     const result = await invoke(record.context, record.command.meta.name, record.options);
-    return Promise.resolve(result);
+    return result;
 }
 
 export async function retry(error: CommandError): Promise<CommandResult> {
     const invocation = {command: error.command, options: error.options};
     const result = await invoke(error.context, invocation.command.meta.name, invocation.options);
-    return Promise.resolve(result);
+    return result;
 }
 
 export async function resume(record: CommandCompletionRecord, pipeline: string): Promise<CommandResult> {
@@ -23,6 +23,6 @@ export async function resume(record: CommandCompletionRecord, pipeline: string):
     const input = record.result.output;
     const context: CommandContext = {meta, commands, input}
     const result = await invoke(context, DO, {format: "string", content:pipeline});
-    return Promise.resolve(result);
+    return result;
 }
 
