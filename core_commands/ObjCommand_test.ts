@@ -1,7 +1,7 @@
 import { assertEquals, assert, assertStringIncludes } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
 import { CommandContext, ContextMeta, CommandData, CommandDefinition, CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
-import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
+import { invoke, invoke_with_input, def_from_simple } from "../command/ToolsForCommandWriters.ts";
 import { OBJ } from "../command/CommandDefinition.ts";
 import { emptyContext, emptyContextMeta, emptyData } from "../command/Empty.ts";
 import { are_equal } from "../Objects.ts";
@@ -10,9 +10,13 @@ import { PreciseTime } from "../Time.ts";
 import { CommandResult } from "../command/CommandDefinition.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { emptyCommand } from "../command/Empty.ts";
+import { log_cmd } from "./LogCommand.ts";
+import { env_cmd, memory as memory_env } from "./EnvCommand.ts";
+import { store_cmd } from "./StoreCommand.ts";
 import { obj_cmd, object, string, serialize, deserialize } from "./ObjCommand.ts";
 import { nonEmpty } from "../Check.ts";
 import { dump } from "../Strings.ts";
+import { memory as memory_store } from "./StoreCommand.ts";
 
 const empty = emptyData;
 
@@ -127,6 +131,47 @@ async function write_and_read(value: CommandData) : Promise<CommandData> {
   return read;
 }
 
+function serialize_and_deserialize<T>(t: T) : T {
+  const written = serialize(t);
+  const read = deserialize(written);
+  assertEquals(read, t);
+  return read;
+}
+
+function serialize_and_deserialize_command(original: CommandDefinition) {
+  const written = serialize(original);
+  const read = deserialize(written) as CommandDefinition;
+  assertEquals(read.meta, original.meta);
+  // assertEquals(read.func, original.func); <<<< TODO - fix this
+}
+
+Deno.test("Strings are round trippable", () => {
+  serialize_and_deserialize("");
+  serialize_and_deserialize("Hello, world!");
+  serialize_and_deserialize("When in the course of human events...");
+});
+
+Deno.test("Numbers are round trippable", () => {
+  serialize_and_deserialize(0);
+  serialize_and_deserialize(1);
+  serialize_and_deserialize(42);
+  serialize_and_deserialize(3.1415926535);
+});
+
+Deno.test("Commands with no native dependencies are round trippable", () => {
+  serialize_and_deserialize_command(nop_cmd);
+  serialize_and_deserialize_command(emptyCommand);
+  serialize_and_deserialize_command(obj_cmd);
+});
+
+Deno.test("Commands with native dependencies are round trippable", () => {
+  const store = memory_store();
+  const env = memory_env();
+  serialize_and_deserialize_command(def_from_simple(env_cmd(env)));
+  serialize_and_deserialize_command(store_cmd(store));
+  serialize_and_deserialize_command(log_cmd(store));
+});
+
 Deno.test("command error can be written and read", async () => {
   const context = contextWithObj();
 
@@ -234,6 +279,36 @@ Deno.test("empty command can be loaded and saved via json", async () => {
   assertEquals(loaded.meta, command.meta);
   // assertEquals(loaded.func, command.func); <<<< TODO - fix this
   // assert(are_equal(loaded, command)); <<<< TODO - fix this
+});
+
+Deno.test("integer can be loaded and saved via json", async () => {
+  const content = 8675309;
+
+  const from_store = await write_and_read({format:"number",content});
+
+  const loaded = from_store.content as number;
+
+  assertEquals(loaded, content);
+});
+
+Deno.test("float can be loaded and saved via json", async () => {
+  const content = 2.718281828;
+
+  const from_store = await write_and_read({format:"number",content});
+
+  const loaded = from_store.content as number;
+
+  assertEquals(loaded, content);
+});
+
+Deno.test("string can be loaded and saved via json", async () => {
+  const content = "Hello, world!";
+
+  const from_store = await write_and_read({format:"commands",content});
+
+  const loaded = from_store.content as string;
+
+  assertEquals(loaded, content);
 });
 
 Deno.test("map can be loaded and saved via json", async () => {
