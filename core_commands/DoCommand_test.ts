@@ -13,10 +13,9 @@ import { CommandDefinition } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
 import { debug as debugStore } from "./StoreCommand.ts";
 import { memory as normalStore } from "./StoreCommand.ts";
-import { Native } from "./StoreCommand.ts";
+import { Store } from "../native/Native.ts";
 import { memory as memoryEnv } from "./EnvCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
-import { CommandRecord } from "../command/CommandDefinition.ts";
 import { emptyContextMeta, emptyData } from "../command/Empty.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { env_cmd } from "./EnvCommand.ts";
@@ -30,7 +29,7 @@ import { dump } from "../Strings.ts";
 const debug = false;
 const memoryStore = debug ? debugStore : normalStore;
 
-const commands = (store: Native):Map<string, CommandDefinition> => new Map([
+const commands = (store: Store):Map<string, CommandDefinition> => new Map([
   ["nop", nop_cmd],
   ["version", def_from_simple(version_cmd)],
   ["echo", echo_cmd],
@@ -43,13 +42,13 @@ const commands = (store: Native):Map<string, CommandDefinition> => new Map([
   ["store", store_cmd(store)],
  ]);
 
-const context = (store: Native, extra: CommandDefinition[], input: CommandData): CommandContext => ({
+const context = (store: Store, extra: CommandDefinition[], input: CommandData): CommandContext => ({
   meta: emptyContextMeta,
   commands: combine(commands(store), extra),
   input,
 });
 
-async function run_with(store: Native, extra: CommandDefinition[], pipeline: string): Promise<CommandResult> {
+async function run_with(store: Store, extra: CommandDefinition[], pipeline: string): Promise<CommandResult> {
   const result = await invoke(context(store, extra, emptyData), "do", {format:"text", content:pipeline});
   console.log({run_with});
   return result;
@@ -71,7 +70,7 @@ async function assertPipelineResult(pipeline: string, expected: string) {
   assertEquals(actual, expected);
 }
 
-async function assertResultWith(store: Native, extra: CommandDefinition[], pipeline: string, expected: string) {
+async function assertResultWith(store: Store, extra: CommandDefinition[], pipeline: string, expected: string) {
   const result = await run_with(store,extra,pipeline);
   assertEquals(result.output.content, expected);
 }
@@ -127,7 +126,7 @@ isolate("The store starts with no log records", async () => {
   assertEquals(result.output, {format:'string', content:undefined});
 });
 
-function log_file_contents(name: string, store: Native): CommandCompletionRecord {
+function log_file_contents(name: string, store: Store): CommandCompletionRecord {
   const lookup = (key:Hash) => store.get(`hash/${filename_safe(key.value)}`);
   const json = lookupJson(name, lookup) as string;
   const data = JSON.parse(json) as CommandData;
@@ -226,7 +225,7 @@ isolate("Two step pipeline only has 3 log entries (1 for the pipeline itself)", 
   assertEquals(store.get("log/3"), undefined);
 });
 
-function command_record(store: Native, id: number) : CommandCompletionRecord {
+function command_record(store: Store, id: number) : CommandCompletionRecord {
   const logged = store.get(`log/${id}`);
   if (!logged) {
     throw new Error(`No log record found for id ${id}`);

@@ -5,7 +5,7 @@ import { CommandResult } from "../command/CommandDefinition.ts";
 import { CommandCompletionRecord } from "../command/CommandDefinition.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { LOG } from "../command/CommandDefinition.ts";
-import { Native } from "./StoreCommand.ts";
+import { Store } from "../native/Native.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { serialize } from "./ObjCommand.ts";
 import { jsonToRef } from "./RefCommand.ts";
@@ -36,7 +36,7 @@ const result = (record: CommandRecord): CommandResult => ({
     output: output(record)
 })
 
-const save_record = async (native: Native, record: CommandRecord): Promise<Hash> => {
+const save_record = async (native: Store, record: CommandRecord): Promise<Hash> => {
     check(record);
     const snapshot = await native.snapshot();
     record.store = await snapshot.value;
@@ -54,7 +54,7 @@ function record_from_context(context: CommandContext): CommandRecord {
     return check(record);
 }
 
-export const log_cmd = (native:Native) : CommandDefinition => ({
+export const log_cmd = (native:Store) : CommandDefinition => ({
     meta, func: async (context: CommandContext, _options: CommandData) => {
         const record = record_from_context(context);
         const hash = await save_record(native,record);

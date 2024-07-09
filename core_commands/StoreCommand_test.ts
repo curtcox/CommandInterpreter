@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
-import { memory, debug, filesystem, store_cmd, get, set, Native } from "./StoreCommand.ts";
+import { memory, debug, filesystem, store_cmd, get, set } from "./StoreCommand.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { STORE } from "../command/CommandDefinition.ts";
 import { emptyContextMeta, emptyData } from "../command/Empty.ts";
@@ -8,6 +8,7 @@ import { nop_cmd } from "./NopCommand.ts";
 import { Hash } from "../Ref.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
 import { assertNotEquals } from "https://deno.land/std@0.223.0/assert/assert_not_equals.ts";
+import { Store } from "../native/Native.ts";
 
 const empty = emptyData;
 
@@ -114,7 +115,7 @@ Deno.test("Set value can be obtained via get using convenience functions", async
   assertEquals(result, value);
 });
 
-async function assertEqualSnapshots(store1: Native, store2: Native, store3: Native) {
+async function assertEqualSnapshots(store1: Store, store2: Store, store3: Store) {
   const snap1 = await store1.snapshot();
   const snap2 = await store2.snapshot();
   const snap3 = await store3.snapshot();

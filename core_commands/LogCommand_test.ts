@@ -1,7 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition, ContextMeta } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandData, ContextMeta } from "../command/CommandDefinition.ts";
 import { CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
-import { store_cmd, memory as memory, get, Native } from "./StoreCommand.ts";
+import { store_cmd, memory as memory, get } from "./StoreCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { log_cmd, log, error } from "./LogCommand.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
@@ -10,11 +10,12 @@ import { emptyContextMeta } from "../command/Empty.ts";
 import { obj_cmd } from "./ObjCommand.ts";
 import { deserialize } from "./ObjCommand.ts";
 import { checkFormat, isResult } from "../Check.ts";
+import { Store } from "../native/Native.ts";
 
 const empty = {format:"", content:""};
 const contextMeta: ContextMeta = emptyContextMeta;
 
-const contextWithStore = (store: Native) : CommandContext => ({
+const contextWithStore = (store: Store) : CommandContext => ({
   commands: new Map([
       ['store', store_cmd(store)],
       ['log', log_cmd(store)],

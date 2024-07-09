@@ -8,11 +8,12 @@ import { STORE } from "../command/CommandDefinition.ts";
 import { checkFormat } from "../Check.ts";
 import { Hash } from "../Ref.ts";
 import { hash } from "./HashCommand.ts";
+import { Store } from "../native/Native.ts";
 
 /**
  * Think filesystem. 
  */
-async function store(native: Native, context: CommandContext, code: string): Promise<string | undefined> {
+async function store(native: Store, context: CommandContext, code: string): Promise<string | undefined> {
   const trimmed = nonEmpty(code).trim();
   const parts = words(trimmed);
   if (parts.length < 2 || parts.length > 3) {
@@ -37,7 +38,7 @@ async function store(native: Native, context: CommandContext, code: string): Pro
   throw `Invalid store command: ${arg}`;
 }
 
-async function result_from_store(native: Native, context: CommandContext, code: string): Promise<CommandData> {
+async function result_from_store(native: Store, context: CommandContext, code: string): Promise<CommandData> {
   const value = await store(native, context, code);
   return { format: "string", content: value };
 }
@@ -48,19 +49,13 @@ const meta: CommandMeta = {
   source: import.meta.url,
 }
 
-export const store_cmd = (native:Native): CommandDefinition => ({
+export const store_cmd = (native:Store): CommandDefinition => ({
   meta,
   func: async (context: CommandContext, options: CommandData) => ({
     commands: context.commands,
     output: await result_from_store(native,context,isString(options.content))
   })
 });
-
-export interface Native {
-  get: (key:string)               => string | undefined;
-  set: (key:string, value:string) => Promise<string>;
-  snapshot: ()                    => Promise<Hash>;
-}
 
 interface Snapshot {
   hash: Hash;
@@ -75,7 +70,7 @@ async function snapsot_of(hashes: Map<string, Hash>): Promise<Snapshot> {
   return { hash: hashed, json };
 }
 
-export function memory(): Native {
+export function memory(): Store {
   const memory: Map<string, string> = new Map();
   const hashes = new Map<string, Hash>();
   const save = async (key: string, value: string) => {
@@ -95,7 +90,7 @@ export function memory(): Native {
   };
 }
 
-export function debug(): Native {
+export function debug(): Store {
   const memory: Map<string, string> = new Map();
   const hashes = new Map<string, Hash>();
   const save = async (key: string, value: string) => {
@@ -129,7 +124,7 @@ export function debug(): Native {
   };
 }
 
-export function filesystem(base: string, extension: string): Native {
+export function filesystem(base: string, extension: string): Store {
   isString(base);
   isString(extension);
   ensureDirSync(base);

@@ -4,12 +4,13 @@ import { version_cmd } from "../standard_commands/VersionCommand.ts";
 import { nop_cmd } from "../core_commands/NopCommand.ts";
 import { do_cmd } from "../core_commands/DoCommand.ts";
 import { log_cmd } from "../core_commands/LogCommand.ts";
-import { Native, store_cmd, filename_safe } from "../core_commands/StoreCommand.ts";
+import { store_cmd, filename_safe } from "../core_commands/StoreCommand.ts";
 import { io_cmd } from "../core_commands/IoCommand.ts";
 import { eval_cmd } from "../standard_commands/EvalCommand.ts";
 import { CommandCompletionRecord, CommandResult } from "../command/CommandDefinition.ts";
 import { CommandDefinition, DO } from "../command/CommandDefinition.ts";
-import { debug as memoryStore, Native as nativeStore } from "../core_commands/StoreCommand.ts";
+import { Store } from "../native/Native.ts";
+import { debug as memoryStore } from "../core_commands/StoreCommand.ts";
 import { memory as memoryEnv } from "../core_commands/EnvCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
@@ -29,7 +30,7 @@ import { deserialize } from "../core_commands/ObjCommand.ts";
 
 const eval_command = def_from_simple(eval_cmd);
 
-const commands = (store: nativeStore):Map<string, CommandDefinition> => new Map([
+const commands = (store: Store):Map<string, CommandDefinition> => new Map([
     ['nop', nop_cmd],
     ['version', def_from_simple(version_cmd)],
     ['echo', echo_cmd],
@@ -58,7 +59,7 @@ function fix(record: CommandCompletionRecord): CommandCompletionRecord {
     return record;
 }
   
-const context = (store: nativeStore): CommandContext => ({
+const context = (store: Store): CommandContext => ({
     meta: emptyContextMeta,
     commands: combine(commands(store)),
     input: emptyData,
@@ -68,12 +69,12 @@ async function run(pipeline: string): Promise<CommandCompletionRecord> {
     return await record_from_running(pipeline, 1);
 }
 
-function lookup_hash_in_store(key:Hash, store: Native): string {
+function lookup_hash_in_store(key:Hash, store: Store): string {
     const name = `hash/${filename_safe(key.value)}`;
     return store.get(name) || "";
 }
 
-async function record_from_store(store: Native, index: number): Promise<CommandCompletionRecord> {
+async function record_from_store(store: Store, index: number): Promise<CommandCompletionRecord> {
     const logged = await store.get(`log/${index}`);
     if (logged === undefined) {
         fail(`No log entry for index ${index}`);
