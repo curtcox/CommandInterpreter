@@ -8,13 +8,7 @@ import { store_cmd } from "./core_commands/StoreCommand.ts";
 import { memory, filesystem } from "./native/Stores.ts";
 import { emptyContextMeta } from "./command/Empty.ts";
 import { log_cmd } from "./core_commands/LogCommand.ts";
-
-const env:Map<string,string> = new Map();
-
-const native_env = {
-  get: (key:string) => env.get(key) || Deno.env.get(key) || `Missing environment variable: ${key}`,
-  set: (key:string, value:string) => env.set(key,value)
-}
+import { DenoEnv } from "./native/Envs.ts";
 
 const _memory_store = memory();
 const file_store = filesystem('store','json');
@@ -22,7 +16,7 @@ const native_store = file_store;
 
 const context = (format: string, content: string) : CommandContext => ({
     commands: combine([
-      def_from_simple(env_cmd(native_env)),
+      def_from_simple(env_cmd(DenoEnv)),
       store_cmd(native_store),
       log_cmd(native_store)
     ], commands),

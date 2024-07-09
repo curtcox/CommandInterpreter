@@ -6,7 +6,7 @@ import { nop_cmd } from "../core_commands/NopCommand.ts";
 import { emptyContextMeta, emptyData } from "./Empty.ts";
 import { log_cmd } from "../core_commands/LogCommand.ts";
 import { store_cmd } from "../core_commands/StoreCommand.ts";
-import { memory as memoryStore } from "../core_commands/StoreCommand.ts";
+import { memory as memoryStore } from "../native/Stores.ts";
 import { assertStringIncludes } from "https://deno.land/std@0.223.0/assert/assert_string_includes.ts";
 
 const commands: Map<string, CommandDefinition> = new Map();

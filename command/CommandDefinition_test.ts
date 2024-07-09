@@ -10,7 +10,7 @@ import { eval_cmd } from "../standard_commands/EvalCommand.ts";
 import { CommandCompletionRecord, CommandResult } from "../command/CommandDefinition.ts";
 import { CommandDefinition, DO } from "../command/CommandDefinition.ts";
 import { Store } from "../native/Native.ts";
-import { debug as memoryStore } from "../core_commands/StoreCommand.ts";
+import { debug as memoryStore } from "../native/Stores.ts";
 import { memory as memoryEnv } from "../core_commands/EnvCommand.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";

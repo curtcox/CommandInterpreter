@@ -5,12 +5,7 @@ import { store_cmd } from "../core_commands/StoreCommand.ts";
 import { memory } from "../native/Stores.ts";
 import { env_cmd } from "../core_commands/EnvCommand.ts";
 import { def_from_simple } from "../command/ToolsForCommandWriters.ts";
-
-const env:Map<string,string> = new Map();
-const native_env = {
-    get: (key:string) => env.get(key) || Deno.env.get(key) || `Missing environment variable: ${key}`,
-    set: (key:string, value:string) => env.set(key,value)
-  }
+import { DenoEnv } from "../native/Envs.ts";
 
 function run(prompt: string, content: string) {
     const store = memory();
@@ -19,7 +14,7 @@ function run(prompt: string, content: string) {
         commands: new Map([
             ['gpt', gpt_cmd],
             ['log', log_cmd(store)],
-            ['env', def_from_simple(env_cmd(native_env))],
+            ['env', def_from_simple(env_cmd(DenoEnv))],
             ['store', store_cmd(store)]
         ]),
         input: emptyData
