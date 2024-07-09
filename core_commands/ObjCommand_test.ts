@@ -17,6 +17,8 @@ import { obj_cmd, object, string, serialize, deserialize } from "./ObjCommand.ts
 import { nonEmpty } from "../Check.ts";
 import { dump } from "../Strings.ts";
 import { memory as memory_store } from "./StoreCommand.ts";
+import { version_cmd } from "../standard_commands/VersionCommand.ts";
+import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 
 const empty = emptyData;
 
@@ -138,11 +140,12 @@ function serialize_and_deserialize<T>(t: T) : T {
   return read;
 }
 
-function serialize_and_deserialize_command(original: CommandDefinition) {
+function serialize_and_deserialize_command(original: CommandDefinition): CommandDefinition {
   const written = serialize(original);
   const read = deserialize(written) as CommandDefinition;
   assertEquals(read.meta, original.meta);
   // assertEquals(read.func, original.func); <<<< TODO - fix this
+  return read;
 }
 
 Deno.test("Strings are round trippable", () => {
@@ -158,10 +161,33 @@ Deno.test("Numbers are round trippable", () => {
   serialize_and_deserialize(3.1415926535);
 });
 
+Deno.test("Self contained commands can be executed on deserialization", () => {
+  serialize_and_deserialize_command(nop_cmd).func(emptyContext, empty);
+});
+
+Deno.test("XXX Serialized command includes referenced external", () => {
+  const serialized = serialize(echo_cmd);
+  console.log({'x':echo_cmd.meta.source});
+  console.log({serialized});
+  assertStringIncludes(serialized, "echo");
+});
+
+Deno.test("XXX Commands that reference external functions can be executed on deserialization", () => {
+  serialize_and_deserialize_command(echo_cmd).func(emptyContext, empty);
+});
+
 Deno.test("Commands with no native dependencies are round trippable", () => {
   serialize_and_deserialize_command(nop_cmd);
   serialize_and_deserialize_command(emptyCommand);
   serialize_and_deserialize_command(obj_cmd);
+  serialize_and_deserialize_command(def_from_simple(version_cmd));
+});
+
+Deno.test("Commands with no native dependencies can be executed after deserialization", () => {
+  serialize_and_deserialize_command(nop_cmd).func(emptyContext, empty);
+  serialize_and_deserialize_command(echo_cmd).func(emptyContext, empty);
+  serialize_and_deserialize_command(emptyCommand).func(emptyContext, empty);
+  serialize_and_deserialize_command(def_from_simple(version_cmd)).func(emptyContext, empty);
 });
 
 Deno.test("Commands with native dependencies are round trippable", () => {

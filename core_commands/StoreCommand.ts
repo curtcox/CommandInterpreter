@@ -1,6 +1,6 @@
 import { isString, nonEmpty } from "../Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
-import { mapToString, words } from "../Strings.ts";
+import { words } from "../Strings.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std@0.224.0/path/mod.ts";

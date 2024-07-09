@@ -7,7 +7,7 @@ import { log_cmd } from "../core_commands/LogCommand.ts";
 import { Native, store_cmd, filename_safe } from "../core_commands/StoreCommand.ts";
 import { io_cmd } from "../core_commands/IoCommand.ts";
 import { eval_cmd } from "../standard_commands/EvalCommand.ts";
-import { CommandCompletionRecord } from "../command/CommandDefinition.ts";
+import { CommandCompletionRecord, CommandResult } from "../command/CommandDefinition.ts";
 import { CommandDefinition, DO } from "../command/CommandDefinition.ts";
 import { debug as memoryStore, Native as nativeStore } from "../core_commands/StoreCommand.ts";
 import { memory as memoryEnv } from "../core_commands/EnvCommand.ts";
@@ -41,6 +41,22 @@ const commands = (store: nativeStore):Map<string, CommandDefinition> => new Map(
     ['alias', alias_cmd],
     ['store', store_cmd(store)],
 ]);
+
+function fix(record: CommandCompletionRecord): CommandCompletionRecord {
+    const fresh = commands(memoryStore());
+    const path = record.context.commands;
+    path.set('log',fresh.get('log') as CommandDefinition);
+    path.set('do',fresh.get('do') as CommandDefinition);
+    path.set('io',fresh.get('io') as CommandDefinition);
+    path.set('obj',fresh.get('obj') as CommandDefinition);
+    path.set('store',fresh.get('store') as CommandDefinition);
+    path.set('version',fresh.get('version') as CommandDefinition);
+    path.set('eval',fresh.get('eval') as CommandDefinition);
+    path.set('alias',fresh.get('alias') as CommandDefinition);
+    path.set('x2',fresh.get('x2') as CommandDefinition);
+    // record.context.commands = fresh;
+    return record;
+}
   
 const context = (store: nativeStore): CommandContext => ({
     meta: emptyContextMeta,
@@ -49,7 +65,7 @@ const context = (store: nativeStore): CommandContext => ({
 });
   
 async function run(pipeline: string): Promise<CommandCompletionRecord> {
-    return await run_pipeline(pipeline, 1);
+    return await record_from_running(pipeline, 1);
 }
 
 function lookup_hash_in_store(key:Hash, store: Native): string {
@@ -57,10 +73,7 @@ function lookup_hash_in_store(key:Hash, store: Native): string {
     return store.get(name) || "";
 }
 
-async function run_pipeline(pipeline: string, index: number): Promise<CommandCompletionRecord> {
-    const store = memoryStore();
-    const ctx = context(store);
-    const result = await invoke(ctx, DO, {format: "string", content:pipeline});
+async function record_from_store(store: Native, index: number): Promise<CommandCompletionRecord> {
     const logged = await store.get(`log/${index}`);
     if (logged === undefined) {
         fail(`No log entry for index ${index}`);
@@ -71,53 +84,65 @@ async function run_pipeline(pipeline: string, index: number): Promise<CommandCom
     const data = deserialize(json) as CommandData;
     assertEquals(data.format, "CommandCompletionRecord");
     const record = data.content as CommandCompletionRecord;
-    assertEquals(record.result.output.content, result.output.content);
-    assertEquals(record.result.commands.size, result.commands.size);
-    assertEquals(record.result.commands.keys, result.commands.keys);
+    return record;
+}
+
+function assertEquivalentResults(a: CommandResult, b: CommandResult) {
+    assertEquals(a.output.content, b.output.content);
+    assertEquals(a.commands.size, b.commands.size);
+    assertEquals(a.commands.keys, b.commands.keys);
+}
+
+async function record_from_running(pipeline: string, index: number): Promise<CommandCompletionRecord> {
+    const store = memoryStore();
+    const ctx = context(store);
+    const result = await invoke(ctx, DO, {format: "string", content:pipeline});
+    const record = await record_from_store(store, index);
+    assertEquivalentResults(result, record.result);
     return record;
 }
   
 Deno.test("version command can be re-run from a command record", async () => {
     const record = await run("version");
-    const result = await rerun(record);
+    const result = await rerun(fix(record));
     assertEquals(result.output, record.result.output);
 });
 
 Deno.test("nop command can be re-run from a command record", async () => {
     const record = await run("nop");
-    const result = await rerun(record);
+    const result = await rerun(fix(record));
     assertEquals(result.output, record.result.output);
 });
 
 Deno.test("eval command can be re-run from a command record", async () => {
     const record = await run("eval 8 * 8");
-    const result = await rerun(record);
+    const result = await rerun(fix(record));
     assertEquals(result.output.content, "64");
     assertEquals(result.output, record.result.output);
 });
 
 Deno.test("eval command can be re-run from a pipeline record", async () => {
-    const record = await run_pipeline("alias x2 eval ${input} * 2 | eval 2 | x2",3);
-    const result = await rerun(record);
+    const record = await record_from_running("alias x2 eval ${input} * 2 | eval 2 | x2",3);
+    const result = await rerun(fix(record));
     assertEquals(result.output.content, "4");
     assertEquals(result.output, record.result.output);
 });
 
 Deno.test("eval can be continued from a pipeline record", async () => {
-    const record = await run_pipeline("alias x2 eval ${input} * 2 | eval 2 | x2",3);
-    const result = await resume(record, "x2 | x2");
+    const record = await record_from_running("alias x2 eval ${input} * 2 | eval 2 | x2",3);
+    const result = await resume(fix(record), "x2 | x2");
     assertEquals(result.output.content, "16");
 });
 
 Deno.test("version can be continued from a command record", async () => {
-    const record = await run_pipeline("version",1);
-    const result = await resume(record, 'eval "Mr. ${input}"');
+    const record = await record_from_running("version",1);
+    const result = await resume(fix(record), 'eval "Mr. ${input}"');
     assertEquals(result.output.content, 'Mr. 0.0.7');
 });
 
 Deno.test("nop can be continued from a command record", async () => {
-    const record = await run_pipeline("version | nop", 2);
-    const result = await resume(record, 'eval ">>> ${input} <<<"');
+    const record = await record_from_running("version | nop", 2);
+    const result = await resume(fix(record), 'eval ">>> ${input} <<<"');
     assertEquals(result.output.content, '>>> 0.0.7 <<<');
 });
 
