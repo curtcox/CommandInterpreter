@@ -5,3 +5,8 @@ export interface Store {
     set: (key:string, value:string) => Promise<string>;
     snapshot: ()                    => Promise<Hash>;
 }
+
+export interface Env {
+    get: (key:string) => string;
+    set: (key:string, value:string) => void;
+}

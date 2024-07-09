@@ -2,8 +2,9 @@ import { CommandContext } from "../command/CommandDefinition.ts";
 import { SimpleCommand, invoke } from "../command/ToolsForCommandWriters.ts";
 import { nonEmpty,isString } from "../Check.ts";
 import { words } from "../Strings.ts";
+import { Env } from "../native/Native.ts";
 
-function env(native: Native, code: string): string {
+function env(native: Env, code: string): string {
   const trimmed = nonEmpty(code).trim();
   const parts = words(trimmed);
   if (parts.length < 2 || parts.length > 3) {
@@ -23,9 +24,9 @@ function env(native: Native, code: string): string {
   throw `Invalid env command: ${trimmed}`;
 }
 
-export const env_cmd = (native:Native): SimpleCommand => ({
+export const env_cmd = (native:Env): SimpleCommand => ({
   name: "env",
-  doc: "Get, set, or supply an environment variables.",
+  doc: "Get, set, or supply an environment variable.",
   source: import.meta.url,
   func: (_context: CommandContext, options: string) => Promise.resolve(env(native,options))
 });
@@ -40,13 +41,7 @@ export const set = (context: CommandContext, key: string, value: string): void =
   invoke(context,"env", {format: "text", content:`set ${nonEmpty(key)} ${isString(value)}`});
 };
 
-
-export interface Native {
-  get: (key:string) => string;
-  set: (key:string, value:string) => void;
-}
-
-export function memory(): Native {
+export function memory(): Env {
   const memory: Map<string, string> = new Map();
   return {
     get: (key: string)                => { return memory.get(key) || ""; },
