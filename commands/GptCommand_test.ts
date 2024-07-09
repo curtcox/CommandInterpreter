@@ -13,14 +13,15 @@ const native_env = {
   }
 
 function run(prompt: string, content: string) {
+    const store = memory();
     const context = {
         meta:emptyContextMeta,
-        commands: {
-            'gpt': gpt_cmd,
-            'log': log_cmd,
-            'env': def_from_simple(env_cmd(native_env)),
-            'store': store_cmd(memory())
-        },
+        commands: new Map([
+            ['gpt', gpt_cmd],
+            ['log', log_cmd(store)],
+            ['env', def_from_simple(env_cmd(native_env))],
+            ['store', store_cmd(store)]
+        ]),
         input: emptyData
     }
     return gpt(context,prompt,content);

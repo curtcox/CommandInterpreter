@@ -7,7 +7,7 @@ import { emptyContextMeta } from "../command/Empty.ts";
 Deno.test("Version returns current version.", async () => {
   const empty = {format: "", content: ""};
   const context: CommandContext = {
-    commands: {"version": def_from_simple(version_cmd)},
+    commands: new Map([["version", def_from_simple(version_cmd)]]),
     meta: emptyContextMeta,
     input: empty,
   };

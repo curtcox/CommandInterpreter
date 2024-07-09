@@ -8,26 +8,26 @@ import { emptyContextMeta } from "../command/Empty.ts";
 Deno.test("unix returns commands with unix commands", async () => {
   const empty = {format: "", content: ""};
   const context: CommandContext = {
-    commands: {"unix": unix_cmd},
+    commands: new Map([["unix", unix_cmd]]),
     meta: emptyContextMeta,
     input: empty,
   };
   const options = empty;
   const result = await invoke(context, "unix", options);
   const commands = result.commands;
-  assertEquals(commands['cat'].meta.name, 'cat');
-  assertEquals(commands['curl'].meta.name, 'curl');
+  assertEquals(commands.get('cat')!.meta.name, 'cat');
+  assertEquals(commands.get('curl')!.meta.name, 'curl');
 });
 
 Deno.test("unix replaces existing echo", async () => {
   const empty = {format: "", content: ""};
   const context: CommandContext = {
-    commands: {"unix": unix_cmd, "echo": echo_cmd },
+    commands: new Map([["unix", unix_cmd], ["echo", echo_cmd]]),
     meta: emptyContextMeta,
     input: empty,
   };
   const options = empty;
   const result = await invoke(context, "unix", options);
   const commands = result.commands;
-  assertEquals(commands['echo'].meta.doc, 'Alias for run echo');
+  assertEquals(commands.get('echo')!.meta.doc, 'Alias for run echo');
 });

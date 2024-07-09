@@ -8,7 +8,7 @@ import { emptyContextMeta } from "../command/Empty.ts";
 Deno.test("date returns expected value.", async () => {
   const command = run_cmd;
   const context: CommandContext = {
-    commands: {"run": command},
+    commands: new Map([["run", command]]),
     meta: emptyContextMeta,
     input: {format: "", content: ""},
   };

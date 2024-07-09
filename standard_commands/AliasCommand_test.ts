@@ -20,7 +20,7 @@ const def = (name: string): CommandDefinition => ({
 });
 
 const resolve = (context: CommandContext, text: string): CommandDefinition => {
-  return context.commands[text];
+  return context.commands.get(text)!;
 }
 
 const contextWith = (commands: CommandDefinition[]) : CommandContext => ({
@@ -42,13 +42,13 @@ Deno.test("Text resolves to itself when no aliases", () => {
 Deno.test("Can use alias to supply prefix", async () => {
   const context = contextWith([alias_cmd]);
   const defined = await alias(context, { name: 'say', expansion: 'run say' });
-  assertEquals('say', defined.commands['say'].meta.name);
+  assertEquals('say', defined.commands.get('say')!.meta.name);
 });
 
 Deno.test("Can use alias to replace a command", async () => {
   const context = contextWith([alias_cmd, nop_cmd]);
   const defined = await alias(context, { name: 'nop', expansion: 'debug' });
-  const replaced = defined.commands['nop'];
+  const replaced = defined.commands.get('nop')!;
   assertEquals('nop', replaced.meta.name);
   assertEquals('Alias for debug', replaced.meta.doc);
 });

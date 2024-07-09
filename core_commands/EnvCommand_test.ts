@@ -6,7 +6,7 @@ import { ENV } from "../command/CommandDefinition.ts";
 import { emptyContextMeta, emptyData } from "../command/Empty.ts";
 
 const contextWithEnv = (env: CommandDefinition) : CommandContext => ({
-  commands: {"env": env},
+  commands: new Map([["env", env]]),
   meta: emptyContextMeta,
   input: emptyData,
 });

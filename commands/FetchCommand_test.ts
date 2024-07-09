@@ -12,7 +12,7 @@ interface IpResponse {
 Deno.test("Fetch return expected value.", async () => {
   const command = fetch_cmd;
   const context: CommandContext = {
-    commands: {"fetch": command},
+    commands: new Map([["fetch", command]]),
     meta: emptyContextMeta,
     input: {format: "", content: ""},
   };

@@ -6,6 +6,7 @@ import { CommandData, CommandError } from "./command/CommandDefinition.ts";
 import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
 import { refToJson } from "./core_commands/RefCommand.ts";
 import { deserialize } from "./core_commands/ObjCommand.ts";
+import { Ref } from "./Ref.ts";
 
 Deno.test("evaluate valid expression", async () => {
   const result = await evaluate("","","eval 2 + 3 * 4");
@@ -40,8 +41,8 @@ Deno.test("error is written to store", async () => {
     assertEquals(error.message, "Unexpected token '}'");
     const context = error.context;
     const logged = await get(context, "log/0");
-    const ref = { result: logged, replacements: new Map() };
-    const data = deserialize(refToJson(ref)) as CommandData;
+    const ref:Ref = { result: logged, replacements: new Map() };
+    const data = deserialize(refToJson(ref) as string) as CommandData;
     console.log({data});
     assertEquals(data.format, "CommandError");
     assertInstanceOf(data.content,CommandError);
