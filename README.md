@@ -8,6 +8,16 @@ A simple command interpreter.
 - Making commands should be easy
 - It should run everywhere
 
+## Docs
+- [Pitch](docs/pitch.md)
+- [Goals](docs/goals.md)
+- [Usage](docs/usage.md)
+- [Structure](docs/structure.md)
+- [Concepts](docs/concepts.md)
+- [Plans](docs/plans.md)
+- [History](docs/history.md)
+- [Examples](docs/examples.md)
+
 ## Build Status
 ![Deno Status](https://github.com/curtcox/CommandInterpreter/actions/workflows/deno.yml/badge.svg)
 
