@@ -4,7 +4,8 @@ import { CommandContext, CommandResult } from "./command/CommandDefinition.ts";
 import { def_from_simple, combine } from "./command/ToolsForCommandWriters.ts";
 import { run } from "./core_commands/DoCommand.ts";
 import { env_cmd } from "./core_commands/EnvCommand.ts";
-import { store_cmd, memory, filesystem } from "./core_commands/StoreCommand.ts";
+import { store_cmd } from "./core_commands/StoreCommand.ts";
+import { memory, filesystem } from "./native/Stores.ts";
 import { emptyContextMeta } from "./command/Empty.ts";
 import { log_cmd } from "./core_commands/LogCommand.ts";
 

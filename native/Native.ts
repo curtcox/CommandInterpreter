@@ -10,3 +10,8 @@ export interface Env {
     get: (key:string) => string;
     set: (key:string, value:string) => void;
 }
+
+export interface Natives {
+    env: Env;
+    store: Store;
+}

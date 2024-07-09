@@ -3,7 +3,7 @@ import { commands } from "./commands/Commands.ts";
 import { CommandContext, CommandDefinition, CommandResult } from "./command/CommandDefinition.ts";
 import { run } from "./core_commands/DoCommand.ts";
 import { aliases_from_lines } from "./standard_commands/AliasesCommand.ts";
-import { store_cmd, memory } from "./core_commands/StoreCommand.ts";
+import { store_cmd } from "./core_commands/StoreCommand.ts";
 import { combine, def_from_simple } from "./command/ToolsForCommandWriters.ts";
 import { unix } from "./standard_commands/UnixCommand.ts";
 import { define } from "./core_commands/DefineCommand.ts";
@@ -13,6 +13,7 @@ import { env_cmd } from "./core_commands/EnvCommand.ts";
 import { Result } from "./commands/RunCommand.ts";
 import { WIP, broken_on_CI } from "./TestConfig.ts";
 import { log_cmd } from "./core_commands/LogCommand.ts";
+import { memory } from "./native/Stores.ts";
 
 const memory_store = memory();
 const native_store = memory_store;

@@ -1,7 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
 import { CommandContext, CommandData, ContextMeta } from "../command/CommandDefinition.ts";
 import { CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
-import { store_cmd, memory as memory, get } from "./StoreCommand.ts";
+import { store_cmd } from "./StoreCommand.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { log_cmd, log, error } from "./LogCommand.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
@@ -11,6 +11,7 @@ import { obj_cmd } from "./ObjCommand.ts";
 import { deserialize } from "./ObjCommand.ts";
 import { checkFormat, isResult } from "../Check.ts";
 import { Store } from "../native/Native.ts";
+import { memory } from "../native/Stores.ts";
 
 const empty = {format:"", content:""};
 const contextMeta: ContextMeta = emptyContextMeta;

@@ -16,9 +16,9 @@ import { store_cmd } from "./StoreCommand.ts";
 import { obj_cmd, object, string, serialize, deserialize } from "./ObjCommand.ts";
 import { nonEmpty } from "../Check.ts";
 import { dump } from "../Strings.ts";
-import { memory as memory_store } from "./StoreCommand.ts";
 import { version_cmd } from "../standard_commands/VersionCommand.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
+import { memory as memory_store } from "../native/Stores.ts";
 
 const empty = emptyData;
 

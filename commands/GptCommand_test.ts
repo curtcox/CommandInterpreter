@@ -2,7 +2,7 @@ import { emptyContextMeta, emptyData } from "../command/Empty.ts";
 import { gpt, gpt_cmd } from "./GptCommand.ts";
 import { log_cmd } from "../core_commands/LogCommand.ts";
 import { store_cmd } from "../core_commands/StoreCommand.ts";
-import { memory } from "../core_commands/StoreCommand.ts";
+import { memory } from "../native/Stores.ts";
 import { env_cmd } from "../core_commands/EnvCommand.ts";
 import { def_from_simple } from "../command/ToolsForCommandWriters.ts";
 
