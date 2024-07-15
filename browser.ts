@@ -9,6 +9,11 @@ import { body } from './viewer/ObjectRequestHandler.ts';
 const app = new Hono()
 const debug = true
 
+// This is currently dependent on a local file system.
+// That is mostly limited to the 2 functions below.
+const readFile = (filePath: string) => Deno.readTextFileSync(filePath);
+const filesIn = (dir:string) => Deno.readDirSync(dir);
+
 interface FileInfo {
   id: string;
   record: CommandRecord;
@@ -44,9 +49,8 @@ const hashDir = './store/hash';
 
 function log_file_contents(name: string): CommandRecord {
   const filePath = `${logDir}/${name}`;
-  const text = Deno.readTextFileSync(filePath);
-  const lookup = (key:Hash) => Deno.readTextFileSync(`${hashDir}/${filename_safe(key.value)}.json`);
-  const json = lookupJson(text, lookup);
+  const lookup = (key:Hash) => readFile(`${hashDir}/${filename_safe(key.value)}.json`);
+  const json = lookupJson(readFile(filePath), lookup) as string;
   const data = JSON.parse(json) as CommandData;
   return data.content as CommandRecord;
 }
@@ -57,7 +61,7 @@ function sort(files: FileInfo[]): FileInfo[] {
 
 function logs(): FileInfo[] {
   const files = [];
-  for (const entry of Deno.readDirSync(logDir)) {
+  for (const entry of filesIn(logDir)) {
     if (entry.isFile) {
       const record = log_file_contents(entry.name);
       const id = entry.name.replace('.json', '');
