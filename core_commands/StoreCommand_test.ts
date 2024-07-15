@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { CommandContext, CommandData, CommandDefinition, CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandData, CommandDefinition } from "../command/CommandDefinition.ts";
 import { store_cmd, get, set } from "./StoreCommand.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { STORE } from "../command/CommandDefinition.ts";

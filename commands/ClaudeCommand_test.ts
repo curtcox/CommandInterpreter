@@ -5,7 +5,7 @@ import { store_cmd } from "../core_commands/StoreCommand.ts";
 import { memory } from "../native/Stores.ts";
 import { env_cmd } from "../core_commands/EnvCommand.ts";
 import { def_from_simple } from "../command/ToolsForCommandWriters.ts";
-import { DenoEnv } from "./native/Envs.ts";
+import { DenoEnv } from "../native/Envs.ts";
 
 function run(prompt: string, content: string) {
     const store = memory();
