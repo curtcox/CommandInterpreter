@@ -30,6 +30,11 @@ function command(c: HonoContext) : string {
   return c.req.query('q') || '';
 }
 
+get('/log/:id/*', async (c: HonoContext) => body('log'));
+get('/store/*', async (c: HonoContext) => body('store'));
+get('/command/*', async (c: HonoContext) => body('command'));
+get('/do/*', async (c: HonoContext) => body('do'));
+
 get('/', async (c: HonoContext) => body(
   p(a("https://github.com/curtcox/CommandInterpreter/","Command Interpreter")),
   form(textarea('command',command(c)),
