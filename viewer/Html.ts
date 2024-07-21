@@ -16,7 +16,8 @@ export function details(summary: string,details: string) { return `<details><sum
 export function html(...items: string[]) { return `<!DOCTYPE html><html>${join(items)}</html>`; }
 export function head(...items: string[]) { return `<head>${join(items)}</head>`; }
 export function body(...items: string[]) { return `<body>${join(items)}</body>`; }
-export function form(...items: string[]) { return `<form>${join(items)}</form>`; }
+export function form(...items: string[]) { return `<form method="post">${join(items)}</form>`; }
 export function textarea(name: string,text:string) { return `<textarea id="${name}" name="${name}">${text}</textarea>`; }
+export function hidden(name: string,value: string) { return `<input type="hidden" name="${name}" value="${value}">`; }
 export function button(name: string) { return `<input type="submit" value="${name}" name="${name}" formaction="${name}">`; }
 export function splat(...items: string[]) { return join(items); }

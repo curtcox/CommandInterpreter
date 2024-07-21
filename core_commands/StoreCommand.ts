@@ -66,5 +66,3 @@ export const get = async (context: CommandContext, name: string): Promise<string
   const result = await invoke(context, STORE, { format: "string", content: `get ${name}`});
   return await result.output.content as string;
 };
-
-export const filename_safe = (input: string): string => input.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

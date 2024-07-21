@@ -9,7 +9,6 @@ import { Store } from "../native/Native.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { serialize } from "./ObjCommand.ts";
 import { jsonToRef } from "./RefCommand.ts";
-import { filename_safe } from "./StoreCommand.ts";
 import { Hash } from "../Ref.ts";
 
 const meta: CommandMeta = {
@@ -44,7 +43,7 @@ const save_record = async (native: Store, record: CommandRecord): Promise<Hash> 
     const ref = await jsonToRef(serialized);
     native.set(`log/${record.id}`, ref.result);
     for (const [hash, subtree] of ref.replacements.entries()) {
-        native.set(`hash/${filename_safe(hash.value)}`, subtree);
+        native.set(`hash/${hash.value}`, subtree);
     }
     return snapshot;
 }

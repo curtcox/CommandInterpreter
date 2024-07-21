@@ -1,7 +1,6 @@
 import { Ref } from "../Ref.ts";
-import { Hash, HashLookup } from "../Ref.ts";
-import { hash } from "./HashCommand.ts";
-
+import { Hash, hash } from "../Ref.ts";
+import { HashLookup } from "../Lookup.ts";
 const cutoff = 88;
 
 function size(value: unknown): number {

@@ -26,6 +26,11 @@
 - POST /hash/:# VALUE -> redirect to /
 - POST /env/:key VALUE -> redirect to /
 
+## Path Parameters
+- t = timestamp
+- id = sequence number
+- # = hash
+
 ## Query Params
 - q = The query text if there is any.
 - c = The context if there is any.

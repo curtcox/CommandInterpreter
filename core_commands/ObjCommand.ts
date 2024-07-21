@@ -63,7 +63,7 @@ function replacer(_key: string, value: any): any {
 }
 
 function reviver(key: string, value: any): any {
-   if (typeof value === 'object' && value !== null) {
+  if (typeof value === 'object' && value !== null) {
      if (value.__type === 'Map')      return new Map(value.value);
      if (value.__type === 'Function') return eval(`(${nonEmpty(value.value)})`);
   }

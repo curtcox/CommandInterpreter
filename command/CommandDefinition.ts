@@ -1,3 +1,4 @@
+import { Hash } from "../Ref.ts";
 import { PreciseTime } from "../Time.ts";
 import { Duration } from "../Time.ts";
 
@@ -17,6 +18,9 @@ export const HASH = "hash";
 export const REF = "ref";
 export const ENV = "env";
 
+// A unique sequence number for the command.
+export type seq = number;
+
 // Input to, output from, or configuration for a command.
 export interface CommandData {
   format: string;
@@ -25,13 +29,13 @@ export interface CommandData {
 }
 
 export interface CommandInvocation {
-  id: number; // A unique sequence number for the command.
+  id: seq;
   command: CommandDefinition;
   options: CommandData;
 }
 
 export interface ContextMeta {
-  id: number; // The sequence number that the next command executed in this context will have.
+  id: seq; // The sequence number that the next command executed in this context will have.
   start: PreciseTime; // The time the context was created.
   source: CommandInvocation; // The command that produced this context.
   prior: CommandContext; // The context that produced this context.
@@ -98,7 +102,7 @@ export interface CommandCompletionRecord extends CommandRecord {
 // A record of a command that failed.
 export class CommandError extends Error implements CommandRecord {
   public context: CommandContext;
-  public id: number; // A unique sequence number for the command.
+  public id: seq; // A unique sequence number for the command.
   public command: CommandDefinition;
   public options: CommandData;
   public duration: Duration; // The duration of the command.
@@ -114,4 +118,13 @@ export class CommandError extends Error implements CommandRecord {
     this.duration = duration;
     this.store = new Map<string,object>();
   }
+}
+
+export interface ProcessorState {
+  id: seq;
+  checkpoint: Hash;
+}
+
+export interface CommandProcessor {
+  (command: string): Promise<ProcessorState>;
 }

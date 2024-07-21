@@ -4,8 +4,7 @@ import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts"
 import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std@0.224.0/path/mod.ts";
 import { STORE } from "../command/CommandDefinition.ts";
-import { Hash } from "../Ref.ts";
-import { hash } from "../core_commands/HashCommand.ts";
+import { Hash, hash } from "../Ref.ts";
 import { Store } from "../native/Native.ts";
 
 interface Snapshot {
@@ -34,7 +33,7 @@ export function memory(): Store {
          set: async (key: string, value: string) => { return await save(key,value); },
     snapshot: async ()                           => {
       const snap = await snapsot_of(hashes);
-      const name = `hash/${filename_safe(snap.hash.value)}`;
+      const name = `hash/${snap.hash.value}`;
       await save(name, snap.json);
       return snap.hash;
     }
@@ -68,7 +67,7 @@ export function debug(): Store {
     },
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
-      const name = `hash/${filename_safe(snap.hash.value)}`;
+      const name = `hash/${snap.hash.value}`;
       await save(name, snap.json);
       return snap.hash;
     }
@@ -96,7 +95,7 @@ export function filesystem(base: string, extension: string): Store {
          set: async (key: string, value: string) => { return await save(key,value); },
     snapshot: async ()                => {
       const snap = await snapsot_of(hashes);
-      const name = `hash/${filename_safe(snap.hash.value)}`;
+      const name = `hash/${snap.hash.value}`;
       await save(name, snap.json);
       return snap.hash;
     }
@@ -116,5 +115,3 @@ export const get = async (context: CommandContext, name: string): Promise<string
   const result = await invoke(context, STORE, { format: "string", content: `get ${name}`});
   return await result.output.content as string;
 };
-
-export const filename_safe = (input: string): string => input.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
