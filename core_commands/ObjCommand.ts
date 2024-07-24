@@ -3,6 +3,7 @@ import { CommandContext, CommandData, CommandDefinition, CommandError, CommandMe
 import { words } from "../Strings.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { OBJ } from "../command/CommandDefinition.ts";
+import { Hash } from "../Ref.ts";
 import { checkFormat } from "../Check.ts";
 import { dump } from '../Strings.ts';
 
@@ -49,6 +50,7 @@ export function deserialize(obj: string): any {
 }
 
 function replacer(_key: string, value: any): any {
+  if (value instanceof Hash)       return { __type: 'Hash',     value: value.value };
   if (value instanceof Map)        return { __type: 'Map',      value: Array.from(value.entries()) };
   if (typeof value === 'function') return { __type: 'Function', value: value.toString() };
   if (value instanceof CommandError) {
@@ -62,8 +64,14 @@ function replacer(_key: string, value: any): any {
   return value;
 }
 
+/**
+ * The pattern being developed here requires a growing amount of special casing.
+ * Moreover, it isn't obvious to the user how and when to add new special cases.
+ */
+
 function reviver(key: string, value: any): any {
   if (typeof value === 'object' && value !== null) {
+     if (value.__type === 'Hash')     return new Hash(value.value);
      if (value.__type === 'Map')      return new Map(value.value);
      if (value.__type === 'Function') return eval(`(${nonEmpty(value.value)})`);
   }

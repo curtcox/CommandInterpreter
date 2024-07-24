@@ -14,3 +14,11 @@ export interface HashLookup {
 export interface KeyLookup {
     (key: Key): string | undefined;
 }
+
+export function mapAsHashLookup(map: Map<Hash, string>): HashLookup {
+    return (key: Hash) => map.get(key);
+}
+
+export function mapAsKeyLookup(map: Map<Key, string>): KeyLookup {
+    return (key: Key) => map.get(key);
+}

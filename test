@@ -3,11 +3,13 @@ set -e
 
 # See https://docs.deno.com/runtime/manual/basics/testing/
 
+deno test --allow-all --fail-fast core_commands/Checkpoint_test.ts
+exit
+deno test --allow-all --fail-fast core_commands/ObjCommand_test.ts
 deno test --allow-all --fail-fast Strings_test.ts
 deno test --allow-all --fail-fast Key_test.ts
 deno test --allow-all --fail-fast Ref_test.ts
 deno test --allow-all --fail-fast core_commands/HashCommand_test.ts
-deno test --allow-all --fail-fast core_commands/Checkpoint_test.ts
 exit
 
 deno test --allow-all --fail-fast *_test.ts

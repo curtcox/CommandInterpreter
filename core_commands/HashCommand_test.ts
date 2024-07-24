@@ -30,9 +30,7 @@ Deno.test("Hash function returns hash of empty string when empty", async () => {
 });
 
 async function hashIs(input: string, expected: string) {
-  console.log(`hashIs(${input}, ${expected})`);
   assertEquals((await hash(input)).value, new Hash(expected).value);
-  console.log(`hashIs(${input}, ${expected}) done`);
 }
  
 Deno.test("Hash values are unique", async () => {

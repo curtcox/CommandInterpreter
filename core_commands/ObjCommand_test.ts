@@ -3,7 +3,7 @@ import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_in
 import { CommandContext, ContextMeta, CommandData, CommandDefinition, CommandCompletionRecord, CommandError } from "../command/CommandDefinition.ts";
 import { invoke, invoke_with_input, def_from_simple } from "../command/ToolsForCommandWriters.ts";
 import { OBJ } from "../command/CommandDefinition.ts";
-import { emptyContext, emptyContextMeta, emptyData } from "../command/Empty.ts";
+import { emptyContext, emptyContextMeta, emptyData, emptyHash } from "../command/Empty.ts";
 import { are_equal } from "../Objects.ts";
 import { Duration } from "../Time.ts";
 import { PreciseTime } from "../Time.ts";
@@ -19,6 +19,7 @@ import { dump } from "../Strings.ts";
 import { version_cmd } from "../standard_commands/VersionCommand.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { memory as memory_store } from "../native/Stores.ts";
+import { Hash } from "../Ref.ts";
 
 const empty = emptyData;
 
@@ -159,6 +160,10 @@ Deno.test("Numbers are round trippable", () => {
   serialize_and_deserialize(1);
   serialize_and_deserialize(42);
   serialize_and_deserialize(3.1415926535);
+});
+
+Deno.test("Hashes are round trippable", () => {
+  serialize_and_deserialize(emptyHash);
 });
 
 Deno.test("Self contained commands can be executed on deserialization", () => {
@@ -333,6 +338,16 @@ Deno.test("string can be loaded and saved via json", async () => {
   const from_store = await write_and_read({format:"commands",content});
 
   const loaded = from_store.content as string;
+
+  assertEquals(loaded, content);
+});
+
+Deno.test("hash can be loaded and saved via json", async () => {
+  const content = emptyHash;
+
+  const from_store = await write_and_read({format:"commands",content});
+
+  const loaded = from_store.content as Hash;
 
   assertEquals(loaded, content);
 });

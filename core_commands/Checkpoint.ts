@@ -1,7 +1,8 @@
 import { Hash, hash } from "../Ref.ts";
 import { seq } from "../command/CommandDefinition.ts";
-import { serialize } from "./ObjCommand.ts";
+import { deserialize, serialize } from "./ObjCommand.ts";
 import { HashLookup } from "../Lookup.ts";
+import { nonEmpty } from "../Check.ts";
   
 export class Checkpointer {
 
@@ -39,5 +40,8 @@ export async function hash_of(checkpoint: Checkpoint): Promise<Hash> {
 }
 
 export async function checkpoint_from(hash: Hash, lookup: HashLookup): Promise<Checkpoint> {
-    throw new Error("Not implemented");
+    const value: string = nonEmpty(lookup(hash));
+    const deserialized = await deserialize(value);
+    // console.log({deserialized});
+    return {values: deserialized.values, prior: new Hash(deserialized.prior.value), id: deserialized.id};
 }
