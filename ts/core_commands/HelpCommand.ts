@@ -8,7 +8,7 @@ export const help_cmd: SimpleCommand = {
 
   func: (context, options: string) => {
     const commands = context.commands;
-    const docs = Object.values(commands).map((command) => `${command.meta.name} : ${command.meta.doc}`);
+    const docs = Array.from(commands.values(), (command) => `${command.meta.name} : ${command.meta.doc}`);
     const help_text = `${options} 
     Available commands:
     ${docs.join("\n")}
