@@ -1,10 +1,10 @@
-import { isString } from "../Check.ts";
+import { isString } from "../core/Check.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { ensureDirSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 import { join, dirname } from "https://deno.land/std@0.224.0/path/mod.ts";
 import { STORE } from "../command/CommandDefinition.ts";
-import { Hash, hash } from "../Ref.ts";
+import { Hash, hash } from "../core/Ref.ts";
 import { Store } from "../native/Native.ts";
 
 interface Snapshot {

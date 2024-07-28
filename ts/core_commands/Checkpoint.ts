@@ -1,8 +1,8 @@
-import { Hash, hash } from "../Ref.ts";
+import { Hash, hash } from "../core/Ref.ts";
 import { seq } from "../command/CommandDefinition.ts";
 import { deserialize, serialize } from "./ObjCommand.ts";
-import { HashLookup } from "../Lookup.ts";
-import { nonEmpty } from "../Check.ts";
+import { HashLookup } from "../core/Lookup.ts";
+import { nonEmpty } from "../core/Check.ts";
   
 export class Checkpointer {
 

@@ -1,7 +1,7 @@
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { SimpleCommand, invoke } from "../command/ToolsForCommandWriters.ts";
-import { nonEmpty,isString } from "../Check.ts";
-import { words } from "../Strings.ts";
+import { nonEmpty,isString } from "../core/Check.ts";
+import { words } from "../core/Strings.ts";
 import { Env } from "../native/Native.ts";
 
 function env(native: Env, code: string): string {

@@ -1,14 +1,14 @@
-import { commands } from "./commands/Commands.ts";
-import { CommandRecord } from "./command/CommandDefinition.ts";
-import { CommandContext, CommandResult } from "./command/CommandDefinition.ts";
-import { def_from_simple, combine } from "./command/ToolsForCommandWriters.ts";
-import { run } from "./core_commands/DoCommand.ts";
-import { env_cmd } from "./core_commands/EnvCommand.ts";
-import { store_cmd } from "./core_commands/StoreCommand.ts";
-import { memory, filesystem } from "./native/Stores.ts";
-import { emptyContextMeta } from "./command/Empty.ts";
-import { log_cmd } from "./core_commands/LogCommand.ts";
-import { DenoEnv } from "./native/Envs.ts";
+import { commands } from "../commands/Commands.ts";
+import { CommandRecord } from "../command/CommandDefinition.ts";
+import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
+import { def_from_simple, combine } from "../command/ToolsForCommandWriters.ts";
+import { run } from "../core_commands/DoCommand.ts";
+import { env_cmd } from "../core_commands/EnvCommand.ts";
+import { store_cmd } from "../core_commands/StoreCommand.ts";
+import { memory, filesystem } from "../native/Stores.ts";
+import { emptyContextMeta } from "../command/Empty.ts";
+import { log_cmd } from "../core_commands/LogCommand.ts";
+import { DenoEnv } from "../native/Envs.ts";
 
 const _memory_store = memory();
 const file_store = filesystem('store','json');

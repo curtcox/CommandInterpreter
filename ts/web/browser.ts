@@ -1,10 +1,9 @@
 import { Hono, Context, HonoRequest } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
-import { CommandData, CommandRecord, CommandError, CommandCompletionRecord } from './command/CommandDefinition.ts';
-import { a, tr, th, td, bordered } from './viewer/Html.ts';
-import { lookupJson } from './core_commands/RefCommand.ts';
-import { Hash } from './Ref.ts';
-import { filename_safe } from "./core_commands/StoreCommand.ts";
-import { body } from './viewer/ObjectRequestHandler.ts';
+import { CommandData, CommandRecord, CommandError, CommandCompletionRecord } from '../command/CommandDefinition.ts';
+import { a, tr, th, td, bordered } from './Html.ts';
+import { lookupJson } from '../core_commands/RefCommand.ts';
+import { Hash } from '../core/Ref.ts';
+import { body } from './ObjectRequestHandler.ts';
 
 const app = new Hono()
 const debug = true
@@ -49,7 +48,7 @@ const hashDir = './store/hash';
 
 function log_file_contents(name: string): CommandRecord {
   const filePath = `${logDir}/${name}`;
-  const lookup = (key:Hash) => readFile(`${hashDir}/${filename_safe(key.value)}.json`);
+  const lookup = (key:Hash) => readFile(`${hashDir}/${key.value}.json`);
   const json = lookupJson(readFile(filePath), lookup) as string;
   const data = JSON.parse(json) as CommandData;
   return data.content as CommandRecord;

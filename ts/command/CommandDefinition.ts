@@ -1,6 +1,6 @@
-import { Hash } from "../Ref.ts";
-import { PreciseTime } from "../Time.ts";
-import { Duration } from "../Time.ts";
+import { Hash } from "../core/Ref.ts";
+import { PreciseTime } from "../core/Time.ts";
+import { Duration } from "../core/Time.ts";
 
 /**
  * Commands can be found by other commands in the context.

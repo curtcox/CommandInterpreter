@@ -1,6 +1,6 @@
 import { CommandContext, CommandDefinition, CommandData } from "../command/CommandDefinition.ts";
 import { get } from "../core_commands/EnvCommand.ts";
-import { isString } from "../Check.ts";
+import { isString } from "../core/Check.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 
 export interface Message {

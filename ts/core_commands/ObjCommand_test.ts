@@ -4,9 +4,9 @@ import { CommandContext, ContextMeta, CommandData, CommandDefinition, CommandCom
 import { invoke, invoke_with_input, def_from_simple } from "../command/ToolsForCommandWriters.ts";
 import { OBJ } from "../command/CommandDefinition.ts";
 import { emptyContext, emptyContextMeta, emptyData, emptyHash } from "../command/Empty.ts";
-import { are_equal } from "../Objects.ts";
-import { Duration } from "../Time.ts";
-import { PreciseTime } from "../Time.ts";
+import { are_equal } from "../core/Objects.ts";
+import { Duration } from "../core/Time.ts";
+import { PreciseTime } from "../core/Time.ts";
 import { CommandResult } from "../command/CommandDefinition.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { emptyCommand } from "../command/Empty.ts";
@@ -14,12 +14,12 @@ import { log_cmd } from "./LogCommand.ts";
 import { env_cmd, memory as memory_env } from "./EnvCommand.ts";
 import { store_cmd } from "./StoreCommand.ts";
 import { obj_cmd, object, string, serialize, deserialize } from "./ObjCommand.ts";
-import { nonEmpty } from "../Check.ts";
-import { dump } from "../Strings.ts";
+import { nonEmpty } from "../core/Check.ts";
+import { dump } from "../core/Strings.ts";
 import { version_cmd } from "../standard_commands/VersionCommand.ts";
 import { echo_cmd } from "../standard_commands/EchoCommand.ts";
 import { memory as memory_store } from "../native/Stores.ts";
-import { Hash } from "../Ref.ts";
+import { Hash } from "../core/Ref.ts";
 
 const empty = emptyData;
 

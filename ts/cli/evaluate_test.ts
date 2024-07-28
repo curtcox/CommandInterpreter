@@ -1,12 +1,12 @@
 import { assertEquals, assert, fail } from "https://deno.land/std/assert/mod.ts";
 import evaluate from "./evaluate.ts";
-import { get } from "./core_commands/StoreCommand.ts";
-import { are_equal } from "./Objects.ts";
-import { CommandData, CommandError } from "./command/CommandDefinition.ts";
+import { get } from "../core_commands/StoreCommand.ts";
+import { are_equal } from "../core/Objects.ts";
+import { CommandData, CommandError } from "../command/CommandDefinition.ts";
 import { assertInstanceOf } from "https://deno.land/std@0.223.0/assert/assert_instance_of.ts";
-import { refToJson } from "./core_commands/RefCommand.ts";
-import { deserialize } from "./core_commands/ObjCommand.ts";
-import { Ref } from "./Ref.ts";
+import { refToJson } from "../core_commands/RefCommand.ts";
+import { deserialize } from "../core_commands/ObjCommand.ts";
+import { Ref } from "../core/Ref.ts";
 
 Deno.test("evaluate valid expression", async () => {
   const result = await evaluate("","","eval 2 + 3 * 4");

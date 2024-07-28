@@ -1,4 +1,4 @@
-import { isString, nonEmpty } from "../Check.ts";
+import { isString, nonEmpty } from "../core/Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandResult } from "../command/CommandDefinition.ts";
 import { command_with_replacements } from "../command/ToolsForCommandWriters.ts";
 

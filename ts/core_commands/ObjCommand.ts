@@ -1,11 +1,11 @@
-import { check, isString, nonEmpty } from "../Check.ts";
+import { check, isString, nonEmpty } from "../core/Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandError, CommandMeta } from "../command/CommandDefinition.ts";
-import { words } from "../Strings.ts";
+import { words } from "../core/Strings.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { OBJ } from "../command/CommandDefinition.ts";
-import { Hash } from "../Ref.ts";
-import { checkFormat } from "../Check.ts";
-import { dump } from '../Strings.ts';
+import { Hash } from "../core/Ref.ts";
+import { checkFormat } from "../core/Check.ts";
+import { dump } from '../core/Strings.ts';
 
 /**
  * For converting between strings and objects. 

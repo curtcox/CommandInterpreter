@@ -1,9 +1,9 @@
-import { isString, nonEmpty } from "../Check.ts";
+import { isString, nonEmpty } from "../core/Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
-import { words } from "../Strings.ts";
+import { words } from "../core/Strings.ts";
 import { invoke, invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { STORE } from "../command/CommandDefinition.ts";
-import { checkFormat } from "../Check.ts";
+import { checkFormat } from "../core/Check.ts";
 import { Store } from "../native/Native.ts";
 
 /**

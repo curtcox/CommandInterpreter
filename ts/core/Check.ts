@@ -1,5 +1,5 @@
 import { dump } from './Strings.ts';
-import { CommandData, CommandResult } from './command/CommandDefinition.ts';
+import { CommandData, CommandResult } from '../command/CommandDefinition.ts';
 
 /**
  * Check that this thing is defined, because we really need it to be defined, OK? 

@@ -1,7 +1,7 @@
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { SimpleCommand, simple } from "../command/ToolsForCommandWriters.ts";
 import { command_with_replacements } from "../command/ToolsForCommandWriters.ts";
-import { isString } from "../Check.ts";
+import { isString } from "../core/Check.ts";
 
 function safeEval(context: CommandContext, code: string) {
   // console.log({code});

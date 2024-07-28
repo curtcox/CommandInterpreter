@@ -1,6 +1,6 @@
 import { CommandDefinition, CommandContext, CommandData } from "../command/CommandDefinition.ts";
 import { combine } from "../command/ToolsForCommandWriters.ts";
-import { nonEmpty } from "../Check.ts";
+import { nonEmpty } from "../core/Check.ts";
 
 const url = "URL";
 const javascript = "application/javascript";

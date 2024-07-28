@@ -1,8 +1,8 @@
-import { isString, nonEmpty } from "../Check.ts";
+import { isString, nonEmpty } from "../core/Check.ts";
 import { CommandDefinition, CommandMeta, CommandData } from "../command/CommandDefinition.ts";
 import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
 import { combine } from "../command/ToolsForCommandWriters.ts";
-import { head, tail } from "../Strings.ts";
+import { head, tail } from "../core/Strings.ts";
 import { run } from "../core_commands/DoCommand.ts";
 
 const meta: CommandMeta = {

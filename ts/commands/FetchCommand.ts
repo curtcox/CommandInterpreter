@@ -1,5 +1,5 @@
 import { CommandDefinition, CommandMeta, CommandResult, CommandContext, CommandData } from "../command/CommandDefinition.ts";
-import { check } from "../Check.ts";
+import { check } from "../core/Check.ts";
 
 function as_fetch_options(data: CommandData): FetchOptions {
   const options = data.content as FetchOptions;

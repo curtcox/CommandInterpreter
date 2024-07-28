@@ -1,6 +1,6 @@
-import { Ref } from "../Ref.ts";
-import { Hash, hash } from "../Ref.ts";
-import { HashLookup } from "../Lookup.ts";
+import { Ref } from "../core/Ref.ts";
+import { Hash, hash } from "../core/Ref.ts";
+import { HashLookup } from "../core/Lookup.ts";
 const cutoff = 88;
 
 function size(value: unknown): number {

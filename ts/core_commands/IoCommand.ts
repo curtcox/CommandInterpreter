@@ -1,4 +1,4 @@
-import { check, isString } from "../Check.ts";
+import { check, isString } from "../core/Check.ts";
 import { CommandContext } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
 import { CommandMeta } from "../command/CommandDefinition.ts";

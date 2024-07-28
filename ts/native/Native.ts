@@ -1,4 +1,4 @@
-import { Hash } from "../Ref.ts";
+import { Hash } from "../core/Ref.ts";
 
 export interface Store {
     get: (key:string)               => string | undefined;

@@ -1,8 +1,8 @@
 import { assertEquals } from "https://deno.land/std/assert/mod.ts";
 import { isData } from "./Check.ts";
 import { isResult } from "./Check.ts";
-import { emptyCommand, emptyCommandMeta, emptyContext, emptyData } from "./command/Empty.ts";
-import { CommandData, CommandResult } from "./command/CommandDefinition.ts";
+import { emptyCommand, emptyCommandMeta, emptyContext, emptyData } from "../command/Empty.ts";
+import { CommandData, CommandResult } from "../command/CommandDefinition.ts";
 
 function pass(f: (x: unknown) => unknown, value: unknown) {
     assertEquals(f(value), value);

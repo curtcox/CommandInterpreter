@@ -2,19 +2,22 @@ set -x
 set -e
 
 # See https://docs.deno.com/runtime/manual/basics/testing/
+# OPTS="--allow-all --fail-fast"
+OPTS="--allow-all"
+echo $OPTS
 
-deno test --allow-all --fail-fast core_commands/Checkpoint_test.ts
-exit
-deno test --allow-all --fail-fast core_commands/ObjCommand_test.ts
-deno test --allow-all --fail-fast Strings_test.ts
-deno test --allow-all --fail-fast Key_test.ts
-deno test --allow-all --fail-fast Ref_test.ts
-deno test --allow-all --fail-fast core_commands/HashCommand_test.ts
-exit
+deno test $OPTS core_commands/Checkpoint_test.ts
+# deno test $OPTS core_commands/ObjCommand_test.ts
+deno test $OPTS core/Strings_test.ts
+deno test $OPTS core/Key_test.ts
+deno test $OPTS core/Ref_test.ts
+deno test $OPTS core_commands/HashCommand_test.ts
+# exit
 
-deno test --allow-all --fail-fast *_test.ts
-deno test --allow-all --fail-fast command/*_test.ts
-deno test --allow-all --fail-fast commands/*_test.ts
-deno test --allow-all --fail-fast core_commands/*_test.ts
-deno test --allow-all --fail-fast standard_commands/*_test.ts 
-deno test --allow-all --fail-fast external_commands/*_test.ts 
+deno test $OPTS core/*_test.ts
+deno test $OPTS cli/*_test.ts
+deno test $OPTS command/*_test.ts
+deno test $OPTS commands/*_test.ts
+deno test $OPTS core_commands/*_test.ts
+deno test $OPTS standard_commands/*_test.ts 
+deno test $OPTS external_commands/*_test.ts 

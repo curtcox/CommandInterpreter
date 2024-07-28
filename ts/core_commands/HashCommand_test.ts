@@ -4,8 +4,8 @@ import { hash_cmd } from "./HashCommand.ts";
 import { emptyContextMeta, emptyHash } from "../command/Empty.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { nop_cmd } from "./NopCommand.ts";
-import { Hash, hash } from "../Ref.ts";
-import { empty } from "../Ref.ts";
+import { Hash, hash } from "../core/Ref.ts";
+import { empty } from "../core/Ref.ts";
 
 Deno.test("Hash command returns hash of string when empty", async () => {
   const empty = {format: "string", content: ""};

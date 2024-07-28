@@ -1,9 +1,9 @@
-import { isString } from "../Check.ts";
+import { isString } from "../core/Check.ts";
 import { CommandContext, CommandData, CommandDefinition, CommandMeta } from "../command/CommandDefinition.ts";
-import { words } from "../Strings.ts";
+import { words } from "../core/Strings.ts";
 import { HASH } from "../command/CommandDefinition.ts";
-import { checkFormat } from "../Check.ts";
-import { hash } from "../Ref.ts";
+import { checkFormat } from "../core/Check.ts";
+import { hash } from "../core/Ref.ts";
 
 /**
  * For creating a hash of a string.

@@ -1,10 +1,10 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/mod.ts";
-import { Hash, hash } from "../Ref.ts";
+import { Hash, hash } from "../core/Ref.ts";
 import { Checkpoint, Checkpointer } from "./Checkpoint.ts";
 import { emptyHash } from "../command/Empty.ts";
 import { hash_of, checkpoint_from } from "./Checkpoint.ts";
 import { serialize } from "./ObjCommand.ts";
-import { mapAsHashLookup } from "../Lookup.ts";
+import { mapAsHashLookup } from "../core/Lookup.ts";
 
 // Can restore:
 // - seq 0 with no values

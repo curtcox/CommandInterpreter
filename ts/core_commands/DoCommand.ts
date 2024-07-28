@@ -1,4 +1,4 @@
-import { Duration } from "../Time.ts";
+import { Duration } from "../core/Time.ts";
 import { CommandDefinition } from "../command/CommandDefinition.ts";
 import { CommandMeta } from "../command/CommandDefinition.ts";
 import { CommandData } from "../command/CommandDefinition.ts";
@@ -7,14 +7,14 @@ import { CommandContext } from "../command/CommandDefinition.ts";
 import { CommandResult } from "../command/CommandDefinition.ts";
 import { CommandCompletionRecord } from "../command/CommandDefinition.ts";
 import { HELP, DO } from "../command/CommandDefinition.ts";
-import { head, tail } from "../Strings.ts";
+import { head, tail } from "../core/Strings.ts";
 import { invoke } from "../command/ToolsForCommandWriters.ts";
 import { log } from "./LogCommand.ts";
-import { isString } from "../Check.ts";
+import { isString } from "../core/Check.ts";
 import { nop_cmd } from "./NopCommand.ts";
 import { convert_data, DataConversion } from "./IoCommand.ts";
-import { are_equal } from "../Objects.ts";
-import { now_now } from "../Time.ts";
+import { are_equal } from "../core/Objects.ts";
+import { now_now } from "../core/Time.ts";
 
 const meta: CommandMeta = {
     name: DO,

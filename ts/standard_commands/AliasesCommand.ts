@@ -2,9 +2,9 @@ import { CommandDefinition, CommandMeta, CommandData } from "../command/CommandD
 import { CommandContext, CommandResult } from "../command/CommandDefinition.ts";
 import { combine } from "../command/ToolsForCommandWriters.ts";
 import { alias, Alias } from "./AliasCommand.ts";
-import { check } from "../Check.ts";
-import { head, tail } from "../Strings.ts";
-import { nonEmpty } from "../Check.ts";
+import { check } from "../core/Check.ts";
+import { head, tail } from "../core/Strings.ts";
+import { nonEmpty } from "../core/Check.ts";
 
 const meta: CommandMeta = {
     name: 'aliases',

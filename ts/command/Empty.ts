@@ -1,6 +1,6 @@
 import { CommandContext, CommandData, CommandInvocation, ContextMeta, CommandDefinition } from "./CommandDefinition.ts";
-import { Duration, PreciseTime } from "../Time.ts";
-import { empty } from "../Ref.ts";
+import { Duration, PreciseTime } from "../core/Time.ts";
+import { empty } from "../core/Ref.ts";
 
 export const emptyData: CommandData = { format: "", content: "" };
 export const timeZero: PreciseTime = { millis: 0, micros: 0 };

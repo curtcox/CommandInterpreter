@@ -1,4 +1,4 @@
-import { check } from "../Check.ts";
+import { check } from "../core/Check.ts";
 import { CommandDefinition, CommandMeta, CommandData } from "../command/CommandDefinition.ts";
 import { CommandRecord, CommandError } from "../command/CommandDefinition.ts";
 import { CommandResult } from "../command/CommandDefinition.ts";
@@ -9,7 +9,7 @@ import { Store } from "../native/Native.ts";
 import { invoke_with_input } from "../command/ToolsForCommandWriters.ts";
 import { serialize } from "./ObjCommand.ts";
 import { jsonToRef } from "./RefCommand.ts";
-import { Hash } from "../Ref.ts";
+import { Hash } from "../core/Ref.ts";
 
 const meta: CommandMeta = {
     name: LOG,

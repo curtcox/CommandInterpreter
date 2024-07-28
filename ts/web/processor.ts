@@ -1,6 +1,6 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
 import { Context as HonoContext } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
-import { button, body, form, textarea, p, a, hidden } from './viewer/Html.ts';
+import { button, body, form, textarea, p, a, hidden } from '../web/Html.ts';
 
 const app = new Hono()
 
