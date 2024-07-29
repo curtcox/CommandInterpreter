@@ -1,0 +1,2 @@
+cd web
+deno run --allow-all --watch single_command_page.ts

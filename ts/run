@@ -1,4 +1,0 @@
-cd cli
-# deno run -c tsconfig.json --allow-all main.ts --commands="$1" $2
-deno run --allow-all main.ts --commands="$1" $2
-cd -
