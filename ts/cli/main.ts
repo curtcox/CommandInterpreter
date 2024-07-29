@@ -2,9 +2,14 @@ import { parseArgs } from "https://deno.land/std/cli/parse_args.ts";
 import { readAll } from "https://deno.land/std@0.180.0/streams/read_all.ts";
 import evaluate from "./evaluate.ts";
 import { log } from "../core/Logger.ts";
+import { memory, filesystem } from "../native/Stores.ts";
 
 const { args } = Deno;
 const { commands, verbose, format } = parseArgs(args);
+
+const _memory_store = memory();
+const file_store = filesystem('store','json');
+const store = file_store;
 
 if (!commands) {
   console.error("Please provide commands to run.");
@@ -24,7 +29,7 @@ const read_input = async () => {
 const input = await read_input();
 const input_format = format || "string";
 
-const result = await evaluate(input_format, input, commands);
+const result = await evaluate(store, input_format, input, commands);
 if (verbose) {
   log({commands, verbose, result});
 } else {
