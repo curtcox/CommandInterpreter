@@ -1,7 +1,5 @@
 import { parseArgs } from "https://deno.land/std/cli/parse_args.ts";
 import { readAll } from "https://deno.land/std@0.180.0/streams/read_all.ts";
-// import { equal } from "https://deno.land/x/equal/mod.ts";
-// import { parseArgs, readAll } from "./deps.ts";
 import evaluate from "./evaluate.ts";
 import { log } from "../core/Logger.ts";
 

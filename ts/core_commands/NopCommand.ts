@@ -6,7 +6,7 @@ import { CommandDefinition, CommandContext, CommandData } from "../command/Comma
 export const nop_cmd: CommandDefinition = {
     meta: {
       name: "nop",
-      doc: "",
+      doc: "No operation. This command does nothing.",
       source: import.meta.url,
     },
     func: (context: CommandContext, _options: CommandData) => {

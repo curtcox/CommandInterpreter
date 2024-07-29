@@ -1,6 +1,6 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
 import { Context as HonoContext } from 'https://deno.land/x/hono@v4.2.9/mod.ts'
-import { button, body, form, textarea, p } from '../web/Html.ts';
+import { button, body, form, textarea, p, pre } from '../web/Html.ts';
 
 function trap(c: HonoContext, f: (c: HonoContext) => unknown) : unknown {
   try {
@@ -50,6 +50,6 @@ export interface Processor {
 }
 
 export function register_routes(app: Hono, processor: Processor) {
-  post(app, '/do', async (hc: HonoContext) => await body(command_prompt(hc), await command_result(hc, processor)));
+  post(app, '/do', async (hc: HonoContext) => await body(command_prompt(hc), pre(await command_result(hc, processor))));
    get(app, '/',   async (hc: HonoContext) => await body(command_prompt(hc)));
 }
